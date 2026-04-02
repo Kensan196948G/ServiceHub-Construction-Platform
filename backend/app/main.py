@@ -6,7 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import structlog
 
 from app.core.config import settings
-from app.api.v1 import auth as auth_router
+from app.core.exceptions import register_exception_handlers
+from app.api.v1.router import api_router
+from app.middleware.logging import RequestLoggingMiddleware
 
 logger = structlog.get_logger()
 
@@ -19,7 +21,8 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json",
 )
 
-# ── CORS ─────────────────────────────────────────────
+# ── ミドルウェア登録 ──────────────────────────────────
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -28,8 +31,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── 例外ハンドラ登録 ──────────────────────────────────
+register_exception_handlers(app)
+
 # ── ルーター登録 ──────────────────────────────────────
-app.include_router(auth_router.router, prefix=settings.API_V1_PREFIX)
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 # ── ヘルスチェック ────────────────────────────────────
 @app.get("/health", tags=["System"])
