@@ -1,197 +1,139 @@
-# 単体テスト計画（Unit Test Plan）
+# 単体テスト計画
 
-## 1. 単体テスト方針
+## 概要
+各モジュールの単体テスト方針・実装ガイドラインを定義する。
 
-| 方針 | 内容 |
-|------|------|
-| テスト対象 | サービス層・ユーティリティ・バリデーション |
-| テストフレームワーク | pytest（バックエンド）/ Vitest（フロントエンド） |
-| カバレッジ目標 | 85%以上（バックエンド）/ 70%以上（フロントエンド） |
-| テスト設計手法 | TDD（テスト駆動開発）推奨 |
-| モック戦略 | 外部依存（DB・API・メール）はモック化 |
+## バックエンド単体テスト（pytest）
 
----
-
-## 2. バックエンド単体テスト
-
-### テスト対象優先度
-
-| 優先度 | 対象 | 理由 |
-|--------|------|------|
-| 高 | ビジネスロジック（service.py） | コアロジック・バグ影響大 |
-| 高 | バリデーション（schemas.py） | セキュリティ・データ品質 |
-| 高 | セキュリティ機能（認証・認可） | セキュリティリスク |
-| 中 | ユーティリティ関数 | 再利用性高 |
-| 低 | データアクセス層（repository.py） | DBに近い＝統合テストでカバー |
-
-### テスト命名規則
-
-```python
-# パターン: test_{メソッド名}_{条件}_{期待結果}
-class TestProjectService:
-    
-    async def test_create_project_with_valid_data_returns_project(self):
-        """正常なデータで案件を作成できる"""
-        ...
-    
-    async def test_create_project_with_duplicate_code_raises_conflict_error(self):
-        """重複する案件コードで409エラーが発生する"""
-        ...
-    
-    async def test_get_project_by_nonexistent_id_returns_none(self):
-        """存在しないIDの案件取得でNoneを返す"""
-        ...
+### ディレクトリ構造
+```
+tests/
+├── unit/
+│   ├── test_auth.py
+│   ├── test_projects.py
+│   ├── test_daily_reports.py
+│   ├── test_photos.py
+│   ├── test_safety.py
+│   ├── test_cost.py
+│   └── conftest.py
+├── integration/
+└── e2e/
 ```
 
-### サービス層テスト例
-
+### テストケース例（認証モジュール）
 ```python
-# tests/unit/test_services/test_project_service.py
+# tests/unit/test_auth.py
 import pytest
-from unittest.mock import AsyncMock, MagicMock
-from uuid import uuid4
-from app.modules.projects.service import ProjectService
-from app.modules.projects.schemas import ProjectCreate
+from unittest.mock import AsyncMock, patch
+from app.services.auth import AuthService
+from app.schemas.auth import LoginRequest
 
-class TestProjectService:
+class TestAuthService:
     @pytest.fixture
-    def mock_repo(self):
-        return AsyncMock()
+    def auth_service(self):
+        return AuthService()
     
-    @pytest.fixture
-    def service(self, mock_repo):
-        return ProjectService(repo=mock_repo)
+    async def test_login_success(self, auth_service):
+        """正常なログインのテスト"""
+        mock_user = {"id": 1, "email": "test@example.com", "role": "admin"}
+        with patch.object(auth_service, 'get_user_by_email', return_value=mock_user):
+            with patch.object(auth_service, 'verify_password', return_value=True):
+                result = await auth_service.login(
+                    LoginRequest(email="test@example.com", password="password")
+                )
+                assert result.access_token is not None
+                assert result.token_type == "bearer"
     
-    async def test_create_project_success(self, service, mock_repo):
-        """案件作成の正常系テスト"""
-        # Arrange
-        project_data = ProjectCreate(
-            name="○○ビル新築工事",
-            project_code="PRJ-001",
-            start_date="2026-06-01",
-        )
-        expected_project = MagicMock(id=uuid4(), name="○○ビル新築工事")
-        mock_repo.create.return_value = expected_project
-        mock_repo.get_by_code.return_value = None  # 重複なし
-        
-        # Act
-        result = await service.create_project(project_data, creator_id=uuid4())
-        
-        # Assert
-        assert result.name == "○○ビル新築工事"
-        mock_repo.create.assert_called_once()
+    async def test_login_invalid_password(self, auth_service):
+        """無効なパスワードのテスト"""
+        with patch.object(auth_service, 'verify_password', return_value=False):
+            with pytest.raises(UnauthorizedException):
+                await auth_service.login(
+                    LoginRequest(email="test@example.com", password="wrong")
+                )
     
-    async def test_create_project_duplicate_code_raises_error(self, service, mock_repo):
-        """重複案件コードでエラー発生テスト"""
-        # Arrange
-        existing_project = MagicMock(id=uuid4())
-        mock_repo.get_by_code.return_value = existing_project
-        
-        project_data = ProjectCreate(
-            name="案件名",
-            project_code="EXISTING-001",
-        )
-        
-        # Act & Assert
-        with pytest.raises(ProjectCodeDuplicateError):
-            await service.create_project(project_data, creator_id=uuid4())
+    async def test_token_expiry(self, auth_service):
+        """トークン有効期限のテスト"""
+        expired_token = "expired.jwt.token"
+        with pytest.raises(TokenExpiredException):
+            await auth_service.verify_token(expired_token)
 ```
 
----
+### テストカバレッジ要件
 
-## 3. フロントエンド単体テスト
+| モジュール | 目標カバレッジ | 優先度 |
+|-----------|-------------|--------|
+| 認証・認可 | 95% | 最高 |
+| 工事案件管理 | 85% | 高 |
+| 日報管理 | 85% | 高 |
+| 写真管理 | 80% | 中 |
+| 安全品質管理 | 85% | 高 |
+| 原価管理 | 90% | 高 |
+| AI支援機能 | 75% | 中 |
+| ITSM機能 | 80% | 中 |
 
-### テスト対象
-
-| 対象 | ツール | 目的 |
-|------|--------|------|
-| カスタムHooks | Vitest | データフェッチ・状態管理 |
-| ユーティリティ関数 | Vitest | 日付フォーマット・計算 |
-| バリデーション | Vitest | フォームバリデーション |
-| UIコンポーネント | Vitest + Testing Library | レンダリング・インタラクション |
-
-### コンポーネントテスト例
+## フロントエンド単体テスト（Jest + Testing Library）
 
 ```typescript
-// tests/unit/components/ProjectStatusBadge.test.tsx
-import { render, screen } from '@testing-library/react';
-import { ProjectStatusBadge } from '@/components/ProjectStatusBadge';
+// __tests__/components/ProjectList.test.tsx
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { ProjectList } from '@/components/ProjectList'
+import { mockProjects } from '@/test/fixtures'
 
-describe('ProjectStatusBadge', () => {
-  test.each([
-    ['active', '施工中', 'bg-green-100'],
-    ['planning', '受注前', 'bg-blue-100'],
-    ['completed', '完了', 'bg-gray-100'],
-    ['cancelled', '中止', 'bg-red-100'],
-  ])('ステータス %s のバッジを正しく表示する', (status, label, className) => {
-    render(<ProjectStatusBadge status={status as ProjectStatus} />);
+describe('ProjectList', () => {
+  it('案件一覧を正しく表示する', async () => {
+    render(<ProjectList projects={mockProjects} />)
     
-    const badge = screen.getByText(label);
-    expect(badge).toBeInTheDocument();
-    expect(badge).toHaveClass(className);
-  });
-});
+    expect(screen.getByText('山田建設 本社ビル改修工事')).toBeInTheDocument()
+    expect(screen.getByText('進行中')).toBeInTheDocument()
+  })
+  
+  it('検索フィルターが動作する', async () => {
+    const user = userEvent.setup()
+    render(<ProjectList projects={mockProjects} />)
+    
+    await user.type(screen.getByPlaceholderText('案件名で検索'), '本社')
+    
+    await waitFor(() => {
+      expect(screen.getByText('山田建設 本社ビル改修工事')).toBeInTheDocument()
+    })
+  })
+  
+  it('空の案件リストでエラーを表示しない', () => {
+    render(<ProjectList projects={[]} />)
+    expect(screen.getByText('案件が見つかりません')).toBeInTheDocument()
+  })
+})
 ```
 
----
+## モック戦略
 
-## 4. カバレッジ設定
+| 依存コンポーネント | モック方法 | ツール |
+|-----------------|---------|--------|
+| データベース | インメモリDB | pytest-asyncio, SQLite |
+| 外部API | レスポンスモック | responses, httpx Mock |
+| Redis | フェイクRedis | fakeredis |
+| ファイルストレージ | ローカルディレクトリ | tmpdir |
+| OpenAI API | モックレスポンス | unittest.mock |
+| メール送信 | メールバックエンド | Django test utils相当 |
 
-### Python（pytest-cov）
+## テスト実行設定
 
 ```ini
-# .coveragerc
-[run]
-source = app
-omit =
-    app/migrations/*
-    app/main.py
-    */tests/*
-    */conftest.py
-
-[report]
-fail_under = 80
-exclude_lines =
-    pragma: no cover
-    def __repr__
-    raise NotImplementedError
-    if TYPE_CHECKING:
+# pytest.ini
+[pytest]
+asyncio_mode = auto
+testpaths = tests/unit
+addopts = 
+    --cov=app
+    --cov-report=html
+    --cov-report=xml
+    --cov-fail-under=80
+    -v
+    --tb=short
+markers =
+    slow: 実行に時間がかかるテスト
+    auth: 認証関連テスト
+    database: DB操作テスト
 ```
-
-### TypeScript（Vitest）
-
-```typescript
-// vitest.config.ts
-export default defineConfig({
-  test: {
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
-      thresholds: {
-        lines: 70,
-        functions: 70,
-        branches: 65,
-        statements: 70,
-      },
-      exclude: [
-        'src/main.tsx',
-        'src/routeTree.gen.ts',
-        '**/*.d.ts',
-        '**/index.ts',
-      ],
-    },
-  },
-});
-```
-
----
-
-## 5. テスト実施スケジュール
-
-| フェーズ | テスト対象 | 期間 | 目標カバレッジ |
-|---------|----------|------|------------|
-| Phase1 | 認証・共通基盤 | 2026/04/02〜04/30 | 85% |
-| Phase2 | 案件管理・日報管理 | 2026/05/01〜05/30 | 85% |
-| Phase3 | 写真・安全・原価 | 2026/06/01〜06/30 | 85% |
-| Phase4 | ITSM・ナレッジ・AI | 2026/07/01〜07/31 | 80% |
-| Phase5 | 全モジュール統合 | 2026/08/01〜08/31 | 90% |

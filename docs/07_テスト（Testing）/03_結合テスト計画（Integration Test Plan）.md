@@ -1,162 +1,144 @@
-# 結合テスト計画（Integration Test Plan）
+# 結合テスト計画
 
-## 1. 結合テスト概要
+## 概要
+複数モジュール間の連携、APIエンドポイントのテスト、外部サービス統合のテスト計画。
 
-| 項目 | 内容 |
-|------|------|
-| 目的 | APIエンドポイントとデータベース・ストレージの結合動作確認 |
-| 対象 | 全APIエンドポイント（103エンドポイント） |
-| ツール | pytest + httpx + TestContainers |
-| 実行タイミング | CI（毎PR）+ Staging環境（日次） |
-| 合否基準 | 全テスト合格 / カバレッジ全エンドポイント100% |
+## 結合テスト範囲
 
----
+```mermaid
+graph LR
+    A[APIエンドポイント] --> B[サービス層]
+    B --> C[リポジトリ層]
+    C --> D[(PostgreSQL)]
+    B --> E[(Redis)]
+    B --> F[MinIO]
+    B --> G[OpenAI API]
+```
 
-## 2. テスト環境構成
-
-### テストデータベース（TestContainers）
+## APIエンドポイントテスト
 
 ```python
-# conftest.py - テスト用PostgreSQL
+# tests/integration/test_projects_api.py
 import pytest
-from testcontainers.postgres import PostgresContainer
+from httpx import AsyncClient
+from app.main import app
+from tests.fixtures import create_test_user, create_test_project
 
-@pytest.fixture(scope="session")
-def postgres_container():
-    """テスト用PostgreSQLコンテナを起動"""
-    with PostgresContainer("postgres:16") as postgres:
-        yield postgres
-
-@pytest.fixture(scope="session")
-async def test_db_engine(postgres_container):
-    """テスト用DBエンジン（マイグレーション済み）"""
-    engine = create_async_engine(postgres_container.get_connection_url())
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield engine
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-```
-
----
-
-## 3. テストシナリオ一覧
-
-### 認証API結合テスト
-
-| テストID | シナリオ | 期待結果 |
-|---------|---------|---------|
-| INT-AUTH-001 | 正常ログイン（ID/PW + MFA） | 200 + JWTトークン返却 |
-| INT-AUTH-002 | パスワード誤りでログイン | 401エラー |
-| INT-AUTH-003 | 5回失敗でアカウントロック | 423エラー |
-| INT-AUTH-004 | アクセストークン更新 | 200 + 新しいトークン |
-| INT-AUTH-005 | 無効なトークンでアクセス | 401エラー |
-| INT-AUTH-006 | 期限切れトークンでアクセス | 401エラー |
-
-### 工事案件API結合テスト
-
-| テストID | シナリオ | 期待結果 |
-|---------|---------|---------|
-| INT-PRJ-001 | PM権限での案件作成 | 201 + 案件データ |
-| INT-PRJ-002 | 作業員権限での案件作成（権限なし） | 403エラー |
-| INT-PRJ-003 | 案件一覧取得（担当者フィルタ） | 200 + 担当案件のみ |
-| INT-PRJ-004 | 案件進捗更新 | 200 + 更新後データ |
-| INT-PRJ-005 | 存在しない案件の取得 | 404エラー |
-| INT-PRJ-006 | 他担当者の案件を更新（権限なし） | 403エラー |
-
-### 日報API結合テスト
-
-```python
-class TestReportIntegration:
-    async def test_create_and_approve_report(
-        self, client, worker_header, supervisor_header, test_project
-    ):
-        """日報作成から承認までの一連のフロー"""
-        # 作業員が日報を作成
-        create_resp = await client.post(
-            "/api/v1/reports",
+class TestProjectsAPI:
+    @pytest.fixture(autouse=True)
+    async def setup(self, db_session):
+        self.user = await create_test_user(db_session)
+        self.token = await get_auth_token(self.user)
+        self.headers = {"Authorization": f"Bearer {self.token}"}
+    
+    async def test_create_project(self, async_client: AsyncClient):
+        """工事案件作成APIテスト"""
+        response = await async_client.post(
+            "/api/v1/projects",
             json={
-                "project_id": str(test_project.id),
-                "work_date": "2026-06-10",
-                "content": "1階躯体工事施工",
-                "regular_hours": 8.0,
+                "name": "テスト工事案件",
+                "client_name": "テスト株式会社",
+                "start_date": "2026-04-01",
+                "end_date": "2026-09-30",
+                "budget": 50000000
             },
-            headers=worker_header,
+            headers=self.headers
         )
-        assert create_resp.status_code == 201
-        report_id = create_resp.json()["id"]
+        assert response.status_code == 201
+        data = response.json()
+        assert data["name"] == "テスト工事案件"
+        assert data["status"] == "planning"
+    
+    async def test_get_project_list(self, async_client: AsyncClient):
+        """工事案件一覧取得APIテスト"""
+        await create_test_project(self.user)
         
-        # 現場監督が日報を承認
-        approve_resp = await client.post(
-            f"/api/v1/reports/{report_id}/approve",
-            json={"comment": "確認済み"},
-            headers=supervisor_header,
+        response = await async_client.get(
+            "/api/v1/projects?page=1&per_page=10",
+            headers=self.headers
         )
-        assert approve_resp.status_code == 200
-        assert approve_resp.json()["status"] == "approved"
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] >= 1
+        assert len(data["items"]) >= 1
+    
+    async def test_unauthorized_access(self, async_client: AsyncClient):
+        """未認証アクセスのテスト"""
+        response = await async_client.get("/api/v1/projects")
+        assert response.status_code == 401
+```
+
+## データベース統合テスト
+
+| テストシナリオ | 確認内容 | 期待結果 |
+|-------------|---------|---------|
+| トランザクション整合性 | 複数テーブル更新 | ACID保証 |
+| 外部キー制約 | 親レコード削除時 | CASCADE/RESTRICT動作 |
+| インデックス効果 | 大量データ検索 | <100ms |
+| 同時書き込み | 楽観的ロック | 競合検出・リトライ |
+| コネクションプール | 高負荷時 | 適切な接続管理 |
+
+## 外部サービス統合テスト
+
+### OpenAI API統合
+```python
+async def test_ai_daily_report_summary():
+    """AI日報要約機能の統合テスト"""
+    report_content = "本日は基礎工事の配筋作業を実施した..."
+    
+    with patch('openai.AsyncOpenAI') as mock_openai:
+        mock_openai.return_value.chat.completions.create.return_value = \
+            AsyncMock(choices=[{"message": {"content": "基礎工事配筋作業完了"}}])
         
-        # 工数が原価管理に自動連携されることを確認
-        work_hours_resp = await client.get(
-            f"/api/v1/costs/work-hours?project_id={test_project.id}",
-            headers=supervisor_header,
-        )
-        assert any(
-            h["report_id"] == report_id 
-            for h in work_hours_resp.json()["items"]
-        )
+        result = await ai_service.summarize_report(report_content)
+        assert "基礎工事" in result
+        assert len(result) < len(report_content)
 ```
 
----
-
-## 4. モジュール間結合テスト
-
-### 日報→原価連携
-
-```
-テストシナリオ: INT-CROSS-001
-目的: 日報承認時に工数データが原価管理に自動連携されること
-手順:
-  1. 工事案件を作成（予算登録済み）
-  2. 作業員が日報を作成（8時間）
-  3. 現場監督が日報を承認
-  4. 原価管理の工数集計APIで工数が計上されていることを確認
-期待結果: 承認後1秒以内に工数データが反映される
-```
-
-### 写真→日報添付
-
-```
-テストシナリオ: INT-CROSS-002
-目的: アップロードした写真を日報に添付できること
-手順:
-  1. 写真をアップロード（POST /photos/upload）
-  2. 日報作成時に写真IDを指定
-  3. 日報詳細取得で写真が添付されていることを確認
-期待結果: 日報に写真が添付され、サムネイルURLが返却される
+### MinIOファイルストレージ統合
+```python
+async def test_photo_upload_flow():
+    """写真アップロードフローの統合テスト"""
+    test_image = b"fake_image_data"
+    
+    photo_id = await photo_service.upload(
+        file_data=test_image,
+        filename="test.jpg",
+        project_id=1
+    )
+    
+    # アップロード確認
+    photo = await photo_service.get(photo_id)
+    assert photo.url is not None
+    assert photo.file_size > 0
+    
+    # サムネイル自動生成確認
+    assert photo.thumbnail_url is not None
 ```
 
----
+## テスト実行順序と依存関係
 
-## 5. エラーケーステスト
+| テストグループ | 前提条件 | 実行順序 |
+|-------------|---------|---------|
+| 認証テスト | なし | 1 |
+| マスタデータテスト | 認証 | 2 |
+| 案件管理テスト | 認証+マスタ | 3 |
+| 日報テスト | 案件管理 | 4 |
+| 写真テスト | 案件管理 | 5 |
+| AI機能テスト | 案件+日報 | 6 |
 
-| カテゴリ | テスト内容 | 期待HTTP Status |
-|---------|----------|---------------|
-| バリデーション | 必須フィールド欠如 | 422 |
-| バリデーション | データ型不正 | 422 |
-| 認証 | トークンなし | 401 |
-| 認可 | 権限不足 | 403 |
-| 存在確認 | 存在しないID | 404 |
-| 重複 | 一意制約違反 | 409 |
-| サーバーエラー | DB接続失敗 | 503 |
+## 結合テスト環境セットアップ
 
----
+```bash
+# docker-compose.test.yml起動
+docker-compose -f docker-compose.test.yml up -d
 
-## 6. 実施スケジュール
+# テスト用データベース初期化
+python scripts/init_test_db.py
 
-| フェーズ | 実施内容 | 期間 |
-|---------|---------|------|
-| Phase1完了時 | 認証・ユーザー管理API | 2026/04/28〜04/30 |
-| Phase2完了時 | 案件・日報API | 2026/05/28〜05/30 |
-| Phase3完了時 | 写真・安全・原価API | 2026/06/28〜06/30 |
-| Phase4完了時 | ITSM・ナレッジAPI | 2026/07/29〜07/31 |
-| Phase5 | 全モジュール結合 + 回帰テスト | 2026/08/01〜08/31 |
+# 結合テスト実行
+pytest tests/integration/ -v --tb=short
+
+# クリーンアップ
+docker-compose -f docker-compose.test.yml down -v
+```

@@ -1,5 +1,7 @@
 # WBS（Work Breakdown Structure）
 
+**リポジトリURL:** https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+
 ## 1. WBS概要
 
 | 項目 | 内容 |

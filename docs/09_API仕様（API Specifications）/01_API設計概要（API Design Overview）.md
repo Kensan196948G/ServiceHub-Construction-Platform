@@ -1,29 +1,46 @@
-# 📡 API設計概要（API Design Overview）
+# API設計概要
 
-## 設計方針
-- **RESTful API** 設計
-- **OpenAPI 3.0** 仕様書管理
-- **APIファースト** 開発
-- バージョニング: `/api/v1/`
+## 概要
+ServiceHub建設プラットフォームのREST API設計の基本方針・共通仕様を定義する。
 
-## 共通仕様
+## API設計原則
 
-### 認証
-```http
-Authorization: Bearer {JWT_TOKEN}
+- **RESTful設計**: リソース指向アーキテクチャ
+- **バージョニング**: URLパスベース（/api/v1/）
+- **認証**: JWT Bearer Token
+- **レスポンス形式**: JSON
+- **文字エンコーディング**: UTF-8
+
+## ベースURL
+
+```
+本番: https://api.servicehub.example.com/api/v1
+ステージング: https://staging-api.servicehub.example.com/api/v1
+開発: http://localhost:8000/api/v1
 ```
 
-### レスポンス形式
+## 共通リクエストヘッダー
+
+| ヘッダー名 | 必須 | 値の例 | 説明 |
+|-----------|------|--------|------|
+| Authorization | ✅ | Bearer {jwt_token} | JWT認証トークン |
+| Content-Type | ✅(POST/PUT) | application/json | リクエスト形式 |
+| Accept | - | application/json | レスポンス形式 |
+| X-Request-ID | - | uuid-v4 | リクエスト追跡ID |
+| Accept-Language | - | ja | 言語設定 |
+
+## 共通レスポンス形式
+
+### 成功レスポンス
 ```json
 {
   "success": true,
-  "data": {},
+  "data": { ... },
   "meta": {
-    "total": 100,
-    "page": 1,
-    "per_page": 20
-  },
-  "errors": []
+    "request_id": "550e8400-e29b-41d4-a716-446655440000",
+    "timestamp": "2026-04-15T09:30:00+09:00",
+    "version": "1.0.0"
+  }
 }
 ```
 
@@ -31,42 +48,83 @@ Authorization: Bearer {JWT_TOKEN}
 ```json
 {
   "success": false,
-  "errors": [
-    {
-      "code": "VALIDATION_ERROR",
-      "message": "入力値が不正です",
-      "field": "name"
-    }
-  ]
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "入力値が不正です",
+    "details": [
+      {
+        "field": "start_date",
+        "message": "開始日は終了日より前でなければなりません"
+      }
+    ]
+  },
+  "meta": {
+    "request_id": "550e8400-e29b-41d4-a716-446655440000",
+    "timestamp": "2026-04-15T09:30:00+09:00"
+  }
 }
 ```
 
-### HTTPステータスコード
-| コード | 意味 |
-|--------|------|
-| 200 | 成功 |
-| 201 | 作成成功 |
-| 400 | リクエスト不正 |
-| 401 | 認証エラー |
-| 403 | 権限なし |
-| 404 | リソース未存在 |
-| 422 | バリデーションエラー |
-| 500 | サーバーエラー |
-
-## モジュール別APIベースURL
-
-| モジュール | ベースURL |
-|-----------|-----------|
-| 認証 | `/api/v1/auth` |
-| 案件管理 | `/api/v1/projects` |
-| 日報管理 | `/api/v1/daily-reports` |
-| 写真管理 | `/api/v1/photos` |
-| 安全・品質 | `/api/v1/safety`, `/api/v1/quality` |
-| 原価管理 | `/api/v1/costs` |
-| ITSM | `/api/v1/itsm` |
-| ナレッジ・AI | `/api/v1/knowledge`, `/api/v1/ai` |
-
-## ページネーション
+### ページネーションレスポンス
+```json
+{
+  "success": true,
+  "data": {
+    "items": [...],
+    "pagination": {
+      "total": 150,
+      "page": 1,
+      "per_page": 20,
+      "total_pages": 8,
+      "has_next": true,
+      "has_prev": false
+    }
+  }
+}
 ```
-GET /api/v1/projects?page=1&per_page=20&sort=created_at&order=desc
-```
+
+## HTTPステータスコード
+
+| コード | 意味 | 使用場面 |
+|--------|------|---------|
+| 200 | OK | 取得・更新成功 |
+| 201 | Created | 新規作成成功 |
+| 204 | No Content | 削除成功 |
+| 400 | Bad Request | バリデーションエラー |
+| 401 | Unauthorized | 認証エラー |
+| 403 | Forbidden | 権限エラー |
+| 404 | Not Found | リソース未存在 |
+| 409 | Conflict | 重複エラー |
+| 422 | Unprocessable Entity | 処理不能 |
+| 429 | Too Many Requests | レート制限 |
+| 500 | Internal Server Error | サーバーエラー |
+
+## エラーコード一覧
+
+| エラーコード | HTTP | 説明 |
+|-----------|------|------|
+| AUTH_TOKEN_MISSING | 401 | トークン未提供 |
+| AUTH_TOKEN_EXPIRED | 401 | トークン期限切れ |
+| AUTH_TOKEN_INVALID | 401 | トークン不正 |
+| PERMISSION_DENIED | 403 | 権限不足 |
+| RESOURCE_NOT_FOUND | 404 | リソース未存在 |
+| VALIDATION_ERROR | 400 | バリデーションエラー |
+| DUPLICATE_RESOURCE | 409 | 重複データ |
+| RATE_LIMIT_EXCEEDED | 429 | レート制限超過 |
+| INTERNAL_ERROR | 500 | 内部エラー |
+
+## レート制限
+
+| エンドポイント種別 | 制限 | ウィンドウ |
+|-----------------|------|---------|
+| 認証API | 10回 | 1分 |
+| 通常API | 100回 | 1分 |
+| ファイルアップロード | 20回 | 1分 |
+| AI機能API | 30回 | 1分 |
+| 一括処理API | 5回 | 1分 |
+
+## APIドキュメント
+
+- OpenAPI 3.1仕様: `/api/v1/openapi.json`
+- Swagger UI: `/api/v1/docs`
+- ReDoc: `/api/v1/redoc`
