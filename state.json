@@ -1,28 +1,30 @@
 {
   "project": "ServiceHub Construction Platform",
   "repository": "https://github.com/Kensan196948G/ServiceHub-Construction-Platform",
-  "phase": "Phase1_Foundation",
-  "loop_count": 3,
+  "phase": "Phase2_CoreModules",
+  "loop_count": 4,
   "loop": "Close",
   "status": "running",
-  "current_sprint": "Sprint1",
+  "current_sprint": "Sprint2",
   "development_start": "2026-04-02",
   "target_release": "2026-10-02",
   "daily_hours": 8,
   "last_update": "2026-04-02T10:30:00+09:00",
-  "completed_issues": [1, 2, 3, 4, 5],
-  "open_prs": [15, 16, 17, 18, 19],
+  "completed_issues": [1, 2, 3, 4, 5, 6, 7],
+  "open_prs": [15, 16, 17, 18, 19, 20, 21],
   "next_targets": [
-    "Issue #6: 工事案件管理モジュール実装（Phase2開始）",
-    "Issue #7: 日報管理モジュール実装",
-    "docs更新・PR一括マージ確認"
+    "Issue #8: 写真・資料管理モジュール（MinIO連携）",
+    "Issue #9: 安全・品質管理モジュール",
+    "Issue #10: 原価・工数管理モジュール"
   ],
   "metrics": {
-    "files_created": 60,
-    "open_issues": 9,
-    "completed_issues": 5,
-    "open_prs": 5,
-    "test_files": 3,
-    "ci_workflows": 3
+    "files_created": 85,
+    "open_issues": 7,
+    "completed_issues": 7,
+    "open_prs": 7,
+    "test_files": 4,
+    "ci_workflows": 3,
+    "api_endpoints": 12,
+    "db_migrations": 4
   }
 }
