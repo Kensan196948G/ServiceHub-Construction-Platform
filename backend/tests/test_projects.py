@@ -1,10 +1,12 @@
 """
 工事案件APIテスト
 """
-import pytest
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import AsyncMock, patch, MagicMock
+
 import uuid
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+from pydantic import ValidationError
 
 from app.main import app
 from app.schemas.project import ProjectCreate
@@ -40,8 +42,8 @@ def test_project_create_schema_validation():
         client_name="テスト発注者",
     )
     assert p.project_code == "PRJ-001"
-    assert p.status is None or True  # デフォルト値なし（モデルで設定）
+    # ProjectCreateにstatusフィールドは存在しない（DBモデルのデフォルト値で設定）
 
     # project_codeが短すぎる場合
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError, match="project_code"):
         ProjectCreate(project_code="AB", name="x", client_name="y")

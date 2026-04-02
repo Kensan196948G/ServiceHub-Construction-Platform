@@ -1,9 +1,9 @@
 """工事案件管理 統合テスト"""
+
 from __future__ import annotations
+
 import pytest
 from httpx import AsyncClient
-from tests.conftest import make_token
-from app.core.rbac import UserRole
 
 
 @pytest.mark.asyncio
@@ -49,12 +49,16 @@ async def test_projects_crud_lifecycle(client: AsyncClient, admin_headers: dict)
 @pytest.mark.asyncio
 async def test_projects_viewer_cannot_create(client: AsyncClient, viewer_headers: dict):
     """VIEWERは案件作成不可"""
-    resp = await client.post("/api/v1/projects/", json={
-        "name": "VIEWER案件",
-        "project_code": "PRJ-V-001",
-        "description": "test",
-        "status": "PLANNING",
-    }, headers=viewer_headers)
+    resp = await client.post(
+        "/api/v1/projects/",
+        json={
+            "name": "VIEWER案件",
+            "project_code": "PRJ-V-001",
+            "description": "test",
+            "status": "PLANNING",
+        },
+        headers=viewer_headers,
+    )
     assert resp.status_code == 403
 
 

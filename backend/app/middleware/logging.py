@@ -2,12 +2,14 @@
 リクエストロギングミドルウェア
 全リクエスト/レスポンスを構造化ログで記録（監査ログ）
 """
+
 import time
 import uuid
+
+import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
-import structlog
 
 logger = structlog.get_logger()
 
@@ -18,10 +20,13 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     SKIP_PATHS = {"/health", "/docs", "/redoc", "/api/v1/openapi.json"}
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        if request.url.path in self.SKIP_PATHS:
-            return await call_next(request)
-
         request_id = str(uuid.uuid4())
+
+        if request.url.path in self.SKIP_PATHS:
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            return response
+
         start_time = time.perf_counter()
 
         # リクエストログ

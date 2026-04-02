@@ -1,8 +1,8 @@
 """
 認証APIスキーマ（Pydantic v2）
 """
+
 from pydantic import BaseModel, EmailStr, field_validator
-import re
 
 
 class LoginRequest(BaseModel):

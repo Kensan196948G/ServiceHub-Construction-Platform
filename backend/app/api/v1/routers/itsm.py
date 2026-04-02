@@ -3,43 +3,56 @@ ITSM運用管理API（ISO20000準拠）
 インシデント管理・変更要求管理
 ロール制御: IT_OPERATOR以上
 """
-from __future__ import annotations
-import uuid
-import secrets
-from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, and_, func
 
+from __future__ import annotations
+
+import secrets
+import uuid
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import and_, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
-from app.core.rbac import require_roles, UserRole
-from app.models.itsm import Incident, ChangeRequest
-from app.schemas.itsm import (
-    IncidentCreate, IncidentUpdate, IncidentResponse,
-    ChangeRequestCreate, ChangeRequestUpdate, ChangeRequestResponse,
-)
+from app.models.itsm import ChangeRequest, Incident
 from app.schemas.common import ApiResponse, PaginatedResponse
+from app.schemas.itsm import (
+    ChangeRequestCreate,
+    ChangeRequestResponse,
+    IncidentCreate,
+    IncidentResponse,
+    IncidentUpdate,
+)
 
 router = APIRouter(prefix="/itsm", tags=["ITSM管理"])
 
 
 def _gen_incident_number() -> str:
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d")
+    ts = datetime.now(UTC).strftime("%Y%m%d")
     return f"INC-{ts}-{secrets.token_hex(3).upper()}"
 
 
 def _gen_change_number() -> str:
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d")
+    ts = datetime.now(UTC).strftime("%Y%m%d")
     return f"CHG-{ts}-{secrets.token_hex(3).upper()}"
 
 
 # ---------- Incident ----------
 
-@router.post("/incidents", response_model=ApiResponse[IncidentResponse], status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/incidents",
+    response_model=ApiResponse[IncidentResponse],
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_incident(
     payload: IncidentCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])),
+    current_user=Depends(
+        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+    ),
 ):
     """インシデント起票"""
     incident = Incident(
@@ -57,7 +70,10 @@ async def create_incident(
     db.add(incident)
     await db.commit()
     await db.refresh(incident)
-    return ApiResponse(data=IncidentResponse.model_validate(incident), message="インシデントを起票しました")
+    return ApiResponse(
+        data=IncidentResponse.model_validate(incident),
+        message="インシデントを起票しました",
+    )
 
 
 @router.get("/incidents", response_model=PaginatedResponse[IncidentResponse])
@@ -67,7 +83,9 @@ async def list_incidents(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])),
+    current_user=Depends(
+        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+    ),
 ):
     """インシデント一覧"""
     conditions = [Incident.deleted_at.is_(None)]
@@ -76,13 +94,17 @@ async def list_incidents(
     if priority:
         conditions.append(Incident.priority == priority)
 
-    total_result = await db.execute(select(func.count()).select_from(Incident).where(and_(*conditions)))
+    total_result = await db.execute(
+        select(func.count()).select_from(Incident).where(and_(*conditions))
+    )
     total = total_result.scalar_one()
 
     result = await db.execute(
-        select(Incident).where(and_(*conditions))
+        select(Incident)
+        .where(and_(*conditions))
         .order_by(Incident.created_at.desc())
-        .offset((page - 1) * per_page).limit(per_page)
+        .offset((page - 1) * per_page)
+        .limit(per_page)
     )
     items = [IncidentResponse.model_validate(r) for r in result.scalars()]
     return PaginatedResponse(items=items, total=total, page=page, per_page=per_page)
@@ -92,10 +114,14 @@ async def list_incidents(
 async def get_incident(
     incident_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])),
+    current_user=Depends(
+        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+    ),
 ):
     result = await db.execute(
-        select(Incident).where(and_(Incident.id == incident_id, Incident.deleted_at.is_(None)))
+        select(Incident).where(
+            and_(Incident.id == incident_id, Incident.deleted_at.is_(None))
+        )
     )
     incident = result.scalar_one_or_none()
     if not incident:
@@ -108,11 +134,15 @@ async def update_incident(
     incident_id: uuid.UUID,
     payload: IncidentUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])),
+    current_user=Depends(
+        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+    ),
 ):
     """インシデント更新・解決"""
     result = await db.execute(
-        select(Incident).where(and_(Incident.id == incident_id, Incident.deleted_at.is_(None)))
+        select(Incident).where(
+            and_(Incident.id == incident_id, Incident.deleted_at.is_(None))
+        )
     )
     incident = result.scalar_one_or_none()
     if not incident:
@@ -121,18 +151,26 @@ async def update_incident(
     update_data = payload.model_dump(exclude_none=True)
     update_data["updated_by"] = current_user.id
     if update_data.get("status") == "RESOLVED" and not incident.resolved_at:
-        update_data["resolved_at"] = datetime.now(timezone.utc)
+        update_data["resolved_at"] = datetime.now(UTC)
 
     for k, v in update_data.items():
         setattr(incident, k, v)
     await db.commit()
     await db.refresh(incident)
-    return ApiResponse(data=IncidentResponse.model_validate(incident), message="インシデントを更新しました")
+    return ApiResponse(
+        data=IncidentResponse.model_validate(incident),
+        message="インシデントを更新しました",
+    )
 
 
 # ---------- Change Request ----------
 
-@router.post("/changes", response_model=ApiResponse[ChangeRequestResponse], status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/changes",
+    response_model=ApiResponse[ChangeRequestResponse],
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_change(
     payload: ChangeRequestCreate,
     db: AsyncSession = Depends(get_db),
@@ -155,7 +193,10 @@ async def create_change(
     db.add(change)
     await db.commit()
     await db.refresh(change)
-    return ApiResponse(data=ChangeRequestResponse.model_validate(change), message="変更要求を起票しました")
+    return ApiResponse(
+        data=ChangeRequestResponse.model_validate(change),
+        message="変更要求を起票しました",
+    )
 
 
 @router.get("/changes", response_model=PaginatedResponse[ChangeRequestResponse])
@@ -165,7 +206,9 @@ async def list_changes(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])),
+    current_user=Depends(
+        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+    ),
 ):
     conditions = [ChangeRequest.deleted_at.is_(None)]
     if status_filter:
@@ -173,19 +216,25 @@ async def list_changes(
     if change_type:
         conditions.append(ChangeRequest.change_type == change_type)
 
-    total_result = await db.execute(select(func.count()).select_from(ChangeRequest).where(and_(*conditions)))
+    total_result = await db.execute(
+        select(func.count()).select_from(ChangeRequest).where(and_(*conditions))
+    )
     total = total_result.scalar_one()
 
     result = await db.execute(
-        select(ChangeRequest).where(and_(*conditions))
+        select(ChangeRequest)
+        .where(and_(*conditions))
         .order_by(ChangeRequest.created_at.desc())
-        .offset((page - 1) * per_page).limit(per_page)
+        .offset((page - 1) * per_page)
+        .limit(per_page)
     )
     items = [ChangeRequestResponse.model_validate(r) for r in result.scalars()]
     return PaginatedResponse(items=items, total=total, page=page, per_page=per_page)
 
 
-@router.patch("/changes/{change_id}/approve", response_model=ApiResponse[ChangeRequestResponse])
+@router.patch(
+    "/changes/{change_id}/approve", response_model=ApiResponse[ChangeRequestResponse]
+)
 async def approve_change(
     change_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -193,18 +242,25 @@ async def approve_change(
 ):
     """変更承認（SoD: ADMINのみ承認可）"""
     result = await db.execute(
-        select(ChangeRequest).where(and_(ChangeRequest.id == change_id, ChangeRequest.deleted_at.is_(None)))
+        select(ChangeRequest).where(
+            and_(ChangeRequest.id == change_id, ChangeRequest.deleted_at.is_(None))
+        )
     )
     change = result.scalar_one_or_none()
     if not change:
         raise HTTPException(status_code=404, detail="変更要求が見つかりません")
     if change.status not in ("DRAFT", "REVIEW"):
-        raise HTTPException(status_code=400, detail=f"ステータス{change.status}は承認できません")
+        raise HTTPException(
+            status_code=400, detail=f"ステータス{change.status}は承認できません"
+        )
 
     change.status = "APPROVED"
     change.approved_by = current_user.id
-    change.approved_at = datetime.now(timezone.utc)
+    change.approved_at = datetime.now(UTC)
     change.updated_by = current_user.id
     await db.commit()
     await db.refresh(change)
-    return ApiResponse(data=ChangeRequestResponse.model_validate(change), message="変更要求を承認しました")
+    return ApiResponse(
+        data=ChangeRequestResponse.model_validate(change),
+        message="変更要求を承認しました",
+    )

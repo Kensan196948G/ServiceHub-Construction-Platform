@@ -6,9 +6,10 @@ GET    /api/v1/projects/{id}  - 詳細
 PUT    /api/v1/projects/{id}  - 更新
 DELETE /api/v1/projects/{id}  - 論理削除
 """
-import uuid
+
 import math
-from typing import Annotated, Optional
+import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +19,7 @@ from app.db.base import get_db
 from app.models.user import User
 from app.repositories.project import ProjectRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
+from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 
 router = APIRouter(prefix="/projects", tags=["工事案件管理"])
 
@@ -26,13 +27,21 @@ router = APIRouter(prefix="/projects", tags=["工事案件管理"])
 @router.get("", response_model=PaginatedResponse[ProjectResponse])
 async def list_projects(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(
-        UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.SITE_SUPERVISOR,
-        UserRole.COST_MANAGER, UserRole.VIEWER
-    ))],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.PROJECT_MANAGER,
+                UserRole.SITE_SUPERVISOR,
+                UserRole.COST_MANAGER,
+                UserRole.VIEWER,
+            )
+        ),
+    ],
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
-    filter_status: Optional[str] = Query(default=None, alias="status"),
+    filter_status: str | None = Query(default=None, alias="status"),
 ):
     repo = ProjectRepository(db)
     offset = (page - 1) * per_page
@@ -41,17 +50,23 @@ async def list_projects(
     return PaginatedResponse(
         data=[ProjectResponse.model_validate(p) for p in projects],
         meta=PaginationMeta(
-            total=total, page=page, per_page=per_page,
+            total=total,
+            page=page,
+            per_page=per_page,
             pages=math.ceil(total / per_page) if total > 0 else 0,
         ),
     )
 
 
-@router.post("", response_model=ApiResponse[ProjectResponse], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=ApiResponse[ProjectResponse], status_code=status.HTTP_201_CREATED
+)
 async def create_project(
     payload: ProjectCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))],
+    current_user: Annotated[
+        User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
+    ],
 ):
     repo = ProjectRepository(db)
     if await repo.get_by_code(payload.project_code):
@@ -64,10 +79,18 @@ async def create_project(
 async def get_project(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(
-        UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.SITE_SUPERVISOR,
-        UserRole.COST_MANAGER, UserRole.VIEWER
-    ))],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.PROJECT_MANAGER,
+                UserRole.SITE_SUPERVISOR,
+                UserRole.COST_MANAGER,
+                UserRole.VIEWER,
+            )
+        ),
+    ],
 ):
     repo = ProjectRepository(db)
     project = await repo.get_by_id(project_id)
@@ -81,7 +104,9 @@ async def update_project(
     project_id: uuid.UUID,
     payload: ProjectUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))],
+    current_user: Annotated[
+        User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
+    ],
 ):
     repo = ProjectRepository(db)
     project = await repo.get_by_id(project_id)

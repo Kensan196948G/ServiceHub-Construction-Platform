@@ -2,11 +2,11 @@
 JWT・セキュリティ設定
 RS256署名・アクセストークン/リフレッシュトークン管理
 """
-from datetime import datetime, timedelta, timezone
-from typing import Optional
-import uuid
 
-from jose import jwt, JWTError
+import uuid
+from datetime import UTC, datetime, timedelta
+
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
@@ -25,7 +25,7 @@ class TokenData(BaseModel):
 
 def create_access_token(user_id: str, role: str) -> str:
     """アクセストークン生成（15分）"""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "role": role,
@@ -34,12 +34,14 @@ def create_access_token(user_id: str, role: str) -> str:
         "exp": now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
         "type": "access",
     }
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
 
 
 def create_refresh_token(user_id: str, role: str) -> str:
     """リフレッシュトークン生成（7日）"""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "role": role,
@@ -48,10 +50,12 @@ def create_refresh_token(user_id: str, role: str) -> str:
         "exp": now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
         "type": "refresh",
     }
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
 
 
-def verify_token(token: str) -> Optional[TokenData]:
+def verify_token(token: str) -> TokenData | None:
     """トークン検証・デコード"""
     try:
         payload = jwt.decode(

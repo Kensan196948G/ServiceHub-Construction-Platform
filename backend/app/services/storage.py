@@ -2,14 +2,14 @@
 MinIOストレージサービス
 ファイルアップロード・ダウンロード・プリサインドURL生成
 """
-import uuid
-import io
-from datetime import timedelta
-from typing import Optional
 
+import io
+import uuid
+from datetime import timedelta
+
+import structlog
 from minio import Minio
 from minio.error import S3Error
-import structlog
 
 from app.core.config import settings
 

@@ -2,19 +2,21 @@
 pytest共通フィクスチャ
 SQLite(aiosqlite)をインメモリDBとして使用
 """
+
 from __future__ import annotations
+
 import asyncio
 import uuid
-import pytest
+
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
-from app.db.base import Base, get_db
-from app.core.security import create_access_token, get_password_hash
 from app.core.rbac import UserRole
+from app.core.security import create_access_token
+from app.db.base import Base, get_db
+from app.main import app
 
 # SQLite インメモリDB（CI/CDテスト用）
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -55,6 +57,7 @@ async def db_session(db_tables):
 @pytest_asyncio.fixture
 async def client(db_session):
     """テスト用HTTPクライアント（DBオーバーライド）"""
+
     async def override_get_db():
         yield db_session
 

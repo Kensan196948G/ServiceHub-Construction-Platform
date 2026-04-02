@@ -2,7 +2,9 @@
 アプリケーション設定
 環境変数から自動読み込み（pydantic-settings）
 """
+
 from functools import lru_cache
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

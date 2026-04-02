@@ -1,4 +1,5 @@
 """ヘルスチェック統合テスト"""
+
 import pytest
 from httpx import AsyncClient
 

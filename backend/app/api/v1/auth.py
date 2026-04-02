@@ -5,25 +5,26 @@ POST /api/v1/auth/refresh - トークン更新
 POST /api/v1/auth/logout  - ログアウト
 GET  /api/v1/auth/me      - 現在ユーザー取得
 """
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 from typing import Annotated
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-import structlog
 
+from app.api.v1.deps import get_current_user
+from app.core.config import settings
 from app.core.security import (
-    verify_password,
     create_access_token,
     create_refresh_token,
+    verify_password,
     verify_token,
 )
-from app.core.config import settings
 from app.db.base import get_db
 from app.models.user import User
-from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest, UserResponse
-from app.api.v1.deps import get_current_user
+from app.schemas.auth import LoginRequest, RefreshRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["認証"])
 logger = structlog.get_logger()
@@ -55,9 +56,7 @@ async def login(
 
     # 最終ログイン日時更新（監査ログ）
     await db.execute(
-        update(User)
-        .where(User.id == user.id)
-        .values(last_login_at=datetime.now(timezone.utc))
+        update(User).where(User.id == user.id).values(last_login_at=datetime.now(UTC))
     )
 
     access_token = create_access_token(str(user.id), user.role)
@@ -89,7 +88,9 @@ async def refresh_token(
     )
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="ユーザーが見つかりません")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="ユーザーが見つかりません"
+        )
 
     access_token = create_access_token(str(user.id), user.role)
     new_refresh_token = create_refresh_token(str(user.id), user.role)
