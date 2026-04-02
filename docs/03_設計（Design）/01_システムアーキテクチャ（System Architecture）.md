@@ -4,6 +4,8 @@
 
 ServiceHub Construction Platform は、フロントエンドとバックエンドを分離したSPA（Single Page Application）アーキテクチャを採用する。RESTful APIを介してデータを交換し、マイクロサービス移行を見据えたモジュラーモノリス構成で実装する。
 
+**GitHub:** https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+
 ---
 
 ## アーキテクチャ方針

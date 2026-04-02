@@ -1,5 +1,7 @@
 # Git運用規約
 
+**リポジトリURL:** https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+
 ## ブランチ戦略
 
 GitHub Flowをベースとしたブランチ戦略を採用する。

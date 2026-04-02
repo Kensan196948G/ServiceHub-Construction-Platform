@@ -4,6 +4,8 @@
 
 ServiceHub Construction Platform は、建設業向けのAI統合業務プラットフォームである。工事案件管理を中核とし、日報・写真・安全品質・原価・ITSM・ナレッジAI支援の7ドメインを統合する。
 
+**GitHub:** https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+
 ---
 
 ## システムスコープ

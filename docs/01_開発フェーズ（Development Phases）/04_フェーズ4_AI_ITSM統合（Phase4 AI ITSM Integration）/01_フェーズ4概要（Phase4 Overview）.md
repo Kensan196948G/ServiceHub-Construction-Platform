@@ -1,5 +1,7 @@
 # フェーズ4: AI・ITSM統合 概要
 
+**リポジトリURL:** https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+
 ## フェーズ目標
 
 フェーズ4では、プラットフォームに高度な知的機能を追加する。ISO20000準拠のITSM管理モジュール、Elasticsearchを活用したナレッジベース、OpenAI APIを統合したAI支援機能を実装し、建設現場のDX化を一段階高める。

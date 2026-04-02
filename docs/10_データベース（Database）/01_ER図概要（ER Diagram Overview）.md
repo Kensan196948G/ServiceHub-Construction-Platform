@@ -1,5 +1,7 @@
 # 🗄️ ER図概要（ER Diagram Overview）
 
+**リポジトリURL:** https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+
 ## データベース方針
 - PostgreSQL 15
 - 全テーブルに `created_at`, `updated_at`, `deleted_at`（論理削除）

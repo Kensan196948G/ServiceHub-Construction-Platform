@@ -3,25 +3,25 @@
   "repository": "https://github.com/Kensan196948G/ServiceHub-Construction-Platform",
   "phase": "Phase1_Foundation",
   "loop_count": 1,
-  "loop": "Monitor",
+  "loop": "Close",
   "status": "running",
   "current_sprint": "Sprint1",
   "development_start": "2026-04-02",
   "target_release": "2026-10-02",
   "daily_hours": 8,
-  "issues": [],
-  "last_update": "2026-04-02T09:50:00+09:00",
+  "last_update": "2026-04-02T10:45:00+09:00",
+  "completed_issues": [1],
+  "open_prs": [15],
   "next_targets": [
-    "Phase1: 開発環境構築",
-    "Phase1: 認証基盤実装",
-    "Phase1: API基盤設計",
-    "Phase1: DB設計・マイグレーション",
-    "Phase1: CI/CD構築"
+    "Issue #2: 認証・認可基盤実装（JWT + RBAC）",
+    "Issue #3: API基盤構築",
+    "Issue #4: DB設計・マイグレーション",
+    "Issue #5: CI/CDパイプライン構築"
   ],
-  "completed_phases": [],
   "metrics": {
     "test_coverage": 0,
-    "open_issues": 0,
-    "completed_issues": 0
+    "open_issues": 14,
+    "completed_issues": 1,
+    "open_prs": 1
   }
 }

@@ -1,187 +1,159 @@
-# テスト環境設計（Test Environment Design）
+# テスト環境設計
 
-## 1. テスト環境一覧
+## 概要
+各テスト工程で使用する環境の構成・管理方法を定義する。
 
-| 環境名 | 目的 | 管理者 | アクセス方法 |
-|--------|------|-------|------------|
-| ローカル開発環境 | 開発者の動作確認 | 各開発者 | localhost |
-| CI環境（GitHub Actions） | 自動テスト | DevOps担当 | GitHub Actions |
-| Staging環境 | E2E・UAT | IT管理者 | https://staging.example.com |
-| パフォーマンス環境 | 負荷テスト | IT管理者 | https://perf.example.com |
+## 環境一覧
 
----
+| 環境名 | 用途 | 管理者 | 更新頻度 |
+|--------|------|--------|---------|
+| local | 開発者個人環境 | 各開発者 | 随時 |
+| dev | 開発統合環境 | 開発チーム | PRマージ毎 |
+| test | 自動テスト専用 | CI/CD | テスト実行毎 |
+| staging | UAT・性能テスト | QAチーム | リリース候補毎 |
+| production | 本番 | 運用チーム | リリース時のみ |
 
-## 2. ローカル開発環境
+## テスト環境アーキテクチャ
 
-### Docker Compose構成
+```mermaid
+graph TB
+    subgraph "test環境"
+        A[FastAPI アプリ] --> B[(PostgreSQL test DB)]
+        A --> C[(Redis test)]
+        A --> D[MinIO test]
+        E[Next.js テストビルド] --> A
+    end
+    
+    subgraph "staging環境"
+        F[FastAPI アプリ] --> G[(PostgreSQL staging DB)]
+        F --> H[(Redis staging)]
+        F --> I[MinIO staging]
+        J[Next.js staging] --> F
+        K[Elasticsearch staging] --> F
+    end
+```
+
+## Docker Compose テスト構成
 
 ```yaml
-# docker-compose.dev.yml
+# docker-compose.test.yml
 version: '3.9'
+
 services:
   api:
-    build: ./backend
-    ports: ["8000:8000"]
+    build:
+      context: ./backend
+      target: test
     environment:
-      DATABASE_URL: postgresql+asyncpg://user:pass@db:5432/servicehub_dev
-      REDIS_URL: redis://redis:6379/0
-    volumes:
-      - ./backend:/app
-    depends_on: [db, redis, minio]
-
-  frontend:
-    build: ./frontend
-    ports: ["3000:3000"]
-    volumes:
-      - ./frontend:/app
+      DATABASE_URL: postgresql://test:test@db:5432/servicehub_test
+      REDIS_URL: redis://redis:6379/1
+      MINIO_ENDPOINT: minio:9000
+      OPENAI_API_KEY: ${OPENAI_API_KEY_TEST}
+    depends_on:
+      - db
+      - redis
+      - minio
 
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: servicehub_dev
-    ports: ["5432:5432"]
-    volumes:
-      - pg_data:/var/lib/postgresql/data
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: servicehub_test
+    tmpfs:
+      - /var/lib/postgresql/data  # インメモリDBで高速化
 
   redis:
-    image: redis:7
-    ports: ["6379:6379"]
+    image: redis:7-alpine
+    command: redis-server --save "" --appendonly no
 
   minio:
     image: minio/minio
     command: server /data --console-address ":9001"
-    ports: ["9000:9000", "9001:9001"]
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    volumes:
-      - minio_data:/data
+      MINIO_ROOT_USER: testuser
+      MINIO_ROOT_PASSWORD: testpassword
 
-  elasticsearch:
-    image: elasticsearch:8.12.0
+  frontend:
+    build:
+      context: ./frontend
+      target: test
     environment:
-      discovery.type: single-node
-      xpack.security.enabled: false
-    ports: ["9200:9200"]
-
-volumes:
-  pg_data:
-  minio_data:
+      NEXT_PUBLIC_API_URL: http://api:8000
 ```
 
-### ローカル環境起動手順
+## テストデータ管理
+
+### フィクスチャ設計
+```python
+# tests/conftest.py
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+@pytest.fixture(scope="session")
+async def engine():
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield engine
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+@pytest.fixture(scope="function")
+async def db_session(engine):
+    """各テストで独立したトランザクションを使用"""
+    async with AsyncSession(engine) as session:
+        async with session.begin():
+            yield session
+            await session.rollback()
+
+@pytest.fixture
+async def test_user(db_session):
+    user = User(
+        email="test@example.com",
+        name="テストユーザー",
+        role="engineer"
+    )
+    db_session.add(user)
+    await db_session.flush()
+    return user
+```
+
+## 環境変数管理
+
+| 変数名 | test環境 | staging環境 | 管理方法 |
+|--------|---------|------------|---------|
+| DATABASE_URL | テストDB | ステージングDB | GitHub Secrets |
+| REDIS_URL | テストRedis | ステージングRedis | GitHub Secrets |
+| OPENAI_API_KEY | テスト用キー | 本番用キー | GitHub Secrets |
+| MINIO_ACCESS_KEY | テスト用 | ステージング用 | GitHub Secrets |
+| LOG_LEVEL | DEBUG | INFO | 環境変数 |
+
+## テスト実行時間目標
+
+| テスト種別 | 目標実行時間 | 対策 |
+|-----------|------------|------|
+| 単体テスト | 3分以内 | 並列実行、モック活用 |
+| 統合テスト | 10分以内 | DBインメモリ化 |
+| E2Eテスト | 30分以内 | 並列ブラウザ実行 |
+| 性能テスト | 60分以内 | 専用環境 |
+
+## テスト環境の初期化・クリーンアップ
 
 ```bash
-# 初回セットアップ
-git clone https://github.com/Kensan196948G/ServiceHub-Construction-Platform
-cd ServiceHub-Construction-Platform
-cp .env.example .env.dev
+#!/bin/bash
+# scripts/setup_test_env.sh
 
-# Docker起動
-docker compose -f docker-compose.dev.yml up -d
+# テスト環境の起動
+docker-compose -f docker-compose.test.yml up -d --wait
 
-# DBマイグレーション
-docker compose exec api alembic upgrade head
+# マイグレーション実行
+docker-compose -f docker-compose.test.yml exec api \
+    python -m alembic upgrade head
 
 # テストデータ投入
-docker compose exec api python scripts/seed_dev_data.py
+docker-compose -f docker-compose.test.yml exec api \
+    python scripts/seed_test_data.py
 
-# アプリ確認
-open http://localhost:3000  # フロントエンド
-open http://localhost:8000/docs  # API仕様書
+echo "テスト環境の準備が完了しました"
 ```
-
----
-
-## 3. テストデータ管理
-
-### テストデータの種類
-
-| 種別 | 内容 | 管理方法 |
-|------|------|---------|
-| フィクスチャ | 最小限のテスト用データ | Pythonコードで定義 |
-| シードデータ | 開発・Stagingの初期データ | SQLスクリプト |
-| ファクトリー | テスト毎に動的生成 | factory_boy |
-| スナップショット | 本番データの匿名化版 | 四半期更新 |
-
-### factory_boyを使ったテストデータ生成
-
-```python
-# tests/factories.py
-import factory
-from factory.fuzzy import FuzzyChoice, FuzzyDate
-from datetime import date
-
-class UserFactory(factory.Factory):
-    class Meta:
-        model = User
-    
-    id = factory.LazyFunction(uuid4)
-    username = factory.Sequence(lambda n: f"user_{n:04d}")
-    email = factory.LazyAttribute(lambda o: f"{o.username}@test.example.com")
-    full_name = factory.Faker('name', locale='ja_JP')
-    hashed_password = factory.LazyFunction(lambda: get_password_hash("Test@12345"))
-    is_active = True
-
-class ProjectFactory(factory.Factory):
-    class Meta:
-        model = Project
-    
-    id = factory.LazyFunction(uuid4)
-    name = factory.Sequence(lambda n: f"テスト工事 {n:04d}")
-    project_code = factory.Sequence(lambda n: f"PRJ-{n:04d}")
-    status = FuzzyChoice(['planning', 'active', 'completed'])
-    start_date = FuzzyDate(start_date=date(2026, 4, 1))
-    pm = factory.SubFactory(UserFactory)
-```
-
----
-
-## 4. Staging環境
-
-### 構成
-
-```
-Staging環境:
-  - Web: Nginx × 1
-  - API: FastAPI × 2（負荷分散テスト用）
-  - DB: PostgreSQL（本番同スペック）
-  - Redis: 1ノード
-  - MinIO: 1ノード
-  - Elasticsearch: 1ノード
-
-データ:
-  - 本番の匿名化データ（月次更新）
-  - ユーザー: 50名分のテストアカウント
-  - 案件: 100件のテスト案件
-  - 日報: 1,000件のテスト日報
-  - 写真: 5,000枚のテスト写真
-```
-
-### Staging環境リセット
-
-```bash
-# Staging環境を本番相当のデータにリセット（月次）
-./scripts/reset-staging.sh
-
-# 実行内容:
-# 1. 全テーブルTRUNCATE
-# 2. マイグレーション最新版適用
-# 3. 匿名化データを投入
-# 4. テストユーザーアカウント作成
-# 5. MinIOバケットのファイルをリセット
-```
-
----
-
-## 5. テスト環境のセキュリティ
-
-| 要件 | 対応 |
-|------|------|
-| 本番データの持ち込み禁止 | テストデータは全て匿名化 |
-| アクセス制限 | Staging環境はVPN内からのみアクセス可 |
-| 認証情報の分離 | 本番・Stagingで異なるシークレット使用 |
-| データ廃棄 | テスト完了後のデータは定期クリーンアップ |
-| アクセスログ | Staging環境の操作もログ記録 |

@@ -1,5 +1,7 @@
 # フェーズ6: リリース準備・社内展開 概要
 
+**リポジトリURL:** https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+
 ## フェーズ目標
 
 フェーズ6は、2026年10月2日の社内リリースに向けた最終準備フェーズである。UAT（ユーザー受入テスト）の実施、社内デプロイ、ユーザー研修、運用移行を完了し、ServiceHub Construction Platform を社内に安全・スムーズに展開する。

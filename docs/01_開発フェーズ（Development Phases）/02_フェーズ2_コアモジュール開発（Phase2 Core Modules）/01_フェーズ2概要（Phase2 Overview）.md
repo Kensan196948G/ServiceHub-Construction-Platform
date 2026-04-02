@@ -1,5 +1,7 @@
 # フェーズ2: コアモジュール開発 概要
 
+**リポジトリURL:** https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+
 ## フェーズ目標
 
 フェーズ2では、ServiceHub Construction Platform の中核となる2つのモジュール「工事案件管理」と「日報管理」を完全実装する。フェーズ1で構築した基盤の上に、建設現場の日常業務に直結する機能を開発し、エンドツーエンドのユーザーフローを実現する。
