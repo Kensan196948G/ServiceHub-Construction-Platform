@@ -3,33 +3,33 @@ ServiceHub Construction Platform - FastAPI メインアプリケーション
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import structlog
-import os
+
+from app.core.config import settings
+from app.api.v1 import auth as auth_router
 
 logger = structlog.get_logger()
 
 app = FastAPI(
-    title="ServiceHub Construction Platform API",
+    title=settings.APP_NAME + " API",
     description="建設業向けAI統合業務プラットフォーム",
-    version="0.1.0",
+    version=settings.APP_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/api/v1/openapi.json",
 )
 
 # ── CORS ─────────────────────────────────────────────
-allowed_origins = os.getenv(
-    "ALLOWED_ORIGINS", "http://localhost:3000"
-).split(",")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── ルーター登録 ──────────────────────────────────────
+app.include_router(auth_router.router, prefix=settings.API_V1_PREFIX)
 
 # ── ヘルスチェック ────────────────────────────────────
 @app.get("/health", tags=["System"])
@@ -38,7 +38,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "servicehub-api",
-        "version": "0.1.0",
+        "version": settings.APP_VERSION,
     }
 
 @app.get("/api/v1/status", tags=["System"])
@@ -47,11 +47,11 @@ async def api_status():
     return {
         "success": True,
         "data": {
-            "api": "ServiceHub Construction Platform",
-            "version": "0.1.0",
-            "environment": os.getenv("ENVIRONMENT", "development"),
+            "api": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "environment": settings.ENVIRONMENT,
             "phase": "Phase1 - 基盤構築中",
         }
     }
 
-logger.info("ServiceHub API starting", version="0.1.0")
+logger.info("ServiceHub API starting", version=settings.APP_VERSION)
