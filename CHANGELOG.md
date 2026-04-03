@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## [Unreleased] - 開発進行中
+
+### Added (2026-04-03)
+
+#### フロントエンド実装完了（PR #28, #29）
+- **React 18 / Vite / TypeScript / Tailwind CSS** フロントエンド基盤構築
+- **認証**: LoginPage / Zustand authStore（JWT永続化）/ axios interceptor
+- **レイアウト**: レスポンシブサイドバー / ダッシュボード
+- **工事案件管理** — ProjectsPage（一覧・ページネーション・ステータスバッジ）/ ProjectDetailPage
+- **日報管理** — DailyReportsPage（プロジェクト別一覧・新規作成モーダル・ステータス管理）
+- **安全・品質管理** — SafetyPage（安全チェック / 品質検査タブ切替）
+- **ITSM管理** — ItsmPage（インシデント / 変更要求タブ・優先度カラーバッジ）
+- **ナレッジ管理** — KnowledgePage（記事一覧・AI検索・カテゴリフィルター）
+- **原価管理** — CostPage（予算/実績/差異サマリーカード・原価記録テーブル）
+- **API クライアント** — daily_reports / safety / itsm / knowledge / cost（TypeScript型付き）
+
+#### CI/CD 修復（PR #27）
+- ruff 0.6.9 固定・pytest asyncio_mode=auto・mypy strict 全通過
+- 統合テスト 30/30 グリーン
+
+### Fixed (2026-04-03)
+- conftest.py ruff format 修正
+- TypeScript 型エラー全件修正（重複コンテンツ除去・API 関数名統一）
+
+---
+
 ## [1.0.0] - 2026-10-02 (社内リリース予定)
 
 ### Added

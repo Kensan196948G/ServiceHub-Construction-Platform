@@ -113,6 +113,44 @@ graph TD
 - 外部依存で進行不能になった
 - `state.json` に進展がなくループが停滞した
 
+## 📈 実装状況（2026-04-03 現在）
+
+| レイヤ | 状態 | 詳細 |
+|--------|------|------|
+| **Backend API** | ✅ 完了 | 35エンドポイント / 13テーブル / 7マイグレーション |
+| **Backend CI** | ✅ グリーン | ruff / mypy / pytest 30/30 / bandit |
+| **Frontend 骨格** | ✅ 完了 | React18 / Vite / TypeScript / Tailwind |
+| **Frontend 認証** | ✅ 完了 | JWT / Zustand / axios |
+| **Frontend 工事案件** | ✅ 完了 | 一覧・詳細 |
+| **Frontend 日報** | ✅ 完了 | 一覧・作成モーダル |
+| **Frontend 安全品質** | ✅ 完了 | 安全チェック・品質検査タブ |
+| **Frontend ITSM** | ✅ 完了 | インシデント・変更要求タブ |
+| **Frontend ナレッジ** | ✅ 完了 | AI検索・カテゴリフィルター |
+| **Frontend 原価** | ✅ 完了 | サマリーカード・コストレコード |
+| **E2E / 統合確認** | 🔲 未実施 | docker-compose 統合動作確認 |
+| **UAT** | 🔲 未実施 | v1.0.0 リリース前 |
+
+## 🛠 ローカル起動手順
+
+```bash
+# 依存関係セットアップ
+cp .env.example .env  # 環境変数設定
+docker-compose up -d
+
+# フロントエンド開発サーバー（単独起動時）
+cd frontend && npm install && npm run dev
+```
+
+## 🌐 主要 URL（開発環境）
+
+| サービス | URL |
+|----------|-----|
+| フロントエンド | http://localhost:5173 |
+| バックエンド API | http://localhost:8000/api/v1 |
+| API ドキュメント | http://localhost:8000/docs |
+
+
+
 ## 📌 使い始め
 
 1. `AGENT.md` を読む
