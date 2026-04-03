@@ -1,8 +1,8 @@
 # CHANGELOG
 
-## [Unreleased] - 開発進行中
+## [1.0.0-rc.1] - 2026-04-03
 
-### Added (2026-04-03)
+### Added
 
 #### フロントエンド実装完了（PR #28, #29）
 - **React 18 / Vite / TypeScript / Tailwind CSS** フロントエンド基盤構築
@@ -20,9 +20,13 @@
 - ruff 0.6.9 固定・pytest asyncio_mode=auto・mypy strict 全通過
 - 統合テスト 30/30 グリーン
 
-### Fixed (2026-04-03)
+### Fixed
 - conftest.py ruff format 修正
 - TypeScript 型エラー全件修正（重複コンテンツ除去・API 関数名統一）
+
+### CI Status
+- Backend: ruff/mypy/pytest-30件/bandit 全グリーン ✅
+- Frontend: TypeScript 0エラー / Vite build 成功 ✅
 
 ---
 
