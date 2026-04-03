@@ -1,25 +1,42 @@
 {
-  "phase": "Monitor",
+  "phase": "Improvement",
   "loop": "Loop-15",
   "loop_count": 15,
-  "status": "running",
-  "last_updated": "2026-04-03T12:30:00+09:00",
+  "status": "closing",
+  "last_updated": "2026-04-03T12:50:00+09:00",
   "priorities": {
-    "high": ["テストカバレッジ向上（74%→85%）", "写真管理MinIO統合"],
-    "medium": ["VITE_API_BASE_URL nginx経由に修正", "CI GitHub Actions 追加"],
-    "low": ["通知機能検討", "ダッシュボード集計API"]
+    "high": [],
+    "medium": ["storage.py MinIOモックテスト（40%）", "写真管理E2Eテスト"],
+    "low": ["ダッシュボード集計API", "通知機能検討"]
   },
   "decision_context": {
     "risk_level": "low",
     "tech_debt": "low",
     "stability": "stable"
   },
+  "metrics": {
+    "test_count": 111,
+    "coverage": "94%",
+    "ci_status": "green",
+    "e2e_pass": "7/7"
+  },
   "loop_history": {
     "loop14": {
       "status": "closed",
-      "agents": ["readme-agent", "seed-agent", "docs-agent", "frontend-nginx-agent"],
-      "issues_closed": [30, 31, 32, 33],
-      "commits": ["6d7f43b", "6b39479", "4690dbb", "1a84d2d", "105ec22", "a9faff4", "967c980", "1f865c7"]
+      "agents": ["readme-agent","seed-agent","docs-agent","frontend-nginx-agent"],
+      "issues_closed": [30,31,32,33]
+    },
+    "loop15": {
+      "status": "closing",
+      "agents": ["coverage-agent","ci-frontend-agent"],
+      "issues_closed": [34,35],
+      "highlights": [
+        "テストカバレッジ 67%→94%（+27%）",
+        "テスト数 30→111（+81件）",
+        "pytest-timeout CI修復",
+        "VITE_API_BASE_URL nginx統一",
+        "CI ワークフロー整備（3本）"
+      ]
     }
   }
 }
