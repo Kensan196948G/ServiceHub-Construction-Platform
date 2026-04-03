@@ -1,4 +1,5 @@
 """ヘルスチェック統合テスト"""
+
 import pytest
 from httpx import AsyncClient
 
@@ -14,7 +15,7 @@ async def test_health_check(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_openapi_docs_available(client: AsyncClient):
     """OpenAPI仕様書が利用可能"""
-    resp = await client.get("/openapi.json")
+    resp = await client.get("/api/v1/openapi.json")
     assert resp.status_code == 200
     spec = resp.json()
     assert "paths" in spec

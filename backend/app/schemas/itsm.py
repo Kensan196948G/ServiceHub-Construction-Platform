@@ -1,29 +1,35 @@
 """ITSMスキーマ（Pydantic v2）"""
+
 from __future__ import annotations
+
 import uuid
 from datetime import datetime
+
 from pydantic import BaseModel, Field
-from typing import Optional
 
 
 class IncidentCreate(BaseModel):
     title: str = Field(..., max_length=300)
     description: str
-    category: str = Field("SYSTEM", pattern="^(SYSTEM|NETWORK|APPLICATION|SECURITY|OTHER)$")
+    category: str = Field(
+        "SYSTEM", pattern="^(SYSTEM|NETWORK|APPLICATION|SECURITY|OTHER)$"
+    )
     priority: str = Field("MEDIUM", pattern="^(CRITICAL|HIGH|MEDIUM|LOW)$")
     severity: str = Field("MEDIUM", pattern="^(CRITICAL|HIGH|MEDIUM|LOW)$")
-    assigned_to: Optional[uuid.UUID] = None
-    project_id: Optional[uuid.UUID] = None
+    assigned_to: uuid.UUID | None = None
+    project_id: uuid.UUID | None = None
 
 
 class IncidentUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    priority: Optional[str] = None
-    severity: Optional[str] = None
-    status: Optional[str] = Field(None, pattern="^(OPEN|IN_PROGRESS|PENDING|RESOLVED|CLOSED)$")
-    assigned_to: Optional[uuid.UUID] = None
-    resolution: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
+    priority: str | None = None
+    severity: str | None = None
+    status: str | None = Field(
+        None, pattern="^(OPEN|IN_PROGRESS|PENDING|RESOLVED|CLOSED)$"
+    )
+    assigned_to: uuid.UUID | None = None
+    resolution: str | None = None
 
 
 class IncidentResponse(BaseModel):
@@ -36,13 +42,13 @@ class IncidentResponse(BaseModel):
     priority: str
     severity: str
     status: str
-    assigned_to: Optional[uuid.UUID] = None
-    project_id: Optional[uuid.UUID] = None
-    resolution: Optional[str] = None
-    resolved_at: Optional[datetime] = None
+    assigned_to: uuid.UUID | None = None
+    project_id: uuid.UUID | None = None
+    resolution: str | None = None
+    resolved_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
-    created_by: Optional[uuid.UUID] = None
+    created_by: uuid.UUID | None = None
 
 
 class ChangeRequestCreate(BaseModel):
@@ -50,21 +56,23 @@ class ChangeRequestCreate(BaseModel):
     description: str
     change_type: str = Field("NORMAL", pattern="^(EMERGENCY|NORMAL|STANDARD)$")
     risk_level: str = Field("MEDIUM", pattern="^(HIGH|MEDIUM|LOW)$")
-    impact: Optional[str] = None
-    rollback_plan: Optional[str] = None
-    scheduled_start: Optional[datetime] = None
-    scheduled_end: Optional[datetime] = None
+    impact: str | None = None
+    rollback_plan: str | None = None
+    scheduled_start: datetime | None = None
+    scheduled_end: datetime | None = None
 
 
 class ChangeRequestUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[str] = Field(None, pattern="^(DRAFT|REVIEW|APPROVED|IMPLEMENTING|COMPLETED|REJECTED)$")
-    risk_level: Optional[str] = None
-    impact: Optional[str] = None
-    rollback_plan: Optional[str] = None
-    scheduled_start: Optional[datetime] = None
-    scheduled_end: Optional[datetime] = None
+    title: str | None = None
+    description: str | None = None
+    status: str | None = Field(
+        None, pattern="^(DRAFT|REVIEW|APPROVED|IMPLEMENTING|COMPLETED|REJECTED)$"
+    )
+    risk_level: str | None = None
+    impact: str | None = None
+    rollback_plan: str | None = None
+    scheduled_start: datetime | None = None
+    scheduled_end: datetime | None = None
 
 
 class ChangeRequestResponse(BaseModel):
@@ -76,12 +84,12 @@ class ChangeRequestResponse(BaseModel):
     change_type: str
     risk_level: str
     status: str
-    impact: Optional[str] = None
-    rollback_plan: Optional[str] = None
-    scheduled_start: Optional[datetime] = None
-    scheduled_end: Optional[datetime] = None
-    approved_by: Optional[uuid.UUID] = None
-    approved_at: Optional[datetime] = None
+    impact: str | None = None
+    rollback_plan: str | None = None
+    scheduled_start: datetime | None = None
+    scheduled_end: datetime | None = None
+    approved_by: uuid.UUID | None = None
+    approved_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
-    created_by: Optional[uuid.UUID] = None
+    created_by: uuid.UUID | None = None

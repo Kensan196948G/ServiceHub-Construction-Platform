@@ -2,21 +2,23 @@
 API依存性注入
 JWT認証・現在ユーザー取得
 """
+
+import uuid
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import verify_token
 from app.db.base import get_db
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """JWTトークン検証→ユーザー取得"""
@@ -28,12 +30,20 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    if credentials is None:
+        raise credentials_exception
+
     token_data = verify_token(credentials.credentials)
     if token_data is None:
         raise credentials_exception
 
+    try:
+        user_uuid = uuid.UUID(token_data.sub)
+    except (ValueError, AttributeError):
+        raise credentials_exception from None
+
     result = await db.execute(
-        select(User).where(User.id == token_data.sub, User.deleted_at.is_(None))
+        select(User).where(User.id == user_uuid, User.deleted_at.is_(None))
     )
     user = result.scalar_one_or_none()
     if user is None or not user.is_active:

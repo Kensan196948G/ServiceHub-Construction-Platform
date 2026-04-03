@@ -2,8 +2,10 @@
 ページネーションユーティリティ
 共通クエリパラメータ・オフセット計算
 """
-from fastapi import Query
+
 from dataclasses import dataclass
+
+from fastapi import Query
 
 
 @dataclass
@@ -21,6 +23,7 @@ class Pagination:
 
     def to_meta(self, total: int) -> dict:
         import math
+
         return {
             "total": total,
             "page": self.page,

@@ -1,10 +1,10 @@
 """
 工事案件スキーマ（Pydantic v2）
 """
+
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -12,39 +12,39 @@ from pydantic import BaseModel, Field
 class ProjectCreate(BaseModel):
     project_code: str = Field(..., min_length=3, max_length=50)
     name: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
+    description: str | None = None
     client_name: str = Field(..., min_length=1, max_length=200)
-    site_address: Optional[str] = Field(None, max_length=500)
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    budget: Optional[Decimal] = Field(None, ge=0)
-    manager_id: Optional[uuid.UUID] = None
+    site_address: str | None = Field(None, max_length=500)
+    start_date: date | None = None
+    end_date: date | None = None
+    budget: Decimal | None = Field(None, ge=0)
+    manager_id: uuid.UUID | None = None
 
 
 class ProjectUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
-    description: Optional[str] = None
-    client_name: Optional[str] = Field(None, min_length=1, max_length=200)
-    site_address: Optional[str] = None
-    status: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    budget: Optional[Decimal] = Field(None, ge=0)
-    manager_id: Optional[uuid.UUID] = None
+    name: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = None
+    client_name: str | None = Field(None, min_length=1, max_length=200)
+    site_address: str | None = None
+    status: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    budget: Decimal | None = Field(None, ge=0)
+    manager_id: uuid.UUID | None = None
 
 
 class ProjectResponse(BaseModel):
     id: uuid.UUID
     project_code: str
     name: str
-    description: Optional[str]
+    description: str | None
     client_name: str
-    site_address: Optional[str]
+    site_address: str | None
     status: str
-    start_date: Optional[date]
-    end_date: Optional[date]
-    budget: Optional[Decimal]
-    manager_id: Optional[uuid.UUID]
+    start_date: date | None
+    end_date: date | None
+    budget: Decimal | None
+    manager_id: uuid.UUID | None
     created_at: datetime
     updated_at: datetime
 

@@ -1,10 +1,10 @@
 """ITSM APIテスト"""
+
 import pytest
 from httpx import AsyncClient
-from unittest.mock import AsyncMock, MagicMock, patch
-from app.main import app
+
 from app.core.rbac import UserRole
-from app.api.v1.deps import get_current_user
+from app.main import app
 
 
 class FakeITUser:
@@ -25,10 +25,13 @@ class FakeAdminUser:
 async def test_create_incident_unauthorized():
     """未認証でインシデント作成は401"""
     async with AsyncClient(app=app, base_url="http://test") as client:
-        resp = await client.post("/api/v1/itsm/incidents", json={
-            "title": "テスト障害",
-            "description": "テスト詳細",
-        })
+        resp = await client.post(
+            "/api/v1/itsm/incidents",
+            json={
+                "title": "テスト障害",
+                "description": "テスト詳細",
+            },
+        )
     assert resp.status_code == 401
 
 

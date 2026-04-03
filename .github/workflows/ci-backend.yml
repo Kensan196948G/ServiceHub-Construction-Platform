@@ -16,15 +16,16 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install ruff
+      - run: pip install "ruff==0.6.9"
       - run: ruff check backend/app backend/tests
       - run: ruff format --check backend/app backend/tests
 
   test:
     name: Test & Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
-      DATABASE_URL: sqlite+aiosqlite:///:memory:
+      DATABASE_URL: "sqlite+aiosqlite:///:memory:"
       JWT_SECRET_KEY: test-secret-key-for-ci-only-not-production
       JWT_ALGORITHM: HS256
       ENVIRONMENT: test
@@ -38,16 +39,12 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-          pip install aiosqlite pytest-asyncio httpx pytest-cov
-      - name: Run unit tests
+          pip install aiosqlite pytest-asyncio httpx pytest-cov pytest-timeout
+      - name: Run tests
         run: |
           cd backend
           pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml \
-            --ignore=tests/integration --ignore=tests/performance
-      - name: Run integration tests
-        run: |
-          cd backend
-          pytest tests/integration/ -v
+            --ignore=tests/performance --timeout=60
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:

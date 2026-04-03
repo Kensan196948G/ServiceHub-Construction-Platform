@@ -6,10 +6,22 @@ GET    /api/v1/photos/{id}                 詳細 + プリサインドURL
 PUT    /api/v1/photos/{id}                 メタデータ更新
 DELETE /api/v1/photos/{id}                 論理削除
 """
-import uuid
+
 import math
-from typing import Annotated, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form, status
+import uuid
+from typing import Annotated
+
+import structlog
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -21,38 +33,52 @@ from app.schemas.photo import PhotoResponse, PhotoUpdate
 from app.services.storage import storage_service
 
 router = APIRouter(tags=["写真・資料管理"])
+logger = structlog.get_logger()
 
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 
-@router.post("/projects/{project_id}/photos",
-             response_model=ApiResponse[PhotoResponse], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/projects/{project_id}/photos",
+    response_model=ApiResponse[PhotoResponse],
+    status_code=status.HTTP_201_CREATED,
+)
 async def upload_photo(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(
-        UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.SITE_SUPERVISOR
-    ))],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.SITE_SUPERVISOR
+            )
+        ),
+    ],
     file: UploadFile = File(...),
     category: str = Form(default="GENERAL"),
-    caption: Optional[str] = Form(default=None),
-    daily_report_id: Optional[uuid.UUID] = Form(default=None),
+    caption: str | None = Form(default=None),
+    daily_report_id: uuid.UUID | None = Form(default=None),
 ):
     if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(status_code=400,
-                            detail=f"許可されていないファイル形式: {file.content_type}")
+        raise HTTPException(
+            status_code=400, detail=f"許可されていないファイル形式: {file.content_type}"
+        )
     file_data = await file.read()
     if len(file_data) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=400, detail="ファイルサイズが50MBを超えています")
+        raise HTTPException(
+            status_code=400, detail="ファイルサイズが50MBを超えています"
+        )
 
     object_key = storage_service.generate_object_key(
         str(project_id), category, file.filename or "upload"
     )
     try:
         storage_service.upload_file(file_data, object_key, file.content_type)
-    except Exception:
-        raise HTTPException(status_code=500, detail="ファイルアップロードに失敗しました")
+    except Exception as err:
+        raise HTTPException(
+            status_code=500, detail="ファイルアップロードに失敗しました"
+        ) from err
 
     repo = PhotoRepository(db)
     photo = await repo.create(
@@ -72,29 +98,43 @@ async def upload_photo(
     try:
         response_data.download_url = storage_service.get_presigned_url(object_key)
     except Exception:
-        pass
+        logger.debug("presigned_url_generation_failed", object_key=object_key)
     return ApiResponse(data=response_data)
 
 
-@router.get("/projects/{project_id}/photos", response_model=PaginatedResponse[PhotoResponse])
+@router.get(
+    "/projects/{project_id}/photos", response_model=PaginatedResponse[PhotoResponse]
+)
 async def list_photos(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(
-        UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.SITE_SUPERVISOR, UserRole.VIEWER
-    ))],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.PROJECT_MANAGER,
+                UserRole.SITE_SUPERVISOR,
+                UserRole.VIEWER,
+            )
+        ),
+    ],
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
-    category: Optional[str] = Query(default=None),
+    category: str | None = Query(default=None),
 ):
     repo = PhotoRepository(db)
     offset = (page - 1) * per_page
-    photos = await repo.list(project_id, offset=offset, limit=per_page, category=category)
+    photos = await repo.list(
+        project_id, offset=offset, limit=per_page, category=category
+    )
     total = await repo.count(project_id, category=category)
     return PaginatedResponse(
         data=[PhotoResponse.model_validate(p) for p in photos],
         meta=PaginationMeta(
-            total=total, page=page, per_page=per_page,
+            total=total,
+            page=page,
+            per_page=per_page,
             pages=math.ceil(total / per_page) if total > 0 else 0,
         ),
     )
@@ -104,9 +144,17 @@ async def list_photos(
 async def get_photo(
     photo_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(
-        UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.SITE_SUPERVISOR, UserRole.VIEWER
-    ))],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.PROJECT_MANAGER,
+                UserRole.SITE_SUPERVISOR,
+                UserRole.VIEWER,
+            )
+        ),
+    ],
 ):
     repo = PhotoRepository(db)
     photo = await repo.get_by_id(photo_id)
@@ -116,7 +164,7 @@ async def get_photo(
     try:
         response_data.download_url = storage_service.get_presigned_url(photo.object_key)
     except Exception:
-        pass
+        logger.debug("presigned_url_generation_failed", object_key=photo.object_key)
     return ApiResponse(data=response_data)
 
 
@@ -125,9 +173,14 @@ async def update_photo(
     photo_id: uuid.UUID,
     payload: PhotoUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(
-        UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.SITE_SUPERVISOR
-    ))],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.SITE_SUPERVISOR
+            )
+        ),
+    ],
 ):
     repo = PhotoRepository(db)
     photo = await repo.get_by_id(photo_id)
@@ -141,7 +194,9 @@ async def update_photo(
 async def delete_photo(
     photo_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))],
+    current_user: Annotated[
+        User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
+    ],
 ):
     repo = PhotoRepository(db)
     photo = await repo.get_by_id(photo_id)
@@ -150,6 +205,6 @@ async def delete_photo(
     try:
         storage_service.delete_file(photo.object_key)
     except Exception:
-        pass
+        logger.debug("storage_delete_failed", object_key=photo.object_key)
     await repo.soft_delete(photo)
     return None
