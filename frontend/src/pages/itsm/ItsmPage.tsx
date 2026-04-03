@@ -152,18 +152,6 @@ export default function ItsmPage() {
     });
   }
 
-  function handleIncidentEditSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!editingIncident) return;
-    updateIncidentMutation.mutate({ id: editingIncident.id, data: incidentEditForm });
-  }
-
-  function handleChangeEditSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!editingChange) return;
-    updateChangeMutation.mutate({ id: editingChange.id, data: changeEditForm });
-  }
-
   function openModal() {
     if (tab === "incidents") {
       setIncidentForm({ title: "", description: "", category: "infrastructure", priority: "medium", severity: "minor" });
