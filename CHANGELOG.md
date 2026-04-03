@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [1.0.0-rc.1] - 2026-04-03
+## [1.0.0] - 2026-04-03
 
 ### Added
 
@@ -23,6 +23,10 @@
 ### Fixed
 - conftest.py ruff format 修正
 - TypeScript 型エラー全件修正（重複コンテンツ除去・API 関数名統一）
+
+### E2E Status
+- docker-compose 統合確認: E2E 全10チェック PASS ✅
+- API: 35エンドポイント / DB: 13テーブル / 7マイグレーション
 
 ### CI Status
 - Backend: ruff/mypy/pytest-30件/bandit 全グリーン ✅
