@@ -6,6 +6,7 @@ POST /api/v1/auth/logout  - ログアウト
 GET  /api/v1/auth/me      - 現在ユーザー取得
 """
 
+import uuid
 from datetime import UTC, datetime
 from typing import Annotated
 
@@ -77,14 +78,14 @@ async def refresh_token(
 ):
     """リフレッシュトークンで新アクセストークンを発行"""
     token_data = verify_token(payload.refresh_token)
-    if token_data is None or token_data.type != "refresh":  # type: ignore[attr-defined]
+    if token_data is None or token_data.type != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="リフレッシュトークンが無効です",
         )
 
     result = await db.execute(
-        select(User).where(User.id == token_data.sub, User.deleted_at.is_(None))
+        select(User).where(User.id == uuid.UUID(token_data.sub), User.deleted_at.is_(None))
     )
     user = result.scalar_one_or_none()
     if not user or not user.is_active:

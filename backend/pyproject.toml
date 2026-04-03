@@ -19,7 +19,10 @@ python_files = ["test_*.py"]
 python_functions = ["test_*"]
 addopts = "-v --cov=app --cov-report=term-missing"
 
-[tool.mypy]
+[tool.coverage.run]
+concurrency = ["greenlet", "thread"]
+source = ["app"]
+
 python_version = "3.12"
 strict = false
 ignore_missing_imports = true

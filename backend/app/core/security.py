@@ -21,6 +21,7 @@ class TokenData(BaseModel):
     jti: str
     exp: datetime
     iat: datetime
+    type: str = "access"
 
 
 def create_access_token(user_id: str, role: str) -> str:
