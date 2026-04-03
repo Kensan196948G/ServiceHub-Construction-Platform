@@ -1,160 +1,347 @@
-# ServiceHub Construction Platform New
+# 🏗️ ServiceHub Construction Platform
 
-建設業向け統合業務プラットフォームを、Copilot CLI で安全に自律開発するための案件テンプレートです。
+> 建設業向け統合業務プラットフォーム — FastAPI × React 18 × Docker で構築されたフルスタック SaaS
 
-このプロジェクトでは、`AGENT.md` を運用入口、`copilotcli-kernel/` を実行カーネル、`.github/copilot-instructions.md` をリポジトリ組み込み指示として扱います。
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-## 🚀 このプロジェクトの狙い
+[![Backend CI](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/backend-ci.yml?branch=main&label=Backend%20CI&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/backend-ci.yml)
+[![Security Scan](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/security.yml?branch=main&label=Security%20Scan&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/security.yml)
+[![Frontend CI](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/frontend-ci.yml?branch=main&label=Frontend%20CI&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/frontend-ci.yml)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-| 項目 | 内容 |
-|---|---|
-| 🧭 開発方式 | Copilot CLI による疑似ループ型の自律開発 |
-| 🏗 対象領域 | 建設業務、申請、承認、監査、業務連携 |
-| 🔒 重視点 | 監査性、保守性、安全性、再開容易性 |
-| 📄 文書運用 | `README.md`、`docs/`、`templates/state.json` を常に同期 |
-| ✅ 品質基準 | test / lint / build / CI / security を基準に STABLE 判定 |
+---
 
-## 📊 開発モード
+## 📖 概要
 
-```text
-Monitor -> Development -> Verify -> Improvement -> Close
+**ServiceHub Construction Platform** は、建設業務のデジタル化を目的とした統合業務管理プラットフォームです。  
+工事案件の進捗管理から日報・写真・安全品質・原価・ITSM・AI ナレッジまで、現場業務に必要な機能をワンストップで提供します。
+
+### ✨ 特徴
+
+- 🔐 **JWT / RBAC 認証** — ロールベースの細かいアクセス制御
+- 🗂️ **工事案件管理** — CRUD・ステータス追跡・予算管理
+- 📝 **日報管理** — 作成・提出・承認ワークフロー
+- 🖼️ **写真・資料管理** — MinIO (S3) + プリサインド URL による安全な配信
+- 🦺 **安全・品質管理** — 安全確認チェック・品質検査記録
+- 💰 **原価・工数管理** — コスト記録・予実対比ダッシュボード
+- 🏛️ **ITSM 運用管理** — インシデント管理・変更要求ワークフロー
+- 🤖 **AI ナレッジ管理** — OpenAI 連携によるナレッジ AI 検索
+- 🚀 **Copilot CLI 自律開発** — Monitor → Development → Verify → Improvement → Close ループ
+
+---
+
+## 🏛️ アーキテクチャ図
+
+```mermaid
+graph TB
+  NG["🔀 Nginx (Reverse Proxy)"]
+
+  subgraph Frontend["🖥️ Frontend (React 18)"]
+    FE["React + Vite + TypeScript\nTailwind CSS / Zustand"]
+  end
+
+  subgraph Backend["⚙️ Backend (FastAPI)"]
+    API["FastAPI\nPython 3.12\nSQLAlchemy / Alembic"]
+  end
+
+  subgraph DB["🗄️ Data Layer"]
+    PG["🐘 PostgreSQL 15"]
+    RD["⚡ Redis 7"]
+    MN["🪣 MinIO (S3 Compatible)"]
+  end
+
+  NG --> FE
+  NG --> API
+  FE --> API
+  API --> PG
+  API --> RD
+  API --> MN
 ```
 
-このループは時間ではなく、現在の主作業内容で判定します。
+---
 
-| ループ | 主作業 |
-|---|---|
-| 🔍 Monitor | 現状確認、依存確認、Issue / PR / CI / docs 把握 |
-| 🔨 Development | 設計、実装、修復、設定変更、WorkTree 整理 |
-| ✔ Verify | test、lint、build、security、CI 確認 |
-| 🔧 Improvement | リファクタリング、命名改善、README / docs 整備 |
-| 📦 Close | commit、push、PR、最終報告、再開メモ整理 |
+## ✅ 実装済み機能一覧
 
-## 🧠 最初に読むべきファイル
+| アイコン | モジュール         | 機能                         | API 数 | 状態        |
+| :------: | :----------------- | :--------------------------- | :----: | :---------: |
+| 🔐       | 認証・認可          | JWT ログイン / トークンリフレッシュ / ロール管理 | 4      | ✅ 完了     |
+| 🗂️       | 工事案件管理        | CRUD / ステータス管理 / 予算追跡 | 5      | ✅ 完了     |
+| 📝       | 日報管理            | 作成 / 提出 / 承認ワークフロー  | 5      | ✅ 完了     |
+| 🖼️       | 写真・資料管理      | MinIO アップロード / プリサインド URL | 5  | ✅ 完了     |
+| 🦺       | 安全・品質管理      | 安全確認チェック / 品質検査記録 | 4      | ✅ 完了     |
+| 💰       | 原価・工数管理      | コスト記録 / 工数記録 / 予実対比 | 4     | ✅ 完了     |
+| 🏛️       | ITSM 運用管理       | インシデント / 変更要求ワークフロー | 5   | ✅ 完了     |
+| 🤖       | AI ナレッジ管理     | 記事 CRUD / AI 検索 (OpenAI)  | 5      | ✅ 完了     |
+| 📡       | システム            | ヘルスチェック / ステータス確認 | 2     | ✅ 完了     |
 
-1. `AGENT.md`
-2. `.github/copilot-instructions.md`
-3. `copilotcli-kernel/system/orchestrator.md`
-4. `copilotcli-kernel/system/loop-guard.md`
-5. `copilotcli-kernel/loops/monitor-loop.md`
-6. `copilotcli-kernel/loops/development-loop.md`
-7. `copilotcli-kernel/loops/verify-loop.md`
-8. `copilotcli-kernel/loops/improvement-loop.md`
-9. `copilotcli-kernel/loops/close-loop.md`
-10. `docs/OPERATIONS.md`
+---
 
-## 🏗 構成
+## 🛠️ 技術スタック
 
-| パス | 役割 |
-|---|---|
-| `AGENT.md` | ServiceHub 専用の自律開発ポリシー |
-| `.github/copilot-instructions.md` | Copilot 実行時の短い必須指示 |
-| `copilotcli-kernel/` | ループ、Loop Guard、CI、統制のカーネル |
-| `docs/` | 要件、設計、運用、セキュリティ、API、DB 文書 |
-| `templates/state.json` | 現在フェーズ、ループ回数、再開点の管理 |
+| レイヤ         | 技術                  | バージョン | 用途                         |
+| :------------- | :-------------------- | :--------: | :--------------------------- |
+| **Frontend**   | React                 | 18         | UI フレームワーク             |
+|                | TypeScript            | 5          | 型安全な開発                 |
+|                | Vite                  | 5          | 高速ビルドツール             |
+|                | Tailwind CSS          | 3          | ユーティリティ CSS           |
+|                | Zustand               | 4          | 軽量状態管理                 |
+|                | React Query           | 5          | サーバー状態管理             |
+|                | Axios                 | 1.x        | HTTP クライアント            |
+| **Backend**    | FastAPI               | 0.115      | ASGI Web フレームワーク      |
+|                | Python                | 3.12       | バックエンド言語             |
+|                | SQLAlchemy            | 2          | ORM                          |
+|                | Alembic               | 1.x        | DB マイグレーション          |
+|                | Pydantic              | 2          | データバリデーション         |
+| **Database**   | PostgreSQL            | 15         | メイン RDBMS                 |
+|                | Redis                 | 7          | キャッシュ / セッション       |
+|                | MinIO                 | latest     | オブジェクトストレージ (S3)  |
+| **Infra**      | Docker Compose        | v2         | コンテナオーケストレーション |
+|                | Nginx                 | latest     | リバースプロキシ             |
+| **CI/CD**      | GitHub Actions        | —          | 自動テスト / セキュリティスキャン |
+| **品質**       | ruff / mypy / pytest  | —          | lint / 型チェック / テスト   |
+|                | bandit                | —          | セキュリティ静的解析         |
 
-## 🔄 開発フロー
+---
+
+## 🚀 起動手順
+
+```bash
+# 1. リポジトリクローン
+git clone https://github.com/Kensan196948G/ServiceHub-Construction-Platform.git
+cd ServiceHub-Construction-Platform
+
+# 2. 環境変数設定
+cp .env.example .env
+# .env を編集して DATABASE_URL / SECRET_KEY / MINIO_* / OPENAI_API_KEY 等を設定
+
+# 3. Docker Compose で全サービス起動
+docker compose up -d
+
+# 4. DB マイグレーション実行
+docker compose exec backend alembic upgrade head
+
+# 5. E2E 動作確認
+curl http://localhost/health          # → {"status":"healthy",...}
+curl http://localhost/api/v1/status   # → {"status":"ok",...}
+# フロントエンド: http://localhost
+# API ドキュメント: http://localhost/api/v1/docs
+```
+
+> **ローカル開発（フロントエンドのみ）**
+> ```bash
+> cd frontend && npm install && npm run dev
+> # → http://localhost:5173
+> ```
+
+---
+
+## 📡 API エンドポイント一覧
+
+ベース URL: `http://localhost/api/v1`
+
+### 🔐 認証 (`/auth`)
+
+| メソッド | パス             | 説明                     |
+| :------: | :--------------- | :----------------------- |
+| `POST`   | `/auth/login`    | ログイン（JWT 発行）      |
+| `POST`   | `/auth/refresh`  | アクセストークンリフレッシュ |
+| `GET`    | `/auth/me`       | 認証済みユーザー情報取得  |
+| `POST`   | `/auth/logout`   | ログアウト               |
+
+### 🗂️ 工事案件管理 (`/projects`)
+
+| メソッド | パス                    | 説明                   |
+| :------: | :---------------------- | :--------------------- |
+| `GET`    | `/projects`             | 案件一覧取得（ページング） |
+| `POST`   | `/projects`             | 案件新規作成           |
+| `GET`    | `/projects/{id}`        | 案件詳細取得           |
+| `PUT`    | `/projects/{id}`        | 案件更新               |
+| `DELETE` | `/projects/{id}`        | 案件削除               |
+
+### 📝 日報管理
+
+| メソッド | パス                                         | 説明               |
+| :------: | :------------------------------------------- | :----------------- |
+| `GET`    | `/projects/{project_id}/daily-reports`       | 日報一覧取得       |
+| `POST`   | `/projects/{project_id}/daily-reports`       | 日報作成           |
+| `GET`    | `/daily-reports/{report_id}`                 | 日報詳細取得       |
+| `PUT`    | `/daily-reports/{report_id}`                 | 日報更新           |
+| `DELETE` | `/daily-reports/{report_id}`                 | 日報削除           |
+
+### 🖼️ 写真・資料管理
+
+| メソッド | パス                                | 説明                           |
+| :------: | :---------------------------------- | :----------------------------- |
+| `POST`   | `/projects/{project_id}/photos`     | 写真アップロード (MinIO)        |
+| `GET`    | `/projects/{project_id}/photos`     | 写真一覧取得                   |
+| `GET`    | `/photos/{photo_id}`                | 写真詳細 + プリサインド URL 取得 |
+| `PUT`    | `/photos/{photo_id}`                | 写真メタデータ更新             |
+| `DELETE` | `/photos/{photo_id}`                | 写真削除                       |
+
+### 🦺 安全・品質管理
+
+| メソッド | パス                                              | 説明               |
+| :------: | :------------------------------------------------ | :----------------- |
+| `POST`   | `/projects/{project_id}/safety-checks`            | 安全確認チェック作成 |
+| `GET`    | `/projects/{project_id}/safety-checks`            | 安全確認一覧取得   |
+| `POST`   | `/projects/{project_id}/quality-inspections`      | 品質検査記録作成   |
+| `GET`    | `/projects/{project_id}/quality-inspections`      | 品質検査一覧取得   |
+
+### 💰 原価・工数管理
+
+| メソッド | パス                                        | 説明               |
+| :------: | :------------------------------------------ | :----------------- |
+| `POST`   | `/projects/{project_id}/cost-records`       | コスト記録作成     |
+| `GET`    | `/projects/{project_id}/cost-records`       | コスト記録一覧取得 |
+| `GET`    | `/projects/{project_id}/cost-summary`       | 予実対比サマリー取得 |
+| `POST`   | `/projects/{project_id}/work-hours`         | 工数記録作成       |
+
+### 🏛️ ITSM 運用管理 (`/itsm`)
+
+| メソッド | パス                               | 説明                 |
+| :------: | :--------------------------------- | :------------------- |
+| `POST`   | `/itsm/incidents`                  | インシデント作成     |
+| `GET`    | `/itsm/incidents`                  | インシデント一覧取得 |
+| `GET`    | `/itsm/incidents/{id}`             | インシデント詳細取得 |
+| `PATCH`  | `/itsm/incidents/{id}`             | インシデント更新     |
+| `POST`   | `/itsm/changes`                    | 変更要求作成         |
+| `GET`    | `/itsm/changes`                    | 変更要求一覧取得     |
+| `PATCH`  | `/itsm/changes/{id}/approve`       | 変更要求承認         |
+
+### 🤖 AI ナレッジ管理 (`/knowledge`)
+
+| メソッド | パス                            | 説明                      |
+| :------: | :------------------------------ | :------------------------ |
+| `POST`   | `/knowledge/articles`           | ナレッジ記事作成          |
+| `GET`    | `/knowledge/articles`           | 記事一覧取得（フィルター） |
+| `GET`    | `/knowledge/articles/{id}`      | 記事詳細取得              |
+| `PATCH`  | `/knowledge/articles/{id}`      | 記事更新                  |
+| `DELETE` | `/knowledge/articles/{id}`      | 記事削除                  |
+| `POST`   | `/knowledge/search`             | AI 検索 (OpenAI)          |
+
+### 📡 システム
+
+| メソッド | パス              | 説明                    |
+| :------: | :---------------- | :---------------------- |
+| `GET`    | `/health`         | ヘルスチェック          |
+| `GET`    | `/api/v1/status`  | API ステータス確認       |
+
+---
+
+## 🔄 開発フロー（Copilot CLI 自律ループ）
 
 ```mermaid
 flowchart LR
-    M["🔍 Monitor"] --> D["🔨 Development"]
-    D --> V["✔ Verify"]
-    V --> I["🔧 Improvement"]
-    I --> C["📦 Close"]
-    V -->|未達| D
+    M["🔍 Monitor\n状態確認\nIssue/PR/CI 把握"]
+    D["🔨 Development\n実装・修復\n設定変更"]
+    V["✔️ Verify\ntest/lint/build\nsecurity/CI"]
+    I["🔧 Improvement\nリファクタリング\ndocs 整備"]
+    C["📦 Close\ncommit/push/PR\n引継ぎ整理"]
+
+    M --> D
+    D --> V
+    V -->|✅ PASS| I
+    V -->|❌ FAIL| D
     I -->|要改善| D
+    I --> C
+    C -->|次サイクル| M
 ```
 
-## 🧩 カーネル連携
+> **ループ判定は時間ではなく「現在の主作業内容」で行います。**  
+> 優先順位: `Verify > Development > Monitor > Improvement > Close`
 
-`AGENT.md` だけではなく、`copilotcli-kernel/` を常に参照して動作します。
+---
+
+## 📁 ディレクトリ構成
+
+```
+ServiceHub-Construction-Platform/
+├── 📄 AGENT.md                  # 自律開発ポリシー (運用入口)
+├── 📄 README.md                 # このファイル
+├── 📄 docker-compose.yml        # 本番構成
+├── 📄 docker-compose.local.yml  # ローカル開発構成
+├── backend/                     # FastAPI バックエンド
+│   ├── app/
+│   │   ├── api/v1/
+│   │   │   ├── auth.py          # 認証ルーター
+│   │   │   └── routers/         # 各機能ルーター
+│   │   ├── models/              # SQLAlchemy モデル
+│   │   └── main.py              # アプリケーションエントリポイント
+│   ├── alembic/                 # DB マイグレーション
+│   └── tests/                   # pytest テスト
+├── frontend/                    # React 18 フロントエンド
+│   ├── src/
+│   │   ├── components/          # UI コンポーネント
+│   │   ├── pages/               # ページコンポーネント
+│   │   ├── store/               # Zustand ストア
+│   │   └── api/                 # API クライアント
+│   └── vite.config.ts
+├── nginx/                       # Nginx 設定
+├── docs/                        # 設計・運用ドキュメント
+├── copilotcli-kernel/           # Copilot CLI 実行カーネル
+│   ├── system/                  # orchestrator / loop-guard
+│   └── loops/                   # 各フェーズのループ定義
+├── templates/
+│   └── state.json               # 現在フェーズ・ループ状態管理
+└── scripts/                     # 運用スクリプト
+```
+
+---
+
+## 📋 Copilot CLI カーネル構成
+
+`AGENT.md` を運用入口、`copilotcli-kernel/` を実行カーネルとして自律開発を行います。
 
 ```mermaid
 graph TD
-    A["AGENT.md"] --> B["system/orchestrator.md"]
-    B --> C["loops/monitor-loop.md"]
-    B --> D["loops/development-loop.md"]
-    B --> E["loops/verify-loop.md"]
-    B --> F["loops/improvement-loop.md"]
-    E --> G["ci/ci-manager.md"]
-    A --> H["templates/state.json"]
-    A --> I["docs/"]
+    A["📄 AGENT.md\n運用入口"] --> B["⚙️ system/orchestrator.md\nループ統制"]
+    B --> LG["🛡️ system/loop-guard.md\n停止条件"]
+    B --> ML["🔍 loops/monitor-loop.md"]
+    B --> DL["🔨 loops/development-loop.md"]
+    B --> VL["✔️ loops/verify-loop.md"]
+    B --> IL["🔧 loops/improvement-loop.md"]
+    B --> CL["📦 loops/close-loop.md"]
+    A --> SJ["📊 templates/state.json\n状態管理"]
+    A --> DC["📚 docs/"]
 ```
 
-## ✅ STABLE の考え方
-
-| 条件 | 必須 |
-|---|---|
-| test success | 必須 |
-| lint success | 必須 |
-| build success | 必須 |
-| CI success | 推奨、使える場合は必須 |
-| security critical issue 0 | 必須 |
-
-| 変更規模 | 連続成功回数 |
-|---|---|
-| 小規模 | N=2 |
-| 通常 | N=3 |
-| 重要 | N=5 |
-
-## 📋 ドキュメント更新方針
-
-- セッション開始時に前提条件を更新する
-- 実装完了時に機能説明と影響範囲を更新する
-- Verify 後に結果を反映する
-- Improvement 後に名称、構造、運用説明を整える
-- Close 時に最終状態と再開ポイントを残す
-
-## 🛑 停止条件
-
-- 同じ失敗を 3 回繰り返した
-- CI 修復を 5 回以上試した
-- 重大な security issue を検出した
-- 外部依存で進行不能になった
-- `state.json` に進展がなくループが停滞した
-
-## 📈 実装状況（2026-04-03 現在）
-
-| レイヤ | 状態 | 詳細 |
-|--------|------|------|
-| **Backend API** | ✅ 完了 | 35エンドポイント / 13テーブル / 7マイグレーション |
-| **Backend CI** | ✅ グリーン | ruff / mypy / pytest 30/30 / bandit |
-| **Frontend 骨格** | ✅ 完了 | React18 / Vite / TypeScript / Tailwind |
-| **Frontend 認証** | ✅ 完了 | JWT / Zustand / axios |
-| **Frontend 工事案件** | ✅ 完了 | 一覧・詳細 |
-| **Frontend 日報** | ✅ 完了 | 一覧・作成モーダル |
-| **Frontend 安全品質** | ✅ 完了 | 安全チェック・品質検査タブ |
-| **Frontend ITSM** | ✅ 完了 | インシデント・変更要求タブ |
-| **Frontend ナレッジ** | ✅ 完了 | AI検索・カテゴリフィルター |
-| **Frontend 原価** | ✅ 完了 | サマリーカード・コストレコード |
-| **E2E / 統合確認** | 🔲 未実施 | docker-compose 統合動作確認 |
-| **UAT** | 🔲 未実施 | v1.0.0 リリース前 |
-
-## 🛠 ローカル起動手順
-
-```bash
-# 依存関係セットアップ
-cp .env.example .env  # 環境変数設定
-docker-compose up -d
-
-# フロントエンド開発サーバー（単独起動時）
-cd frontend && npm install && npm run dev
-```
+---
 
 ## 🌐 主要 URL（開発環境）
 
-| サービス | URL |
-|----------|-----|
-| フロントエンド | http://localhost:5173 |
-| バックエンド API | http://localhost:8000/api/v1 |
-| API ドキュメント | http://localhost:8000/docs |
+| サービス             | URL                              |
+| :------------------- | :------------------------------- |
+| 🖥️ フロントエンド     | http://localhost                 |
+| ⚙️ バックエンド API   | http://localhost/api/v1          |
+| 📖 API ドキュメント   | http://localhost/api/v1/docs     |
+| 📡 ヘルスチェック     | http://localhost/health          |
+| 🪣 MinIO Console     | http://localhost:9001            |
 
+---
 
+## 🤝 コントリビューション
 
-## 📌 使い始め
+1. `main` ブランチへの直接 push は禁止
+2. フィーチャーブランチを作成して PR を送ってください
+3. PR では test / lint / build / security すべてのパスが必要
+4. コミットメッセージは `feat:`, `fix:`, `docs:`, `refactor:` 等のプレフィックスを使用
+5. Copilot CLI コミットには `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` トレーラーを含める
 
-1. `AGENT.md` を読む
-2. `.github/copilot-instructions.md` を読む
-3. `copilotcli-kernel/` の system と loops を読む
-4. `templates/state.json` を初期化または確認する
-5. 現在のタスクを `Monitor` として開始する
+詳細は [`AGENT.md`](AGENT.md) および [`docs/`](docs/) を参照してください。
+
+---
+
+## 📄 ライセンス
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ by GitHub Copilot CLI · ServiceHub Construction Platform</sub>
+</div>
