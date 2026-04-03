@@ -3,6 +3,7 @@ API依存性注入
 JWT認証・現在ユーザー取得
 """
 
+import uuid
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -36,8 +37,13 @@ async def get_current_user(
     if token_data is None:
         raise credentials_exception
 
+    try:
+        user_uuid = uuid.UUID(token_data.sub)
+    except (ValueError, AttributeError):
+        raise credentials_exception from None
+
     result = await db.execute(
-        select(User).where(User.id == token_data.sub, User.deleted_at.is_(None))
+        select(User).where(User.id == user_uuid, User.deleted_at.is_(None))
     )
     user = result.scalar_one_or_none()
     if user is None or not user.is_active:

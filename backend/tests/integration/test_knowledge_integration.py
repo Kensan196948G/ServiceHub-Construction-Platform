@@ -8,11 +8,11 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_knowledge_article_lifecycle(
-    client: AsyncClient, admin_headers: dict, viewer_headers: dict
+    auth_client: AsyncClient, admin_headers: dict, viewer_headers: dict
 ):
     """ナレッジ記事 CRUD ライフサイクル"""
     # 1. 作成（非公開）
-    resp = await client.post(
+    resp = await auth_client.post(
         "/api/v1/knowledge/articles",
         json={
             "title": "高所作業安全管理手順書",
@@ -33,15 +33,15 @@ async def test_knowledge_article_lifecycle(
     article_id = article["id"]
 
     # 2. VIEWER は非公開記事を一覧で見られない
-    resp = await client.get(
+    resp = await auth_client.get(
         "/api/v1/knowledge/articles?published_only=true", headers=viewer_headers
     )
     assert resp.status_code == 200
-    ids = [a["id"] for a in resp.json()["items"]]
+    ids = [a["id"] for a in resp.json()["data"]]
     assert article_id not in ids
 
     # 3. 公開
-    resp = await client.patch(
+    resp = await auth_client.patch(
         f"/api/v1/knowledge/articles/{article_id}",
         json={"is_published": True},
         headers=admin_headers,
@@ -50,27 +50,27 @@ async def test_knowledge_article_lifecycle(
     assert resp.json()["data"]["is_published"] is True
 
     # 4. 公開後は閲覧可能
-    resp = await client.get(
+    resp = await auth_client.get(
         f"/api/v1/knowledge/articles/{article_id}", headers=viewer_headers
     )
     assert resp.status_code == 200
     assert resp.json()["data"]["view_count"] >= 1
 
     # 5. キーワード検索
-    resp = await client.get(
+    resp = await auth_client.get(
         "/api/v1/knowledge/articles?q=ハーネス", headers=viewer_headers
     )
     assert resp.status_code == 200
-    assert resp.json()["total"] >= 1
+    assert resp.json()["meta"]["total"] >= 1
 
 
 @pytest.mark.asyncio
 async def test_ai_search_no_openai(
-    client: AsyncClient, viewer_headers: dict, admin_headers: dict
+    auth_client: AsyncClient, viewer_headers: dict, admin_headers: dict
 ):
     """AI検索（OpenAIなし: キーワードマッチのみ）"""
     # 記事作成
-    await client.post(
+    await auth_client.post(
         "/api/v1/knowledge/articles",
         json={
             "title": "品質検査手順",
@@ -85,7 +85,7 @@ async def test_ai_search_no_openai(
     )
 
     # AI検索（OpenAI未設定のためキーワードマッチのみ）
-    resp = await client.post(
+    resp = await auth_client.post(
         "/api/v1/knowledge/search",
         json={
             "query": "コンクリート",
@@ -101,10 +101,10 @@ async def test_ai_search_no_openai(
 
 @pytest.mark.asyncio
 async def test_knowledge_viewer_cannot_create(
-    client: AsyncClient, viewer_headers: dict
+    auth_client: AsyncClient, viewer_headers: dict
 ):
     """VIEWERは記事作成不可"""
-    resp = await client.post(
+    resp = await auth_client.post(
         "/api/v1/knowledge/articles",
         json={
             "title": "テスト",

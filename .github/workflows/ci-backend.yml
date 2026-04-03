@@ -23,6 +23,7 @@ jobs:
   test:
     name: Test & Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       DATABASE_URL: "sqlite+aiosqlite:///:memory:"
       JWT_SECRET_KEY: test-secret-key-for-ci-only-not-production
@@ -38,16 +39,12 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-          pip install aiosqlite pytest-asyncio httpx pytest-cov
-      - name: Run unit tests
+          pip install aiosqlite pytest-asyncio httpx pytest-cov pytest-timeout
+      - name: Run tests
         run: |
           cd backend
           pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml \
-            --ignore=tests/integration --ignore=tests/performance
-      - name: Run integration tests
-        run: |
-          cd backend
-          pytest tests/integration/ -v
+            --ignore=tests/performance --timeout=60
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:

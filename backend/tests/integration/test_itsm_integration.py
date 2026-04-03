@@ -8,11 +8,11 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_incident_lifecycle(
-    client: AsyncClient, it_headers: dict, admin_headers: dict
+    auth_client: AsyncClient, it_headers: dict, admin_headers: dict
 ):
     """インシデント起票→更新→解決 ライフサイクル"""
     # 1. 起票 (IT_OPERATOR)
-    resp = await client.post(
+    resp = await auth_client.post(
         "/api/v1/itsm/incidents",
         json={
             "title": "本番DBへの接続エラー",
@@ -30,12 +30,12 @@ async def test_incident_lifecycle(
     incident_id = incident["id"]
 
     # 2. 一覧取得
-    resp = await client.get("/api/v1/itsm/incidents", headers=it_headers)
+    resp = await auth_client.get("/api/v1/itsm/incidents", headers=it_headers)
     assert resp.status_code == 200
-    assert resp.json()["total"] >= 1
+    assert resp.json()["meta"]["total"] >= 1
 
     # 3. 解決
-    resp = await client.patch(
+    resp = await auth_client.patch(
         f"/api/v1/itsm/incidents/{incident_id}",
         json={
             "status": "RESOLVED",
@@ -50,11 +50,11 @@ async def test_incident_lifecycle(
 
 @pytest.mark.asyncio
 async def test_change_request_sod(
-    client: AsyncClient, it_headers: dict, admin_headers: dict, pm_headers: dict
+    auth_client: AsyncClient, it_headers: dict, admin_headers: dict, pm_headers: dict
 ):
     """変更管理SoD: IT_OPERATORが起票、ADMINのみ承認可"""
     # 1. 起票 (IT_OPERATOR)
-    resp = await client.post(
+    resp = await auth_client.post(
         "/api/v1/itsm/changes",
         json={
             "title": "Nginx設定変更",
@@ -71,13 +71,13 @@ async def test_change_request_sod(
     change_id = change["id"]
 
     # 2. PMは承認不可（SoD検証）
-    resp = await client.patch(
+    resp = await auth_client.patch(
         f"/api/v1/itsm/changes/{change_id}/approve", headers=pm_headers
     )
     assert resp.status_code == 403
 
     # 3. ADMINは承認可
-    resp = await client.patch(
+    resp = await auth_client.patch(
         f"/api/v1/itsm/changes/{change_id}/approve", headers=admin_headers
     )
     assert resp.status_code == 200
@@ -86,11 +86,11 @@ async def test_change_request_sod(
 
 
 @pytest.mark.asyncio
-async def test_incident_not_found(client: AsyncClient, it_headers: dict):
+async def test_incident_not_found(auth_client: AsyncClient, it_headers: dict):
     """存在しないインシデントは404"""
     import uuid
 
-    resp = await client.get(
+    resp = await auth_client.get(
         f"/api/v1/itsm/incidents/{uuid.uuid4()}", headers=it_headers
     )
     assert resp.status_code == 404

@@ -7,7 +7,7 @@ from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_projects_crud_lifecycle(client: AsyncClient, admin_headers: dict):
+async def test_projects_crud_lifecycle(auth_client: AsyncClient, admin_headers: dict):
     """工事案件 CRUD ライフサイクルテスト"""
     # 1. 作成
     payload = {
@@ -19,25 +19,30 @@ async def test_projects_crud_lifecycle(client: AsyncClient, admin_headers: dict)
         "start_date": "2026-04-01",
         "end_date": "2026-09-30",
         "location": "東京都千代田区",
+        "client_name": "テスト施主株式会社",
     }
-    resp = await client.post("/api/v1/projects/", json=payload, headers=admin_headers)
+    resp = await auth_client.post(
+        "/api/v1/projects/", json=payload, headers=admin_headers
+    )
     assert resp.status_code == 201, resp.text
     data = resp.json()
     assert data["data"]["name"] == "テスト工事案件"
     project_id = data["data"]["id"]
 
     # 2. 取得
-    resp = await client.get(f"/api/v1/projects/{project_id}", headers=admin_headers)
+    resp = await auth_client.get(
+        f"/api/v1/projects/{project_id}", headers=admin_headers
+    )
     assert resp.status_code == 200
     assert resp.json()["data"]["project_code"] == "PRJ-TEST-001"
 
     # 3. 一覧
-    resp = await client.get("/api/v1/projects/", headers=admin_headers)
+    resp = await auth_client.get("/api/v1/projects/", headers=admin_headers)
     assert resp.status_code == 200
-    assert resp.json()["total"] >= 1
+    assert resp.json()["meta"]["total"] >= 1
 
     # 4. 更新
-    resp = await client.patch(
+    resp = await auth_client.put(
         f"/api/v1/projects/{project_id}",
         json={"status": "IN_PROGRESS"},
         headers=admin_headers,
@@ -47,9 +52,11 @@ async def test_projects_crud_lifecycle(client: AsyncClient, admin_headers: dict)
 
 
 @pytest.mark.asyncio
-async def test_projects_viewer_cannot_create(client: AsyncClient, viewer_headers: dict):
+async def test_projects_viewer_cannot_create(
+    auth_client: AsyncClient, viewer_headers: dict
+):
     """VIEWERは案件作成不可"""
-    resp = await client.post(
+    resp = await auth_client.post(
         "/api/v1/projects/",
         json={
             "name": "VIEWER案件",
