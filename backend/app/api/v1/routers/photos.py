@@ -27,16 +27,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
-from app.repositories.photo import PhotoRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.photo import PhotoResponse, PhotoUpdate
-from app.services.storage import storage_service
+from app.services.photo_service import (
+    FileTooLargeError,
+    InvalidFileTypeError,
+    PhotoNotFoundError,
+    PhotoService,
+    UploadFailedError,
+)
 
 router = APIRouter(tags=["写真・資料管理"])
 logger = structlog.get_logger()
-
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 
 @router.post(
@@ -60,45 +62,25 @@ async def upload_photo(
     caption: str | None = Form(default=None),
     daily_report_id: uuid.UUID | None = Form(default=None),
 ):
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(
-            status_code=400, detail=f"許可されていないファイル形式: {file.content_type}"
-        )
     file_data = await file.read()
-    if len(file_data) > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=400, detail="ファイルサイズが50MBを超えています"
+    svc = PhotoService(db)
+    try:
+        response_data = await svc.upload(
+            project_id=project_id,
+            file_data=file_data,
+            filename=file.filename or "upload",
+            content_type=file.content_type,
+            category=category,
+            caption=caption,
+            daily_report_id=daily_report_id,
+            created_by=current_user.id,
         )
-
-    object_key = storage_service.generate_object_key(
-        str(project_id), category, file.filename or "upload"
-    )
-    try:
-        storage_service.upload_file(file_data, object_key, file.content_type)
-    except Exception as err:
-        raise HTTPException(
-            status_code=500, detail="ファイルアップロードに失敗しました"
-        ) from err
-
-    repo = PhotoRepository(db)
-    photo = await repo.create(
-        project_id=project_id,
-        file_name=object_key.split("/")[-1],
-        original_name=file.filename or "upload",
-        content_type=file.content_type,
-        file_size=len(file_data),
-        bucket_name=storage_service.bucket,
-        object_key=object_key,
-        category=category,
-        caption=caption,
-        daily_report_id=daily_report_id,
-        created_by=current_user.id,
-    )
-    response_data = PhotoResponse.model_validate(photo)
-    try:
-        response_data.download_url = storage_service.get_presigned_url(object_key)
-    except Exception:
-        logger.debug("presigned_url_generation_failed", object_key=object_key)
+    except InvalidFileTypeError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except FileTooLargeError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except UploadFailedError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
     return ApiResponse(data=response_data)
 
 
@@ -123,14 +105,10 @@ async def list_photos(
     per_page: int = Query(default=20, ge=1, le=100),
     category: str | None = Query(default=None),
 ):
-    repo = PhotoRepository(db)
-    offset = (page - 1) * per_page
-    photos = await repo.list(
-        project_id, offset=offset, limit=per_page, category=category
-    )
-    total = await repo.count(project_id, category=category)
+    svc = PhotoService(db)
+    photos, total = await svc.list_photos(project_id, page, per_page, category)
     return PaginatedResponse(
-        data=[PhotoResponse.model_validate(p) for p in photos],
+        data=photos,
         meta=PaginationMeta(
             total=total,
             page=page,
@@ -156,15 +134,11 @@ async def get_photo(
         ),
     ],
 ):
-    repo = PhotoRepository(db)
-    photo = await repo.get_by_id(photo_id)
-    if not photo:
-        raise HTTPException(status_code=404, detail="写真が見つかりません")
-    response_data = PhotoResponse.model_validate(photo)
+    svc = PhotoService(db)
     try:
-        response_data.download_url = storage_service.get_presigned_url(photo.object_key)
-    except Exception:
-        logger.debug("presigned_url_generation_failed", object_key=photo.object_key)
+        response_data = await svc.get_photo(photo_id)
+    except PhotoNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
     return ApiResponse(data=response_data)
 
 
@@ -182,12 +156,12 @@ async def update_photo(
         ),
     ],
 ):
-    repo = PhotoRepository(db)
-    photo = await repo.get_by_id(photo_id)
-    if not photo:
-        raise HTTPException(status_code=404, detail="写真が見つかりません")
-    photo = await repo.update(photo, payload)
-    return ApiResponse(data=PhotoResponse.model_validate(photo))
+    svc = PhotoService(db)
+    try:
+        response_data = await svc.update_photo(photo_id, payload)
+    except PhotoNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return ApiResponse(data=response_data)
 
 
 @router.delete("/photos/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -198,13 +172,9 @@ async def delete_photo(
         User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
     ],
 ):
-    repo = PhotoRepository(db)
-    photo = await repo.get_by_id(photo_id)
-    if not photo:
-        raise HTTPException(status_code=404, detail="写真が見つかりません")
+    svc = PhotoService(db)
     try:
-        storage_service.delete_file(photo.object_key)
-    except Exception:
-        logger.debug("storage_delete_failed", object_key=photo.object_key)
-    await repo.soft_delete(photo)
+        await svc.delete_photo(photo_id)
+    except PhotoNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
     return None

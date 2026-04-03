@@ -49,7 +49,7 @@ async def test_upload_photo_success(auth_client, admin_headers):
     project_id = str(uuid.uuid4())
     fake_key = f"projects/{project_id}/GENERAL/abc_test.jpg"
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.bucket = "test-bucket"
         mock_storage.generate_object_key.return_value = fake_key
         mock_storage.upload_file.return_value = None
@@ -89,7 +89,7 @@ async def test_upload_photo_storage_failure(auth_client, admin_headers):
     project_id = str(uuid.uuid4())
     fake_key = f"projects/{project_id}/GENERAL/abc_test.jpg"
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.bucket = "test-bucket"
         mock_storage.generate_object_key.return_value = fake_key
         mock_storage.upload_file.side_effect = Exception("MinIO connection failed")
@@ -127,7 +127,7 @@ async def test_list_photos_with_data(auth_client, admin_headers):
     project_id = str(uuid.uuid4())
     fake_key = f"projects/{project_id}/GENERAL/abc_photo.jpg"
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.bucket = "test-bucket"
         mock_storage.generate_object_key.return_value = fake_key
         mock_storage.upload_file.return_value = None
@@ -154,7 +154,7 @@ async def test_list_photos_with_category_filter(auth_client, admin_headers):
     project_id = str(uuid.uuid4())
     fake_key = f"projects/{project_id}/PROGRESS/abc_photo.jpg"
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.bucket = "test-bucket"
         mock_storage.generate_object_key.return_value = fake_key
         mock_storage.upload_file.return_value = None
@@ -192,7 +192,7 @@ async def test_get_photo_success(auth_client, admin_headers):
     project_id = str(uuid.uuid4())
     fake_key = f"projects/{project_id}/GENERAL/abc_photo.jpg"
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.bucket = "test-bucket"
         mock_storage.generate_object_key.return_value = fake_key
         mock_storage.upload_file.return_value = None
@@ -207,7 +207,7 @@ async def test_get_photo_success(auth_client, admin_headers):
     assert create_resp.status_code == 201
     photo_id = create_resp.json()["data"]["id"]
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.get_presigned_url.return_value = "http://minio/presigned-get"
 
         get_resp = await auth_client.get(
@@ -236,7 +236,7 @@ async def test_update_photo_success(auth_client, admin_headers):
     project_id = str(uuid.uuid4())
     fake_key = f"projects/{project_id}/GENERAL/abc_photo.jpg"
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.bucket = "test-bucket"
         mock_storage.generate_object_key.return_value = fake_key
         mock_storage.upload_file.return_value = None
@@ -278,7 +278,7 @@ async def test_delete_photo_success(auth_client, admin_headers):
     project_id = str(uuid.uuid4())
     fake_key = f"projects/{project_id}/GENERAL/abc_photo.jpg"
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.bucket = "test-bucket"
         mock_storage.generate_object_key.return_value = fake_key
         mock_storage.upload_file.return_value = None
@@ -292,7 +292,7 @@ async def test_delete_photo_success(auth_client, admin_headers):
         )
     photo_id = create_resp.json()["data"]["id"]
 
-    with patch("app.api.v1.routers.photos.storage_service") as mock_storage:
+    with patch("app.services.photo_service.storage_service") as mock_storage:
         mock_storage.delete_file.return_value = None
 
         del_resp = await auth_client.delete(
