@@ -1,13 +1,15 @@
 import api from "./client";
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface TokenResponse {
   access_token: string;
+  refresh_token: string;
   token_type: string;
+  expires_in: number;
 }
 
 export interface UserResponse {
@@ -20,11 +22,9 @@ export interface UserResponse {
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<TokenResponse> => {
-    const form = new FormData();
-    form.append("username", data.username);
-    form.append("password", data.password);
-    const res = await api.post<TokenResponse>("/auth/login", form, {
-      headers: { "Content-Type": "multipart/form-data" },
+    const res = await api.post<TokenResponse>("/auth/login", {
+      email: data.email,
+      password: data.password,
     });
     return res.data;
   },

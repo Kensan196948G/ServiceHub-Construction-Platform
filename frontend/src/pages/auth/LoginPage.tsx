@@ -17,7 +17,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const token = await authApi.login({ username: email, password });
+      const token = await authApi.login({ email, password });
       // Store token temporarily to fetch user info
       useAuthStore.setState({ token: token.access_token });
       const user = await authApi.me();
