@@ -29,9 +29,7 @@ class AuthService:
         """ログイン処理: 認証→トークン発行→ログイン日時更新"""
         user = await self.user_repo.get_by_email(payload.email)
 
-        if not user or not verify_password(
-            payload.password, user.hashed_password
-        ):
+        if not user or not verify_password(payload.password, user.hashed_password):
             logger.warning("login_failed", email=payload.email)
             raise AuthenticationError(
                 "メールアドレスまたはパスワードが正しくありません"

@@ -49,11 +49,7 @@ class UserRepository:
         role: str | None = None,
         is_active: bool | None = None,
     ) -> int:
-        q = (
-            select(func.count())
-            .select_from(User)
-            .where(User.deleted_at.is_(None))
-        )
+        q = select(func.count()).select_from(User).where(User.deleted_at.is_(None))
         if role:
             q = q.where(User.role == role)
         if is_active is not None:

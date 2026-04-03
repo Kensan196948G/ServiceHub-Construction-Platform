@@ -42,9 +42,7 @@ class CostRecordRepository:
         result = await self.db.execute(q)
         return result.scalars().all()
 
-    async def count(
-        self, project_id: uuid.UUID, category: str | None = None
-    ) -> int:
+    async def count(self, project_id: uuid.UUID, category: str | None = None) -> int:
         q = (
             select(func.count())
             .select_from(CostRecord)
@@ -58,9 +56,7 @@ class CostRecordRepository:
         result = await self.db.execute(q)
         return result.scalar_one()
 
-    async def get_summary(
-        self, project_id: uuid.UUID
-    ) -> dict[str, Decimal]:
+    async def get_summary(self, project_id: uuid.UUID) -> dict[str, Decimal]:
         """プロジェクト別の予算合計・実績合計を返す"""
         result = await self.db.execute(
             select(
@@ -84,19 +80,13 @@ class CostRecordRepository:
             "variance": row.total_budget - row.total_actual,
         }
 
-    async def get_summary_by_category(
-        self, project_id: uuid.UUID
-    ) -> Any:
+    async def get_summary_by_category(self, project_id: uuid.UUID) -> Any:
         """カテゴリ別の予実集計を返す"""
         result = await self.db.execute(
             select(
                 CostRecord.category,
-                func.coalesce(func.sum(CostRecord.budgeted_amount), 0).label(
-                    "budget"
-                ),
-                func.coalesce(func.sum(CostRecord.actual_amount), 0).label(
-                    "actual"
-                ),
+                func.coalesce(func.sum(CostRecord.budgeted_amount), 0).label("budget"),
+                func.coalesce(func.sum(CostRecord.actual_amount), 0).label("actual"),
                 func.count().label("count"),
             )
             .where(
@@ -115,18 +105,14 @@ class CostRecordRepository:
             for row in result.all()
         ]
 
-    async def create(
-        self, data: CostRecordCreate, created_by: uuid.UUID
-    ) -> CostRecord:
+    async def create(self, data: CostRecordCreate, created_by: uuid.UUID) -> CostRecord:
         record = CostRecord(**data.model_dump(), created_by=created_by)
         self.db.add(record)
         await self.db.flush()
         await self.db.refresh(record)
         return record
 
-    async def update(
-        self, record: CostRecord, data: CostRecordUpdate
-    ) -> CostRecord:
+    async def update(self, record: CostRecord, data: CostRecordUpdate) -> CostRecord:
         for field, value in data.model_dump(exclude_none=True).items():
             setattr(record, field, value)
         await self.db.flush()
@@ -177,9 +163,7 @@ class WorkHourRepository:
         )
         return result.scalar_one()
 
-    async def get_total_hours(
-        self, project_id: uuid.UUID
-    ) -> Decimal:
+    async def get_total_hours(self, project_id: uuid.UUID) -> Decimal:
         """プロジェクトの総工数を返す"""
         result = await self.db.execute(
             select(func.coalesce(func.sum(WorkHour.hours), 0))
@@ -191,9 +175,7 @@ class WorkHourRepository:
         )
         return result.scalar_one()
 
-    async def create(
-        self, data: WorkHourCreate, created_by: uuid.UUID
-    ) -> WorkHour:
+    async def create(self, data: WorkHourCreate, created_by: uuid.UUID) -> WorkHour:
         hour = WorkHour(**data.model_dump(), created_by=created_by)
         self.db.add(hour)
         await self.db.flush()

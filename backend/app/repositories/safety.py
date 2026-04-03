@@ -46,9 +46,7 @@ class SafetyCheckRepository:
         result = await self.db.execute(q)
         return result.scalars().all()
 
-    async def count(
-        self, project_id: uuid.UUID, check_type: str | None = None
-    ) -> int:
+    async def count(self, project_id: uuid.UUID, check_type: str | None = None) -> int:
         q = (
             select(func.count())
             .select_from(SafetyCheck)
@@ -71,9 +69,7 @@ class SafetyCheckRepository:
         await self.db.refresh(check)
         return check
 
-    async def update(
-        self, check: SafetyCheck, data: SafetyCheckUpdate
-    ) -> SafetyCheck:
+    async def update(self, check: SafetyCheck, data: SafetyCheckUpdate) -> SafetyCheck:
         for field, value in data.model_dump(exclude_none=True).items():
             setattr(check, field, value)
         await self.db.flush()
@@ -89,9 +85,7 @@ class QualityInspectionRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_by_id(
-        self, inspection_id: uuid.UUID
-    ) -> QualityInspection | None:
+    async def get_by_id(self, inspection_id: uuid.UUID) -> QualityInspection | None:
         result = await self.db.execute(
             select(QualityInspection).where(
                 QualityInspection.id == inspection_id,
@@ -113,8 +107,10 @@ class QualityInspectionRepository:
         )
         if result_filter:
             q = q.where(QualityInspection.result == result_filter)
-        q = q.order_by(QualityInspection.inspection_date.desc()).offset(offset).limit(
-            limit
+        q = (
+            q.order_by(QualityInspection.inspection_date.desc())
+            .offset(offset)
+            .limit(limit)
         )
         result = await self.db.execute(q)
         return result.scalars().all()
@@ -138,9 +134,7 @@ class QualityInspectionRepository:
     async def create(
         self, data: QualityInspectionCreate, created_by: uuid.UUID
     ) -> QualityInspection:
-        inspection = QualityInspection(
-            **data.model_dump(), created_by=created_by
-        )
+        inspection = QualityInspection(**data.model_dump(), created_by=created_by)
         self.db.add(inspection)
         await self.db.flush()
         await self.db.refresh(inspection)

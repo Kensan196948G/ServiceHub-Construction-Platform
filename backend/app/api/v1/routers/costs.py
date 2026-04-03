@@ -105,9 +105,7 @@ async def get_cost_summary(
     total_budgeted = summary["total_budget"]
     total_actual = summary["total_actual"]
     variance = summary["variance"]
-    variance_rate = (
-        float(variance / total_budgeted * 100) if total_budgeted else 0.0
-    )
+    variance_rate = float(variance / total_budgeted * 100) if total_budgeted else 0.0
 
     return ApiResponse(
         data=CostSummary(
@@ -171,7 +169,5 @@ async def delete_cost_record(
     repo = CostRecordRepository(db)
     record = await repo.get_by_id(record_id)
     if not record or record.project_id != project_id:
-        raise HTTPException(
-            status_code=404, detail="原価記録が見つかりません"
-        )
+        raise HTTPException(status_code=404, detail="原価記録が見つかりません")
     await repo.soft_delete(record)
