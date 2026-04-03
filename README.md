@@ -31,7 +31,7 @@
 - 💰 **原価・工数管理** — コスト記録・予実対比ダッシュボード
 - 🏛️ **ITSM 運用管理** — インシデント管理・変更要求ワークフロー
 - 🤖 **AI ナレッジ管理** — OpenAI 連携によるナレッジ AI 検索
-- 🚀 **Copilot CLI 自律開発** — Monitor → Development → Verify → Improvement → Close ループ
+- 🚀 **ClaudeOS v5 自律開発** — Monitor → Development → Verify → Improvement ループ
 
 ---
 
@@ -83,12 +83,26 @@ graph TB
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 テスト数 | **111 件**（pytest） |
-| 📈 カバレッジ | **94%** |
-| 🖥️ フロントエンドページ | **9 ページ**（写真管理含む） |
-| 🔗 API エンドポイント | **42 エンドポイント** |
-| ✅ CI ステータス | **グリーン**（ruff / mypy / pytest / build） |
-| 🌐 E2E | **7/7 PASS**（nginx 経由） |
+| 🧪 Backend テスト | **134 件**（pytest / coverage 85%） |
+| 🧪 Frontend テスト | **23 件**（vitest） |
+| 🖥️ フロントエンドページ | **11 ページ** |
+| 🔗 API エンドポイント | **46 エンドポイント** |
+| 🏗️ Repository クラス | **12 クラス**（全 Router 統一済み） |
+| 🔧 Service クラス | **2 クラス**（AuthService / StorageService） |
+| ✅ CI ステータス | **グリーン**（ruff / mypy / pytest / bandit / build） |
+
+### 🏗️ Backend アーキテクチャ
+
+```mermaid
+graph LR
+    R["Router\n(API Layer)"] --> S["Service\n(Business Logic)"]
+    R --> Repo["Repository\n(Data Access)"]
+    S --> Repo
+    Repo --> DB["SQLAlchemy\n(ORM)"]
+    DB --> PG["PostgreSQL"]
+```
+
+> **全 8 Router が Repository パターンに統一済み。** Service 層は AuthService / StorageService を実装済み、残りモジュールは今後拡充予定。
 
 ---
 
@@ -294,32 +308,50 @@ ServiceHub-Construction-Platform/
 │   └── vite.config.ts
 ├── nginx/                       # Nginx 設定
 ├── docs/                        # 設計・運用ドキュメント
-├── copilotcli-kernel/           # Copilot CLI 実行カーネル
-│   ├── system/                  # orchestrator / loop-guard
-│   └── loops/                   # 各フェーズのループ定義
-├── templates/
-│   └── state.json               # 現在フェーズ・ループ状態管理
+├── .claude/
+│   ├── claudeos/                # ClaudeOS v5 自律開発カーネル
+│   │   ├── system/              # orchestrator / loop-guard / token-budget
+│   │   ├── executive/           # ai-cto / architecture-board
+│   │   ├── management/          # scrum-master / dev-factory
+│   │   ├── loops/               # monitor / build / verify / improve
+│   │   ├── ci/                  # ci-manager / auto-repair
+│   │   └── evolution/           # self-evolution
+│   └── CLAUDE.md                # ClaudeOS 設定
+├── state.json                   # 現在フェーズ・ループ状態管理
 └── scripts/                     # 運用スクリプト
 ```
 
 ---
 
-## 📋 Copilot CLI カーネル構成
+## 📋 ClaudeOS v5 カーネル構成
 
-`AGENT.md` を運用入口、`copilotcli-kernel/` を実行カーネルとして自律開発を行います。
+`.claude/claudeos/` を正規構成として自律開発を行います。
 
 ```mermaid
 graph TD
-    A["📄 AGENT.md\n運用入口"] --> B["⚙️ system/orchestrator.md\nループ統制"]
-    B --> LG["🛡️ system/loop-guard.md\n停止条件"]
-    B --> ML["🔍 loops/monitor-loop.md"]
-    B --> DL["🔨 loops/development-loop.md"]
-    B --> VL["✔️ loops/verify-loop.md"]
-    B --> IL["🔧 loops/improvement-loop.md"]
-    B --> CL["📦 loops/close-loop.md"]
-    A --> SJ["📊 templates/state.json\n状態管理"]
-    A --> DC["📚 docs/"]
+    A["📄 CLAUDE.md\n運用入口"] --> B["⚙️ system/orchestrator.md\nループ統制"]
+    B --> LG["🛡️ loop-guard.md\n停止条件"]
+    B --> TB["💰 token-budget.md\nトークン制御"]
+    B --> ML["🔍 monitor-loop.md\n1h: 状態確認"]
+    B --> DL["🔨 build-loop.md\n2h: 実装"]
+    B --> VL["✔️ verify-loop.md\n2h: テスト"]
+    B --> IL["🔧 improve-loop.md\n3h: 改善"]
+    A --> CTO["🎯 ai-cto.md\n優先順位判断"]
+    A --> AB["🏛️ architecture-board.md\n構造レビュー"]
+    A --> SJ["📊 state.json\n状態管理"]
 ```
+
+### Agent Teams（複雑タスク用）
+
+| Role | 責務 |
+| :--- | :--- |
+| 🎯 CTO | 優先順位判断・8時間制御・継続可否 |
+| 🏛️ Architect | 設計・構造・責務分離 |
+| 👷 Developer | 実装・修正・修復 |
+| 🔍 Reviewer | 品質・差分・保守性確認 |
+| 🧪 QA | テスト・検証・回帰確認 |
+| 🔒 Security | 脆弱性・権限・secrets確認 |
+| 🚀 DevOps | CI/CD・PR・Deploy制御 |
 
 ---
 
@@ -354,5 +386,5 @@ This project is licensed under the [MIT License](LICENSE).
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by GitHub Copilot CLI · ServiceHub Construction Platform</sub>
+  <sub>Built with ❤️ by ClaudeOS v5 · ServiceHub Construction Platform</sub>
 </div>
