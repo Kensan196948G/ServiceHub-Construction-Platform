@@ -11,27 +11,31 @@ import {
   LogOut,
   Menu,
   X,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import clsx from "clsx";
-
-const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "ダッシュボード" },
-  { to: "/projects", icon: Building2, label: "工事案件" },
-  { to: "/reports", icon: FileText, label: "日報" },
-  { to: "/safety", icon: HardHat, label: "安全品質" },
-  { to: "/cost", icon: DollarSign, label: "原価管理" },
-  { to: "/photos", icon: Image, label: "写真管理" },
-  { to: "/itsm", icon: AlertCircle, label: "ITSM" },
-  { to: "/knowledge", icon: BookOpen, label: "ナレッジ" },
-];
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const navItems = [
+    { to: "/dashboard", icon: LayoutDashboard, label: "ダッシュボード" },
+    { to: "/projects", icon: Building2, label: "工事案件" },
+    { to: "/reports", icon: FileText, label: "日報" },
+    { to: "/safety", icon: HardHat, label: "安全品質" },
+    { to: "/cost", icon: DollarSign, label: "原価管理" },
+    { to: "/photos", icon: Image, label: "写真管理" },
+    { to: "/itsm", icon: AlertCircle, label: "ITSM" },
+    { to: "/knowledge", icon: BookOpen, label: "ナレッジ" },
+    ...(user?.role === "ADMIN"
+      ? [{ to: "/users", icon: Users, label: "ユーザー管理" }]
+      : []),
+  ];
 
   const handleLogout = () => {
     logout();

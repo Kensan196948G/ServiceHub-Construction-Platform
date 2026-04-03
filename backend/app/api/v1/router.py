@@ -11,6 +11,7 @@ from app.api.v1.routers import (
     photos,
     projects,
     safety,
+    users,
 )
 
 api_router = APIRouter()
@@ -23,3 +24,4 @@ api_router.include_router(safety.router)
 api_router.include_router(costs.router)
 api_router.include_router(itsm.router)
 api_router.include_router(knowledge.router)
+api_router.include_router(users.router)
