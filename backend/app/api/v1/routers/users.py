@@ -11,13 +11,13 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
 from app.core.security import get_password_hash
 from app.db.base import get_db
 from app.models.user import User
+from app.repositories.user import UserRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.user import UserCreate, UserListResponse, UserUpdate
 
@@ -31,17 +31,10 @@ async def list_users(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
+    repo = UserRepository(db)
     offset = (page - 1) * per_page
-    q = select(User).where(User.deleted_at.is_(None))
-    result = await db.execute(
-        q.order_by(User.created_at.desc()).offset(offset).limit(per_page)
-    )
-    users = result.scalars().all()
-
-    count_result = await db.execute(
-        select(func.count()).select_from(User).where(User.deleted_at.is_(None))
-    )
-    total = count_result.scalar_one()
+    users = await repo.list(offset=offset, limit=per_page)
+    total = await repo.count()
 
     return PaginatedResponse(
         data=[UserListResponse.model_validate(u) for u in users],
@@ -64,24 +57,17 @@ async def create_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    existing = await db.execute(
-        select(User).where(User.email == payload.email, User.deleted_at.is_(None))
-    )
-    if existing.scalar_one_or_none():
+    repo = UserRepository(db)
+    existing = await repo.get_by_email(payload.email)
+    if existing:
         raise HTTPException(
             status_code=400,
             detail="このメールアドレスは既に登録されています",
         )
 
-    user = User(
-        email=payload.email,
-        full_name=payload.full_name,
-        hashed_password=get_password_hash(payload.password),
-        role=payload.role,
+    user = await repo.create(
+        payload, hashed_password=get_password_hash(payload.password)
     )
-    db.add(user)
-    await db.flush()
-    await db.refresh(user)
     return ApiResponse(data=UserListResponse.model_validate(user))
 
 
@@ -91,10 +77,8 @@ async def get_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    result = await db.execute(
-        select(User).where(User.id == user_id, User.deleted_at.is_(None))
-    )
-    user = result.scalar_one_or_none()
+    repo = UserRepository(db)
+    user = await repo.get_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
     return ApiResponse(data=UserListResponse.model_validate(user))
@@ -107,22 +91,12 @@ async def update_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    result = await db.execute(
-        select(User).where(User.id == user_id, User.deleted_at.is_(None))
-    )
-    user = result.scalar_one_or_none()
+    repo = UserRepository(db)
+    user = await repo.get_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
-    if payload.full_name is not None:
-        user.full_name = payload.full_name
-    if payload.role is not None:
-        user.role = payload.role
-    if payload.is_active is not None:
-        user.is_active = payload.is_active
-
-    await db.flush()
-    await db.refresh(user)
+    user = await repo.update(user, payload)
     return ApiResponse(data=UserListResponse.model_validate(user))
 
 
@@ -132,15 +106,10 @@ async def delete_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    from datetime import datetime, timezone
-
-    result = await db.execute(
-        select(User).where(User.id == user_id, User.deleted_at.is_(None))
-    )
-    user = result.scalar_one_or_none()
+    repo = UserRepository(db)
+    user = await repo.get_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
     if user.id == current_user.id:
         raise HTTPException(status_code=400, detail="自分自身は削除できません")
-    user.deleted_at = datetime.now(timezone.utc)
-    await db.commit()
+    await repo.soft_delete(user)

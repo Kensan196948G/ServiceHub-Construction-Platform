@@ -107,6 +107,7 @@ class KnowledgeArticleRepository:
     async def increment_view_count(self, article: KnowledgeArticle) -> None:
         article.view_count += 1
         await self.db.flush()
+        await self.db.refresh(article)
 
     async def soft_delete(
         self, article: KnowledgeArticle, deleted_by: uuid.UUID

@@ -8,15 +8,15 @@ from __future__ import annotations
 import math
 import time
 import uuid
-from datetime import timezone
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
-from app.models.knowledge import AiSearchLog, KnowledgeArticle
+from app.models.user import User
+from app.repositories.knowledge import AiSearchLogRepository, KnowledgeArticleRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.knowledge import (
     AiSearchRequest,
@@ -40,24 +40,19 @@ router = APIRouter(prefix="/knowledge", tags=["ナレッジ管理"])
 )
 async def create_article(
     payload: KnowledgeArticleCreate,
-    db: AsyncSession = Depends(get_db),
-    current_user=Depends(
-        require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR)
-    ),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR
+            )
+        ),
+    ],
 ):
     """ナレッジ記事作成"""
-    article = KnowledgeArticle(
-        title=payload.title,
-        content=payload.content,
-        category=payload.category,
-        tags=payload.tags,
-        is_published=payload.is_published,
-        created_by=current_user.id,
-        updated_by=current_user.id,
-    )
-    db.add(article)
-    await db.commit()
-    await db.refresh(article)
+    repo = KnowledgeArticleRepository(db)
+    article = await repo.create(payload, created_by=current_user.id)
     return ApiResponse(
         data=KnowledgeArticleResponse.model_validate(article),
         message="ナレッジ記事を作成しました",
@@ -66,52 +61,43 @@ async def create_article(
 
 @router.get("/articles", response_model=PaginatedResponse[KnowledgeArticleResponse])
 async def list_articles(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.PROJECT_MANAGER,
+                UserRole.SITE_SUPERVISOR,
+                UserRole.COST_MANAGER,
+                UserRole.IT_OPERATOR,
+                UserRole.VIEWER,
+            )
+        ),
+    ],
     category: str | None = None,
     published_only: bool = True,
     q: str | None = None,
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    db: AsyncSession = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.PROJECT_MANAGER,
-            UserRole.SITE_SUPERVISOR,
-            UserRole.COST_MANAGER,
-            UserRole.IT_OPERATOR,
-            UserRole.VIEWER,
-        )
-    ),
 ):
     """ナレッジ記事一覧（キーワード検索対応）"""
-    conditions = [KnowledgeArticle.deleted_at.is_(None)]
-    if published_only:
-        conditions.append(KnowledgeArticle.is_published.is_(True))  # type: ignore[arg-type]
-    if category:
-        conditions.append(KnowledgeArticle.category == category)  # type: ignore[arg-type]
+    repo = KnowledgeArticleRepository(db)
+    is_published = True if published_only else None
+
     if q:
-        keyword = f"%{q}%"
-        conditions.append(
-            or_(  # type: ignore[arg-type]
-                KnowledgeArticle.title.ilike(keyword),
-                KnowledgeArticle.content.ilike(keyword),
-                KnowledgeArticle.tags.ilike(keyword),
-            )
+        # Keyword search via repository (returns limited results, no offset)
+        items_raw = await repo.search(keyword=q, limit=per_page)
+        total = len(items_raw)
+        items = [KnowledgeArticleResponse.model_validate(r) for r in items_raw]
+    else:
+        offset = (page - 1) * per_page
+        total = await repo.count(category=category, is_published=is_published)
+        items_raw = await repo.list(
+            offset=offset, limit=per_page, category=category, is_published=is_published
         )
+        items = [KnowledgeArticleResponse.model_validate(r) for r in items_raw]
 
-    total_result = await db.execute(
-        select(func.count()).select_from(KnowledgeArticle).where(and_(*conditions))
-    )
-    total = total_result.scalar_one()
-
-    result = await db.execute(
-        select(KnowledgeArticle)
-        .where(and_(*conditions))
-        .order_by(KnowledgeArticle.view_count.desc())
-        .offset((page - 1) * per_page)
-        .limit(per_page)
-    )
-    items = [KnowledgeArticleResponse.model_validate(r) for r in result.scalars()]
     return PaginatedResponse(
         data=items,
         meta=PaginationMeta(
@@ -128,32 +114,27 @@ async def list_articles(
 )
 async def get_article(
     article_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.PROJECT_MANAGER,
-            UserRole.SITE_SUPERVISOR,
-            UserRole.COST_MANAGER,
-            UserRole.IT_OPERATOR,
-            UserRole.VIEWER,
-        )
-    ),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.PROJECT_MANAGER,
+                UserRole.SITE_SUPERVISOR,
+                UserRole.COST_MANAGER,
+                UserRole.IT_OPERATOR,
+                UserRole.VIEWER,
+            )
+        ),
+    ],
 ):
     """ナレッジ記事詳細（閲覧カウント+1）"""
-    result = await db.execute(
-        select(KnowledgeArticle).where(
-            and_(
-                KnowledgeArticle.id == article_id, KnowledgeArticle.deleted_at.is_(None)
-            )
-        )
-    )
-    article = result.scalar_one_or_none()
+    repo = KnowledgeArticleRepository(db)
+    article = await repo.get_by_id(article_id)
     if not article:
         raise HTTPException(status_code=404, detail="ナレッジ記事が見つかりません")
-    article.view_count += 1
-    await db.commit()
-    await db.refresh(article)
+    await repo.increment_view_count(article)
     return ApiResponse(data=KnowledgeArticleResponse.model_validate(article))
 
 
@@ -163,27 +144,22 @@ async def get_article(
 async def update_article(
     article_id: uuid.UUID,
     payload: KnowledgeArticleUpdate,
-    db: AsyncSession = Depends(get_db),
-    current_user=Depends(
-        require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR)
-    ),
-):
-    result = await db.execute(
-        select(KnowledgeArticle).where(
-            and_(
-                KnowledgeArticle.id == article_id, KnowledgeArticle.deleted_at.is_(None)
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR
             )
-        )
-    )
-    article = result.scalar_one_or_none()
+        ),
+    ],
+):
+    """ナレッジ記事更新"""
+    repo = KnowledgeArticleRepository(db)
+    article = await repo.get_by_id(article_id)
     if not article:
         raise HTTPException(status_code=404, detail="ナレッジ記事が見つかりません")
-    update_data = payload.model_dump(exclude_none=True)
-    update_data["updated_by"] = current_user.id
-    for k, v in update_data.items():
-        setattr(article, k, v)
-    await db.commit()
-    await db.refresh(article)
+    article = await repo.update(article, payload, updated_by=current_user.id)
     return ApiResponse(
         data=KnowledgeArticleResponse.model_validate(article),
         message="ナレッジ記事を更新しました",
@@ -193,24 +169,15 @@ async def update_article(
 @router.delete("/articles/{article_id}", response_model=ApiResponse[dict])
 async def delete_article(
     article_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles(UserRole.ADMIN)),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    from datetime import datetime
-
-    result = await db.execute(
-        select(KnowledgeArticle).where(
-            and_(
-                KnowledgeArticle.id == article_id, KnowledgeArticle.deleted_at.is_(None)
-            )
-        )
-    )
-    article = result.scalar_one_or_none()
+    """ナレッジ記事削除（論理削除）"""
+    repo = KnowledgeArticleRepository(db)
+    article = await repo.get_by_id(article_id)
     if not article:
         raise HTTPException(status_code=404, detail="ナレッジ記事が見つかりません")
-    article.deleted_at = datetime.now(timezone.utc)
-    article.updated_by = current_user.id
-    await db.commit()
+    await repo.soft_delete(article, deleted_by=current_user.id)
     return ApiResponse(data={}, message="ナレッジ記事を削除しました")
 
 
@@ -220,17 +187,20 @@ async def delete_article(
 @router.post("/search", response_model=AiSearchResponse)
 async def ai_search(
     payload: AiSearchRequest,
-    db: AsyncSession = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            UserRole.ADMIN,
-            UserRole.PROJECT_MANAGER,
-            UserRole.SITE_SUPERVISOR,
-            UserRole.COST_MANAGER,
-            UserRole.IT_OPERATOR,
-            UserRole.VIEWER,
-        )
-    ),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                UserRole.ADMIN,
+                UserRole.PROJECT_MANAGER,
+                UserRole.SITE_SUPERVISOR,
+                UserRole.COST_MANAGER,
+                UserRole.IT_OPERATOR,
+                UserRole.VIEWER,
+            )
+        ),
+    ],
 ):
     """
     ナレッジAI検索
@@ -243,26 +213,8 @@ async def ai_search(
     start_time = time.time()
 
     # キーワード検索
-    keyword = f"%{payload.query}%"
-    conditions = [
-        KnowledgeArticle.deleted_at.is_(None),
-        KnowledgeArticle.is_published.is_(True),
-        or_(
-            KnowledgeArticle.title.ilike(keyword),
-            KnowledgeArticle.content.ilike(keyword),
-            KnowledgeArticle.tags.ilike(keyword),
-        ),
-    ]
-    if payload.category:
-        conditions.append(KnowledgeArticle.category == payload.category)  # type: ignore[arg-type]
-
-    result = await db.execute(
-        select(KnowledgeArticle)
-        .where(and_(*conditions))
-        .order_by(KnowledgeArticle.view_count.desc())
-        .limit(payload.max_results)
-    )
-    articles = result.scalars().all()
+    repo = KnowledgeArticleRepository(db)
+    articles = await repo.search(keyword=payload.query, limit=payload.max_results)
 
     search_results: list[AiSearchResult] = []
     for article in articles:
@@ -321,7 +273,8 @@ async def ai_search(
     elapsed_ms = int((time.time() - start_time) * 1000)
 
     # 検索ログ保存（監査用）
-    log = AiSearchLog(
+    log_repo = AiSearchLogRepository(db)
+    await log_repo.create(
         user_id=current_user.id,
         query=payload.query,
         ai_response=ai_answer,
@@ -329,8 +282,6 @@ async def ai_search(
         tokens_used=tokens_used,
         response_time_ms=elapsed_ms,
     )
-    db.add(log)
-    await db.commit()
 
     return AiSearchResponse(
         query=payload.query,

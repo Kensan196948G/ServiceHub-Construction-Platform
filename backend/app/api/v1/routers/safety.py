@@ -2,17 +2,15 @@
 
 import math
 import uuid
-from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
-from app.models.safety import QualityInspection, SafetyCheck
 from app.models.user import User
+from app.repositories.safety import QualityInspectionRepository, SafetyCheckRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.safety import (
     QualityInspectionCreate,
@@ -42,11 +40,9 @@ async def create_safety_check(
         ),
     ],
 ):
+    repo = SafetyCheckRepository(db)
     payload.project_id = project_id
-    check = SafetyCheck(**payload.model_dump(), created_by=current_user.id)
-    db.add(check)
-    await db.flush()
-    await db.refresh(check)
+    check = await repo.create(payload, created_by=current_user.id)
     return ApiResponse(data=SafetyCheckResponse.model_validate(check))
 
 
@@ -71,20 +67,10 @@ async def list_safety_checks(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
-    q = (
-        select(SafetyCheck)
-        .where(SafetyCheck.project_id == project_id, SafetyCheck.deleted_at.is_(None))
-        .order_by(SafetyCheck.check_date.desc())
-        .offset((page - 1) * per_page)
-        .limit(per_page)
-    )
-    total_q = (
-        select(func.count())
-        .select_from(SafetyCheck)
-        .where(SafetyCheck.project_id == project_id, SafetyCheck.deleted_at.is_(None))
-    )
-    items = (await db.execute(q)).scalars().all()
-    total = (await db.execute(total_q)).scalar_one()
+    repo = SafetyCheckRepository(db)
+    offset = (page - 1) * per_page
+    items = await repo.list(project_id, offset=offset, limit=per_page)
+    total = await repo.count(project_id)
     return PaginatedResponse(
         data=[SafetyCheckResponse.model_validate(i) for i in items],
         meta=PaginationMeta(
@@ -114,11 +100,9 @@ async def create_quality_inspection(
         ),
     ],
 ):
+    repo = QualityInspectionRepository(db)
     payload.project_id = project_id
-    insp = QualityInspection(**payload.model_dump(), created_by=current_user.id)
-    db.add(insp)
-    await db.flush()
-    await db.refresh(insp)
+    insp = await repo.create(payload, created_by=current_user.id)
     return ApiResponse(data=QualityInspectionResponse.model_validate(insp))
 
 
@@ -143,26 +127,10 @@ async def list_quality_inspections(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
-    q = (
-        select(QualityInspection)
-        .where(
-            QualityInspection.project_id == project_id,
-            QualityInspection.deleted_at.is_(None),
-        )
-        .order_by(QualityInspection.inspection_date.desc())
-        .offset((page - 1) * per_page)
-        .limit(per_page)
-    )
-    total_q = (
-        select(func.count())
-        .select_from(QualityInspection)
-        .where(
-            QualityInspection.project_id == project_id,
-            QualityInspection.deleted_at.is_(None),
-        )
-    )
-    items = (await db.execute(q)).scalars().all()
-    total = (await db.execute(total_q)).scalar_one()
+    repo = QualityInspectionRepository(db)
+    offset = (page - 1) * per_page
+    items = await repo.list(project_id, offset=offset, limit=per_page)
+    total = await repo.count(project_id)
     return PaginatedResponse(
         data=[QualityInspectionResponse.model_validate(i) for i in items],
         meta=PaginationMeta(
@@ -191,11 +159,11 @@ async def delete_safety_check(
         ),
     ],
 ):
-    check = await db.get(SafetyCheck, check_id)
-    if not check or check.deleted_at or check.project_id != project_id:
+    repo = SafetyCheckRepository(db)
+    check = await repo.get_by_id(check_id)
+    if not check or check.project_id != project_id:
         raise HTTPException(status_code=404, detail="安全チェックが見つかりません")
-    check.deleted_at = datetime.now(timezone.utc)
-    await db.commit()
+    await repo.soft_delete(check)
 
 
 @router.delete(
@@ -215,8 +183,8 @@ async def delete_quality_inspection(
         ),
     ],
 ):
-    insp = await db.get(QualityInspection, inspection_id)
-    if not insp or insp.deleted_at or insp.project_id != project_id:
+    repo = QualityInspectionRepository(db)
+    insp = await repo.get_by_id(inspection_id)
+    if not insp or insp.project_id != project_id:
         raise HTTPException(status_code=404, detail="品質検査が見つかりません")
-    insp.deleted_at = datetime.now(timezone.utc)
-    await db.commit()
+    await repo.soft_delete(insp)
