@@ -2,18 +2,16 @@
 
 import math
 import uuid
-from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
-from app.models.cost import CostRecord, WorkHour
 from app.models.user import User
+from app.repositories.cost import CostRecordRepository, WorkHourRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.cost import (
     CostRecordCreate,
@@ -44,11 +42,9 @@ async def create_cost_record(
         ),
     ],
 ):
+    repo = CostRecordRepository(db)
     payload.project_id = project_id
-    record = CostRecord(**payload.model_dump(), created_by=current_user.id)
-    db.add(record)
-    await db.flush()
-    await db.refresh(record)
+    record = await repo.create(payload, created_by=current_user.id)
     return ApiResponse(data=CostRecordResponse.model_validate(record))
 
 
@@ -70,20 +66,10 @@ async def list_cost_records(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
-    q = (
-        select(CostRecord)
-        .where(CostRecord.project_id == project_id, CostRecord.deleted_at.is_(None))
-        .order_by(CostRecord.record_date.desc())
-        .offset((page - 1) * per_page)
-        .limit(per_page)
-    )
-    total_q = (
-        select(func.count())
-        .select_from(CostRecord)
-        .where(CostRecord.project_id == project_id, CostRecord.deleted_at.is_(None))
-    )
-    items = (await db.execute(q)).scalars().all()
-    total = (await db.execute(total_q)).scalar_one()
+    repo = CostRecordRepository(db)
+    offset = (page - 1) * per_page
+    items = await repo.list(project_id, offset=offset, limit=per_page)
+    total = await repo.count(project_id)
     return PaginatedResponse(
         data=[CostRecordResponse.model_validate(i) for i in items],
         meta=PaginationMeta(
@@ -96,7 +82,8 @@ async def list_cost_records(
 
 
 @router.get(
-    "/projects/{project_id}/cost-summary", response_model=ApiResponse[CostSummary]
+    "/projects/{project_id}/cost-summary",
+    response_model=ApiResponse[CostSummary],
 )
 async def get_cost_summary(
     project_id: uuid.UUID,
@@ -111,21 +98,16 @@ async def get_cost_summary(
     ],
 ):
     """予実対比サマリー"""
-    q = (
-        select(
-            CostRecord.category,
-            func.sum(CostRecord.budgeted_amount).label("budgeted"),
-            func.sum(CostRecord.actual_amount).label("actual"),
-        )
-        .where(CostRecord.project_id == project_id, CostRecord.deleted_at.is_(None))
-        .group_by(CostRecord.category)
-    )
-    rows = (await db.execute(q)).all()
+    repo = CostRecordRepository(db)
+    summary = await repo.get_summary(project_id)
+    by_category = await repo.get_summary_by_category(project_id)
 
-    total_budgeted = sum(r.budgeted or 0 for r in rows)
-    total_actual = sum(r.actual or 0 for r in rows)
-    variance = total_budgeted - total_actual
-    variance_rate = float(variance / total_budgeted * 100) if total_budgeted else 0.0
+    total_budgeted = summary["total_budget"]
+    total_actual = summary["total_actual"]
+    variance = summary["variance"]
+    variance_rate = (
+        float(variance / total_budgeted * 100) if total_budgeted else 0.0
+    )
 
     return ApiResponse(
         data=CostSummary(
@@ -135,11 +117,11 @@ async def get_cost_summary(
             variance=Decimal(str(variance)),
             variance_rate=round(variance_rate, 2),
             by_category={
-                r.category: {
-                    "budgeted": float(r.budgeted or 0),
-                    "actual": float(r.actual or 0),
+                item["category"]: {
+                    "budgeted": float(item["budget"]),
+                    "actual": float(item["actual"]),
                 }
-                for r in rows
+                for item in by_category
             },
         )
     )
@@ -163,11 +145,9 @@ async def create_work_hour(
         ),
     ],
 ):
+    repo = WorkHourRepository(db)
     payload.project_id = project_id
-    wh = WorkHour(**payload.model_dump(), created_by=current_user.id)
-    db.add(wh)
-    await db.flush()
-    await db.refresh(wh)
+    wh = await repo.create(payload, created_by=current_user.id)
     return ApiResponse(data=WorkHourResponse.model_validate(wh))
 
 
@@ -188,8 +168,10 @@ async def delete_cost_record(
         ),
     ],
 ):
-    record = await db.get(CostRecord, record_id)
-    if not record or record.deleted_at or record.project_id != project_id:
-        raise HTTPException(status_code=404, detail="原価記録が見つかりません")
-    record.deleted_at = datetime.now(timezone.utc)
-    await db.commit()
+    repo = CostRecordRepository(db)
+    record = await repo.get_by_id(record_id)
+    if not record or record.project_id != project_id:
+        raise HTTPException(
+            status_code=404, detail="原価記録が見つかりません"
+        )
+    await repo.soft_delete(record)
