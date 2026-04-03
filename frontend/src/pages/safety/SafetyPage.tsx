@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { HardHat, Plus, CheckCircle, FlaskConical, X } from "lucide-react";
+import { HardHat, Plus, CheckCircle, FlaskConical, X, ChevronDown, ChevronUp } from "lucide-react";
 import {
   safetyApi,
   SafetyCheckCreate,
@@ -10,11 +10,25 @@ import { projectsApi } from "@/api/projects";
 
 type Tab = "checks" | "inspections";
 
+const CHECK_TYPE_OPTIONS = [
+  { value: "DAILY", label: "日次" },
+  { value: "WEEKLY", label: "週次" },
+  { value: "MONTHLY", label: "月次" },
+] as const;
+
+const CHECK_TYPE_LABEL: Record<string, string> = {
+  DAILY: "日次",
+  WEEKLY: "週次",
+  MONTHLY: "月次",
+};
+
 const RESULT_BADGE: Record<string, string> = {
   合格: "badge-success",
   pass: "badge-success",
+  OK: "badge-success",
   不合格: "badge-danger",
   fail: "badge-danger",
+  NG: "badge-danger",
 };
 
 export default function SafetyPage() {
@@ -22,11 +36,12 @@ export default function SafetyPage() {
   const [tab, setTab] = useState<Tab>("checks");
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [expandedCheckId, setExpandedCheckId] = useState<string | null>(null);
 
   const [checkForm, setCheckForm] = useState<SafetyCheckCreate>({
     project_id: "",
     check_date: new Date().toISOString().split("T")[0],
-    check_type: "",
+    check_type: "DAILY",
     items_total: 0,
     items_ok: 0,
     items_ng: 0,
@@ -86,7 +101,7 @@ export default function SafetyPage() {
       setCheckForm({
         project_id: selectedProjectId,
         check_date: new Date().toISOString().split("T")[0],
-        check_type: "",
+        check_type: "DAILY",
         items_total: 0,
         items_ok: 0,
         items_ng: 0,
@@ -187,25 +202,72 @@ export default function SafetyPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {["日付", "チェック種別", "OK数", "NG数", "総合判定"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                  {["日付", "チェック種別", "OK数", "NG数", "総合判定", ""].map((h, i) => (
+                    <th key={i} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {checks.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">{c.check_date}</td>
-                    <td className="px-4 py-3">{c.check_type}</td>
-                    <td className="px-4 py-3 text-green-700 font-medium">{c.items_ok}</td>
-                    <td className="px-4 py-3 text-red-600 font-medium">{c.items_ng}</td>
-                    <td className="px-4 py-3">
-                      <span className={RESULT_BADGE[c.overall_result] ?? "badge-info"}>
-                        {c.overall_result}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {checks.map((c) => {
+                  const total = (c.items_total && c.items_total > 0) ? c.items_total : (c.items_ok + c.items_ng) || 1;
+                  const okPct = Math.round((c.items_ok / total) * 100);
+                  const isExpanded = expandedCheckId === c.id;
+                  return (
+                    <React.Fragment key={c.id}>
+                      <tr
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => setExpandedCheckId(isExpanded ? null : c.id)}
+                      >
+                        <td className="px-4 py-3">{c.check_date}</td>
+                        <td className="px-4 py-3">
+                          <span className="badge-info">
+                            {CHECK_TYPE_LABEL[c.check_type] ?? c.check_type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-green-700 font-medium">{c.items_ok}</td>
+                        <td className="px-4 py-3 text-red-600 font-medium">{c.items_ng}</td>
+                        <td className="px-4 py-3">
+                          <span className={RESULT_BADGE[c.overall_result] ?? "badge-info"}>
+                            {c.overall_result}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-400">
+                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="bg-blue-50">
+                          <td colSpan={6} className="px-6 py-4">
+                            <div className="space-y-3">
+                              <div>
+                                <div className="flex justify-between text-xs font-medium text-gray-600 mb-1">
+                                  <span className="text-green-700">OK: {c.items_ok}件</span>
+                                  <span>合計: {total}件</span>
+                                  <span className="text-red-600">NG: {c.items_ng}件</span>
+                                </div>
+                                <div className="w-full h-5 bg-red-200 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-green-500 rounded-full transition-all"
+                                    style={{ width: `${okPct}%` }}
+                                  />
+                                </div>
+                                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                  <span className="text-green-600 font-medium">合格率: {okPct}%</span>
+                                  <span className="text-red-500">NG率: {100 - okPct}%</span>
+                                </div>
+                              </div>
+                              {c.notes && (
+                                <p className="text-sm text-gray-700 bg-white rounded p-2 border border-gray-200">
+                                  <span className="font-medium">備考: </span>{c.notes}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -244,8 +306,8 @@ export default function SafetyPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-6 border-b">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
               <h3 className="text-lg font-semibold">
                 {tab === "checks" ? "安全チェック新規作成" : "品質検査新規作成"}
               </h3>
@@ -263,10 +325,19 @@ export default function SafetyPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">チェック種別</label>
-                    <input type="text" className="input" value={checkForm.check_type ?? ""}
-                      onChange={(e) => setCheckForm({ ...checkForm, check_type: e.target.value })} />
+                    <select className="input" value={checkForm.check_type ?? "DAILY"}
+                      onChange={(e) => setCheckForm({ ...checkForm, check_type: e.target.value })}>
+                      {CHECK_TYPE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">合計数</label>
+                      <input type="number" className="input" min={0} value={checkForm.items_total ?? 0}
+                        onChange={(e) => setCheckForm({ ...checkForm, items_total: Number(e.target.value) })} />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">OK数</label>
                       <input type="number" className="input" min={0} value={checkForm.items_ok ?? 0}
@@ -282,8 +353,8 @@ export default function SafetyPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">総合判定</label>
                     <select className="input" value={checkForm.overall_result ?? "合格"}
                       onChange={(e) => setCheckForm({ ...checkForm, overall_result: e.target.value })}>
-                      <option value="合格">合格</option>
-                      <option value="不合格">不合格</option>
+                      <option value="合格">合格 (OK)</option>
+                      <option value="不合格">不合格 (NG)</option>
                     </select>
                   </div>
                   <div>

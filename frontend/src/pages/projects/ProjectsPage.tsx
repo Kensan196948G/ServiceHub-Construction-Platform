@@ -126,10 +126,10 @@ export default function ProjectsPage() {
           </table>
 
           {/* Pagination */}
-          {data && data.meta.total_pages > 1 && (
+          {data && (data.meta.total_pages ?? data.meta.pages ?? 1) > 1 && (
             <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between text-sm text-gray-600">
               <span>
-                全 {data.meta.total} 件 / {data.meta.total_pages} ページ
+                全 {data.meta.total} 件 / {data.meta.total_pages ?? data.meta.pages} ページ
               </span>
               <div className="flex gap-2">
                 <button
@@ -141,7 +141,7 @@ export default function ProjectsPage() {
                 </button>
                 <button
                   onClick={() => setPage((p) => p + 1)}
-                  disabled={page >= data.meta.total_pages}
+                  disabled={page >= (data.meta.total_pages ?? data.meta.pages ?? 1)}
                   className="btn-secondary py-1 px-3 disabled:opacity-40"
                 >
                   次へ
@@ -176,7 +176,7 @@ function CreateProjectModal({
   loading: boolean;
   statusOptions: { value: string; label: string }[];
 }) {
-  const [form, setForm] = useState<ProjectCreate>({
+  const [form, setForm] = useState<ProjectCreate & { location?: string }>({
     project_code: "",
     name: "",
     client_name: "",
@@ -184,9 +184,14 @@ function CreateProjectModal({
     description: "",
     location: "",
   });
-
+  // location を site_address にマップして送信
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const { location, ...rest } = form as ProjectCreate & { location?: string };
+    onSubmit({ ...rest, site_address: location } as unknown as ProjectCreate);
   };
 
   return (
@@ -198,7 +203,7 @@ function CreateProjectModal({
         </div>
         <form
           className="px-6 py-4 space-y-4"
-          onSubmit={(e) => { e.preventDefault(); onSubmit(form); }}
+          onSubmit={handleSubmit}
         >
           <div className="grid grid-cols-2 gap-4">
             <div>

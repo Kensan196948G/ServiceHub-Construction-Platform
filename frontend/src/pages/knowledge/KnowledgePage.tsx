@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Plus, Search, Sparkles, ChevronDown, ChevronUp, X, Eye } from "lucide-react";
+import { BookOpen, Plus, Search, Sparkles, X, Eye, Star } from "lucide-react";
 import { knowledgeApi, KnowledgeArticleCreate, KnowledgeArticle } from "@/api/knowledge";
 
 const CATEGORIES = ["全て", "SAFETY", "QUALITY", "COST", "TECHNICAL", "PROCEDURE", "GENERAL"] as const;
@@ -15,8 +15,8 @@ export default function KnowledgePage() {
   const [keyword, setKeyword] = useState("");
   const [aiQuery, setAiQuery] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<KnowledgeArticle | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [form, setForm] = useState<KnowledgeArticleCreate>({
     title: "",
     category: "GENERAL",
@@ -41,7 +41,7 @@ export default function KnowledgePage() {
     mutationFn: (data: KnowledgeArticleCreate) => knowledgeApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["knowledge"] });
-      setShowModal(false);
+      setShowCreateModal(false);
     },
   });
 
@@ -67,7 +67,7 @@ export default function KnowledgePage() {
           <BookOpen className="w-7 h-7 text-primary-600" />
           AIナレッジベース
         </h2>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
+        <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
           <Plus className="w-4 h-4 mr-1" />
           新規記事作成
         </button>
@@ -145,60 +145,105 @@ export default function KnowledgePage() {
           <p className="text-lg font-medium">記事が見つかりません</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((article: KnowledgeArticle) => {
             const tags = article.tags ? article.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
             return (
-              <div key={article.id} className="card">
-                <div
-                  className="flex items-start justify-between cursor-pointer"
-                  onClick={() => setExpandedId(expandedId === article.id ? null : article.id)}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="font-semibold text-gray-900">{article.title}</h3>
-                      <span className="badge-info">{CATEGORY_LABEL[article.category] ?? article.category}</span>
-                      {!article.is_published && (
-                        <span className="badge-warning">非公開</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {article.view_count}
-                      </span>
-                      {tags.map((tag) => (
-                        <span key={tag} className="bg-gray-100 px-2 py-0.5 rounded-full">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="ml-2 text-gray-400 flex-shrink-0">
-                    {expandedId === article.id ? (
-                      <ChevronUp className="w-5 h-5" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5" />
+              <div
+                key={article.id}
+                className="card cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setSelectedArticle(article)}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="badge-info">{CATEGORY_LABEL[article.category] ?? article.category}</span>
+                    {!article.is_published && (
+                      <span className="badge-warning">非公開</span>
                     )}
                   </div>
                 </div>
-                {expandedId === article.id && (
-                  <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {article.content}
-                  </div>
-                )}
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{article.title}</h3>
+                <p className="text-sm text-gray-500 line-clamp-2 mb-3">{article.content}</p>
+                <div className="flex items-center gap-4 text-xs text-gray-400">
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    {article.view_count}
+                  </span>
+                  {article.rating != null && (
+                    <span className="flex items-center gap-1 text-yellow-500">
+                      <Star className="w-3 h-3 fill-yellow-400" />
+                      {article.rating.toFixed(1)}
+                    </span>
+                  )}
+                  {tags.map((tag) => (
+                    <span key={tag} className="bg-gray-100 px-2 py-0.5 rounded-full text-gray-500">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             );
           })}
         </div>
       )}
 
-      {showModal && (
+      {/* 記事詳細モーダル */}
+      {selectedArticle && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div className="flex items-start justify-between p-6 border-b">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="badge-info">
+                    {CATEGORY_LABEL[selectedArticle.category] ?? selectedArticle.category}
+                  </span>
+                  {!selectedArticle.is_published && (
+                    <span className="badge-warning">非公開</span>
+                  )}
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">{selectedArticle.title}</h3>
+                <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    閲覧数: {selectedArticle.view_count}
+                  </span>
+                  {selectedArticle.rating != null && (
+                    <span className="flex items-center gap-1 text-yellow-500">
+                      <Star className="w-3 h-3 fill-yellow-400" />
+                      評価: {selectedArticle.rating.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button onClick={() => setSelectedArticle(null)} className="ml-4 flex-shrink-0">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                {selectedArticle.content}
+              </div>
+              {selectedArticle.tags && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {selectedArticle.tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
+                    <span key={tag} className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-500">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 記事作成モーダル */}
+      {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
               <h3 className="text-lg font-semibold">新規記事作成</h3>
-              <button onClick={() => setShowModal(false)}>
+              <button onClick={() => setShowCreateModal(false)}>
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
@@ -239,7 +284,7 @@ export default function KnowledgePage() {
                 <p className="text-red-600 text-sm">作成に失敗しました。</p>
               )}
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)}>
                   キャンセル
                 </button>
                 <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
@@ -253,4 +298,3 @@ export default function KnowledgePage() {
     </div>
   );
 }
-

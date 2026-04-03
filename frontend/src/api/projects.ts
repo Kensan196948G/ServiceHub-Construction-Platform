@@ -6,12 +6,14 @@ export interface Project {
   name: string;
   description: string | null;
   client_name: string;
+  site_address: string | null;
   status: string;
   budget: number | null;
   start_date: string | null;
   end_date: string | null;
-  location: string | null;
+  manager_id: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface ProjectCreate {
@@ -19,11 +21,12 @@ export interface ProjectCreate {
   name: string;
   description?: string;
   client_name: string;
+  site_address?: string;
   status: string;
   budget?: number;
   start_date?: string;
   end_date?: string;
-  location?: string;
+  manager_id?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -33,7 +36,8 @@ export interface PaginatedResponse<T> {
     page: number;
     per_page: number;
     total: number;
-    total_pages: number;
+    total_pages?: number;
+    pages?: number;
   };
 }
 

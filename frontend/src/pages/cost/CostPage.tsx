@@ -4,7 +4,21 @@ import { DollarSign, Plus, TrendingUp, TrendingDown, X } from "lucide-react";
 import { costApi, CostRecordCreate, CostRecord } from "@/api/cost";
 import { projectsApi } from "@/api/projects";
 
-const CATEGORIES = ["材料費", "労務費", "外注費", "経費", "その他"] as const;
+const CATEGORY_OPTIONS = [
+  { value: "LABOR", label: "労務費" },
+  { value: "MATERIAL", label: "材料費" },
+  { value: "EQUIPMENT", label: "機械費" },
+  { value: "SUBCONTRACT", label: "外注費" },
+  { value: "OVERHEAD", label: "経費" },
+] as const;
+
+const CATEGORY_LABEL: Record<string, string> = {
+  LABOR: "労務費",
+  MATERIAL: "材料費",
+  EQUIPMENT: "機械費",
+  SUBCONTRACT: "外注費",
+  OVERHEAD: "経費",
+};
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY" }).format(amount);
@@ -17,7 +31,7 @@ export default function CostPage() {
   const [form, setForm] = useState<CostRecordCreate>({
     project_id: "",
     record_date: new Date().toISOString().split("T")[0],
-    category: "材料費",
+    category: "MATERIAL",
     description: "",
     budgeted_amount: 0,
     actual_amount: 0,
@@ -58,7 +72,7 @@ export default function CostPage() {
     setForm({
       project_id: selectedProjectId,
       record_date: new Date().toISOString().split("T")[0],
-      category: "材料費",
+      category: "MATERIAL",
       description: "",
       budgeted_amount: 0,
       actual_amount: 0,
@@ -72,6 +86,9 @@ export default function CostPage() {
   }
 
   const isOver = (summary?.variance ?? 0) < 0;
+  const achieveRate = summary && summary.total_budgeted > 0
+    ? Math.round((summary.total_actual / summary.total_budgeted) * 100)
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -139,9 +156,9 @@ export default function CostPage() {
                 </p>
               </div>
               <div className="card">
-                <p className="text-xs font-medium text-gray-500 mb-1">差異率</p>
-                <p className={`text-xl font-bold ${isOver ? "text-red-600" : "text-green-600"}`}>
-                  {isOver ? "+" : "-"}{Math.abs(summary.variance_rate).toFixed(1)}%
+                <p className="text-xs font-medium text-gray-500 mb-1">達成率</p>
+                <p className={`text-xl font-bold ${achieveRate > 100 ? "text-red-600" : "text-green-600"}`}>
+                  {achieveRate}%
                 </p>
               </div>
             </div>
@@ -169,13 +186,13 @@ export default function CostPage() {
                       <tr key={r.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">{r.record_date}</td>
                         <td className="px-4 py-3">
-                          <span className="badge-info">{r.category}</span>
+                          <span className="badge-info">{CATEGORY_LABEL[r.category] ?? r.category}</span>
                         </td>
                         <td className="px-4 py-3 max-w-xs truncate">{r.description}</td>
                         <td className="px-4 py-3 text-right">{formatCurrency(r.budgeted_amount ?? 0)}</td>
                         <td className="px-4 py-3 text-right">{formatCurrency(r.actual_amount ?? 0)}</td>
                         <td className={`px-4 py-3 text-right font-medium ${variance < 0 ? "text-red-600" : "text-green-600"}`}>
-                          {variance < 0 ? "+" : "-"}{formatCurrency(Math.abs(variance))}
+                          {variance < 0 ? "▲" : "▼"}{formatCurrency(Math.abs(variance))}
                         </td>
                       </tr>
                     );
@@ -206,8 +223,8 @@ export default function CostPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
                 <select className="input" value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                  {CATEGORY_OPTIONS.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
                   ))}
                 </select>
               </div>
