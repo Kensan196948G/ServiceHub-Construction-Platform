@@ -2,7 +2,6 @@
 
 import math
 import uuid
-from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -11,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
-from app.repositories.cost import CostRecordRepository, WorkHourRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.cost import (
     CostRecordCreate,
@@ -20,6 +18,7 @@ from app.schemas.cost import (
     WorkHourCreate,
     WorkHourResponse,
 )
+from app.services.cost_service import CostNotFoundError, CostService
 
 router = APIRouter(tags=["原価・工数管理"])
 
@@ -42,10 +41,9 @@ async def create_cost_record(
         ),
     ],
 ):
-    repo = CostRecordRepository(db)
-    payload.project_id = project_id
-    record = await repo.create(payload, created_by=current_user.id)
-    return ApiResponse(data=CostRecordResponse.model_validate(record))
+    svc = CostService(db)
+    data = await svc.create_record(project_id, payload, created_by=current_user.id)
+    return ApiResponse(data=data)
 
 
 @router.get(
@@ -66,12 +64,10 @@ async def list_cost_records(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
-    repo = CostRecordRepository(db)
-    offset = (page - 1) * per_page
-    items = await repo.list(project_id, offset=offset, limit=per_page)
-    total = await repo.count(project_id)
+    svc = CostService(db)
+    items, total = await svc.list_records(project_id, page, per_page)
     return PaginatedResponse(
-        data=[CostRecordResponse.model_validate(i) for i in items],
+        data=items,
         meta=PaginationMeta(
             total=total,
             page=page,
@@ -98,31 +94,9 @@ async def get_cost_summary(
     ],
 ):
     """予実対比サマリー"""
-    repo = CostRecordRepository(db)
-    summary = await repo.get_summary(project_id)
-    by_category = await repo.get_summary_by_category(project_id)
-
-    total_budgeted = summary["total_budget"]
-    total_actual = summary["total_actual"]
-    variance = summary["variance"]
-    variance_rate = float(variance / total_budgeted * 100) if total_budgeted else 0.0
-
-    return ApiResponse(
-        data=CostSummary(
-            project_id=project_id,
-            total_budgeted=Decimal(str(total_budgeted)),
-            total_actual=Decimal(str(total_actual)),
-            variance=Decimal(str(variance)),
-            variance_rate=round(variance_rate, 2),
-            by_category={
-                item["category"]: {
-                    "budgeted": float(item["budget"]),
-                    "actual": float(item["actual"]),
-                }
-                for item in by_category
-            },
-        )
-    )
+    svc = CostService(db)
+    summary = await svc.get_summary(project_id)
+    return ApiResponse(data=summary)
 
 
 @router.post(
@@ -143,10 +117,9 @@ async def create_work_hour(
         ),
     ],
 ):
-    repo = WorkHourRepository(db)
-    payload.project_id = project_id
-    wh = await repo.create(payload, created_by=current_user.id)
-    return ApiResponse(data=WorkHourResponse.model_validate(wh))
+    svc = CostService(db)
+    data = await svc.create_work_hour(project_id, payload, created_by=current_user.id)
+    return ApiResponse(data=data)
 
 
 @router.delete(
@@ -166,8 +139,8 @@ async def delete_cost_record(
         ),
     ],
 ):
-    repo = CostRecordRepository(db)
-    record = await repo.get_by_id(record_id)
-    if not record or record.project_id != project_id:
-        raise HTTPException(status_code=404, detail="原価記録が見つかりません")
-    await repo.soft_delete(record)
+    svc = CostService(db)
+    try:
+        await svc.delete_record(project_id, record_id)
+    except CostNotFoundError as err:
+        raise HTTPException(status_code=404, detail="原価記録が見つかりません") from err
