@@ -3,13 +3,13 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Building2, ClipboardList, FileText, ShieldCheck,
-  DollarSign, Image, Plus, X, Pencil, CheckCircle, XCircle,
+  DollarSign, Image, Plus, X, Pencil, CheckCircle, XCircle, Trash2,
 } from "lucide-react";
 import { projectsApi, type Project, type ProjectCreate } from "@/api/projects";
 import { dailyReportsApi, type DailyReport, type DailyReportCreate } from "@/api/daily_reports";
 import { safetyApi, type SafetyCheck, type SafetyCheckCreate } from "@/api/safety";
 import { costApi, type CostRecord, type CostRecordCreate } from "@/api/cost";
-import { fetchPhotos, uploadPhoto, type Photo } from "@/api/photos";
+import { fetchPhotos, uploadPhoto, deletePhoto, type Photo } from "@/api/photos";
 
 const STATUS_LABELS: Record<string, string> = {
   PLANNING: "計画中", IN_PROGRESS: "進行中", COMPLETED: "完了",

@@ -152,6 +152,18 @@ export default function ItsmPage() {
     });
   }
 
+  function handleIncidentEditSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingIncident) return;
+    updateIncidentMutation.mutate({ id: editingIncident.id, data: incidentEditForm });
+  }
+
+  function handleChangeEditSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingChange) return;
+    updateChangeMutation.mutate({ id: editingChange.id, data: changeEditForm });
+  }
+
   function openModal() {
     if (tab === "incidents") {
       setIncidentForm({ title: "", description: "", category: "infrastructure", priority: "medium", severity: "minor" });
@@ -424,7 +436,7 @@ export default function ItsmPage() {
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            <form onSubmit={handleIncidentEditSubmit} className="p-6 space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); updateIncidentMutation.mutate({ id: editingIncident.id, data: incidentEditForm }); }} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
                 <input type="text" className="input" value={incidentEditForm.title ?? ""}
@@ -504,7 +516,7 @@ export default function ItsmPage() {
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            <form onSubmit={handleChangeEditSubmit} className="p-6 space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); updateChangeMutation.mutate({ id: editingChange.id, data: changeEditForm }); }} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
                 <input type="text" className="input" value={changeEditForm.title ?? ""}
