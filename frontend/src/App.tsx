@@ -9,6 +9,7 @@ import SafetyPage from "@/pages/safety/SafetyPage";
 import ItsmPage from "@/pages/itsm/ItsmPage";
 import KnowledgePage from "@/pages/knowledge/KnowledgePage";
 import CostPage from "@/pages/cost/CostPage";
+import PhotosPage from "@/pages/photos/PhotosPage";
 import { useAuthStore } from "@/stores/authStore";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="itsm" element={<ItsmPage />} />
         <Route path="knowledge" element={<KnowledgePage />} />
         <Route path="cost" element={<CostPage />} />
+        <Route path="photos" element={<PhotosPage />} />
       </Route>
     </Routes>
   );

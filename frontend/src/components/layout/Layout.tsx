@@ -7,6 +7,7 @@ import {
   AlertCircle,
   BookOpen,
   DollarSign,
+  Image,
   LogOut,
   Menu,
   X,
@@ -21,6 +22,7 @@ const navItems = [
   { to: "/reports", icon: FileText, label: "日報" },
   { to: "/safety", icon: HardHat, label: "安全品質" },
   { to: "/cost", icon: DollarSign, label: "原価管理" },
+  { to: "/photos", icon: Image, label: "写真管理" },
   { to: "/itsm", icon: AlertCircle, label: "ITSM" },
   { to: "/knowledge", icon: BookOpen, label: "ナレッジ" },
 ];
