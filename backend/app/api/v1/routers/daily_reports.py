@@ -17,13 +17,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
-from app.repositories.daily_report import DailyReportRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.daily_report import (
     DailyReportCreate,
     DailyReportResponse,
     DailyReportUpdate,
 )
+from app.services.daily_report_service import DailyReportService, ReportNotFoundError
 
 router = APIRouter(tags=["日報管理"])
 
@@ -49,12 +49,10 @@ async def list_daily_reports(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
-    repo = DailyReportRepository(db)
-    offset = (page - 1) * per_page
-    reports = await repo.list(project_id=project_id, offset=offset, limit=per_page)
-    total = await repo.count(project_id=project_id)
+    svc = DailyReportService(db)
+    reports, total = await svc.list_reports(project_id, page, per_page)
     return PaginatedResponse(
-        data=[DailyReportResponse.model_validate(r) for r in reports],
+        data=reports,
         meta=PaginationMeta(
             total=total,
             page=page,
@@ -82,10 +80,9 @@ async def create_daily_report(
         ),
     ],
 ):
-    payload.project_id = project_id
-    repo = DailyReportRepository(db)
-    report = await repo.create(payload, created_by=current_user.id)
-    return ApiResponse(data=DailyReportResponse.model_validate(report))
+    svc = DailyReportService(db)
+    report = await svc.create_report(project_id, payload, created_by=current_user.id)
+    return ApiResponse(data=report)
 
 
 @router.get(
@@ -106,11 +103,12 @@ async def get_daily_report(
         ),
     ],
 ):
-    repo = DailyReportRepository(db)
-    report = await repo.get_by_id(report_id)
-    if not report:
-        raise HTTPException(status_code=404, detail="日報が見つかりません")
-    return ApiResponse(data=DailyReportResponse.model_validate(report))
+    svc = DailyReportService(db)
+    try:
+        report = await svc.get_report(report_id)
+    except ReportNotFoundError:
+        raise HTTPException(status_code=404, detail="日報が見つかりません") from None
+    return ApiResponse(data=report)
 
 
 @router.put(
@@ -129,12 +127,12 @@ async def update_daily_report(
         ),
     ],
 ):
-    repo = DailyReportRepository(db)
-    report = await repo.get_by_id(report_id)
-    if not report:
-        raise HTTPException(status_code=404, detail="日報が見つかりません")
-    report = await repo.update(report, payload, updated_by=current_user.id)
-    return ApiResponse(data=DailyReportResponse.model_validate(report))
+    svc = DailyReportService(db)
+    try:
+        report = await svc.update_report(report_id, payload, updated_by=current_user.id)
+    except ReportNotFoundError:
+        raise HTTPException(status_code=404, detail="日報が見つかりません") from None
+    return ApiResponse(data=report)
 
 
 @router.delete("/daily-reports/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -145,9 +143,9 @@ async def delete_daily_report(
         User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
     ],
 ):
-    repo = DailyReportRepository(db)
-    report = await repo.get_by_id(report_id)
-    if not report:
-        raise HTTPException(status_code=404, detail="日報が見つかりません")
-    await repo.soft_delete(report, deleted_by=current_user.id)
+    svc = DailyReportService(db)
+    try:
+        await svc.delete_report(report_id, deleted_by=current_user.id)
+    except ReportNotFoundError:
+        raise HTTPException(status_code=404, detail="日報が見つかりません") from None
     return None

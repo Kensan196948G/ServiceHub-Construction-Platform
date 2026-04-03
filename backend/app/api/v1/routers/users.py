@@ -17,9 +17,14 @@ from app.core.rbac import UserRole, require_roles
 from app.core.security import get_password_hash
 from app.db.base import get_db
 from app.models.user import User
-from app.repositories.user import UserRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.user import UserCreate, UserListResponse, UserUpdate
+from app.services.user_service import (
+    DuplicateEmailError,
+    SelfDeletionError,
+    UserNotFoundError,
+    UserService,
+)
 
 router = APIRouter(prefix="/users", tags=["ユーザー管理"])
 
@@ -31,13 +36,11 @@ async def list_users(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
-    repo = UserRepository(db)
-    offset = (page - 1) * per_page
-    users = await repo.list(offset=offset, limit=per_page)
-    total = await repo.count()
+    svc = UserService(db)
+    users, total = await svc.list_users(page, per_page)
 
     return PaginatedResponse(
-        data=[UserListResponse.model_validate(u) for u in users],
+        data=users,
         meta=PaginationMeta(
             total=total,
             page=page,
@@ -57,18 +60,14 @@ async def create_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    repo = UserRepository(db)
-    existing = await repo.get_by_email(payload.email)
-    if existing:
-        raise HTTPException(
-            status_code=400,
-            detail="このメールアドレスは既に登録されています",
+    svc = UserService(db)
+    try:
+        user = await svc.create_user(
+            payload, hashed_password=get_password_hash(payload.password)
         )
-
-    user = await repo.create(
-        payload, hashed_password=get_password_hash(payload.password)
-    )
-    return ApiResponse(data=UserListResponse.model_validate(user))
+    except DuplicateEmailError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    return ApiResponse(data=user)
 
 
 @router.get("/{user_id}", response_model=ApiResponse[UserListResponse])
@@ -77,11 +76,12 @@ async def get_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    repo = UserRepository(db)
-    user = await repo.get_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
-    return ApiResponse(data=UserListResponse.model_validate(user))
+    svc = UserService(db)
+    try:
+        user = await svc.get_user(user_id)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    return ApiResponse(data=user)
 
 
 @router.put("/{user_id}", response_model=ApiResponse[UserListResponse])
@@ -91,13 +91,12 @@ async def update_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    repo = UserRepository(db)
-    user = await repo.get_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
-
-    user = await repo.update(user, payload)
-    return ApiResponse(data=UserListResponse.model_validate(user))
+    svc = UserService(db)
+    try:
+        user = await svc.update_user(user_id, payload)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    return ApiResponse(data=user)
 
 
 @router.delete("/{user_id}", status_code=204)
@@ -106,10 +105,10 @@ async def delete_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    repo = UserRepository(db)
-    user = await repo.get_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
-    if user.id == current_user.id:
-        raise HTTPException(status_code=400, detail="自分自身は削除できません")
-    await repo.soft_delete(user)
+    svc = UserService(db)
+    try:
+        await svc.delete_user(user_id, current_user.id)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    except SelfDeletionError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None

@@ -10,13 +10,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
-from app.repositories.safety import QualityInspectionRepository, SafetyCheckRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.safety import (
     QualityInspectionCreate,
     QualityInspectionResponse,
     SafetyCheckCreate,
     SafetyCheckResponse,
+)
+from app.services.safety_service import (
+    QualityInspectionNotFoundError,
+    SafetyCheckNotFoundError,
+    SafetyService,
 )
 
 router = APIRouter(tags=["安全・品質管理"])
@@ -40,10 +44,11 @@ async def create_safety_check(
         ),
     ],
 ):
-    repo = SafetyCheckRepository(db)
-    payload.project_id = project_id
-    check = await repo.create(payload, created_by=current_user.id)
-    return ApiResponse(data=SafetyCheckResponse.model_validate(check))
+    svc = SafetyService(db)
+    data = await svc.create_safety_check(
+        project_id, payload, created_by=current_user.id
+    )
+    return ApiResponse(data=data)
 
 
 @router.get(
@@ -67,12 +72,10 @@ async def list_safety_checks(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
-    repo = SafetyCheckRepository(db)
-    offset = (page - 1) * per_page
-    items = await repo.list(project_id, offset=offset, limit=per_page)
-    total = await repo.count(project_id)
+    svc = SafetyService(db)
+    items, total = await svc.list_safety_checks(project_id, page, per_page)
     return PaginatedResponse(
-        data=[SafetyCheckResponse.model_validate(i) for i in items],
+        data=items,
         meta=PaginationMeta(
             total=total,
             page=page,
@@ -100,10 +103,11 @@ async def create_quality_inspection(
         ),
     ],
 ):
-    repo = QualityInspectionRepository(db)
-    payload.project_id = project_id
-    insp = await repo.create(payload, created_by=current_user.id)
-    return ApiResponse(data=QualityInspectionResponse.model_validate(insp))
+    svc = SafetyService(db)
+    data = await svc.create_quality_inspection(
+        project_id, payload, created_by=current_user.id
+    )
+    return ApiResponse(data=data)
 
 
 @router.get(
@@ -127,12 +131,10 @@ async def list_quality_inspections(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=20, ge=1, le=100),
 ):
-    repo = QualityInspectionRepository(db)
-    offset = (page - 1) * per_page
-    items = await repo.list(project_id, offset=offset, limit=per_page)
-    total = await repo.count(project_id)
+    svc = SafetyService(db)
+    items, total = await svc.list_quality_inspections(project_id, page, per_page)
     return PaginatedResponse(
-        data=[QualityInspectionResponse.model_validate(i) for i in items],
+        data=items,
         meta=PaginationMeta(
             total=total,
             page=page,
@@ -159,11 +161,13 @@ async def delete_safety_check(
         ),
     ],
 ):
-    repo = SafetyCheckRepository(db)
-    check = await repo.get_by_id(check_id)
-    if not check or check.project_id != project_id:
-        raise HTTPException(status_code=404, detail="安全チェックが見つかりません")
-    await repo.soft_delete(check)
+    svc = SafetyService(db)
+    try:
+        await svc.delete_safety_check(project_id, check_id)
+    except SafetyCheckNotFoundError:
+        raise HTTPException(
+            status_code=404, detail="安全チェックが見つかりません"
+        ) from None
 
 
 @router.delete(
@@ -183,8 +187,10 @@ async def delete_quality_inspection(
         ),
     ],
 ):
-    repo = QualityInspectionRepository(db)
-    insp = await repo.get_by_id(inspection_id)
-    if not insp or insp.project_id != project_id:
-        raise HTTPException(status_code=404, detail="品質検査が見つかりません")
-    await repo.soft_delete(insp)
+    svc = SafetyService(db)
+    try:
+        await svc.delete_quality_inspection(project_id, inspection_id)
+    except QualityInspectionNotFoundError:
+        raise HTTPException(
+            status_code=404, detail="品質検査が見つかりません"
+        ) from None
