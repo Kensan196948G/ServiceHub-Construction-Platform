@@ -1,12 +1,14 @@
 """
 Alembic env.py - async SQLAlchemy対応
 """
+
 import asyncio
 import os
 from logging.config import fileConfig
+
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
 
 # モデルimport（自動マイグレーション検出用）
 from app.db.base import Base
