@@ -8,14 +8,12 @@ from __future__ import annotations
 
 import math
 import uuid
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
-from app.repositories.itsm import ChangeRequestRepository, IncidentRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.itsm import (
     ChangeRequestCreate,
@@ -23,6 +21,12 @@ from app.schemas.itsm import (
     IncidentCreate,
     IncidentResponse,
     IncidentUpdate,
+)
+from app.services.itsm_service import (
+    ChangeRequestNotFoundError,
+    IncidentNotFoundError,
+    InvalidStatusError,
+    ITSMService,
 )
 
 router = APIRouter(prefix="/itsm", tags=["ITSM管理"])
@@ -44,10 +48,10 @@ async def create_incident(
     ),
 ):
     """インシデント起票"""
-    repo = IncidentRepository(db)
-    incident = await repo.create(payload, created_by=current_user.id)
+    svc = ITSMService(db)
+    incident = await svc.create_incident(payload, created_by=current_user.id)
     return ApiResponse(
-        data=IncidentResponse.model_validate(incident),
+        data=incident,
         message="インシデントを起票しました",
     )
 
@@ -64,13 +68,10 @@ async def list_incidents(
     ),
 ):
     """インシデント一覧"""
-    repo = IncidentRepository(db)
-    offset = (page - 1) * per_page
-    total = await repo.count(status=status_filter, priority=priority)
-    items_raw = await repo.list(
-        offset=offset, limit=per_page, status=status_filter, priority=priority
+    svc = ITSMService(db)
+    items, total = await svc.list_incidents(
+        page=page, per_page=per_page, status=status_filter, priority=priority
     )
-    items = [IncidentResponse.model_validate(r) for r in items_raw]
     return PaginatedResponse(
         data=items,
         meta=PaginationMeta(
@@ -90,11 +91,14 @@ async def get_incident(
         require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
     ),
 ):
-    repo = IncidentRepository(db)
-    incident = await repo.get_by_id(incident_id)
-    if not incident:
-        raise HTTPException(status_code=404, detail="インシデントが見つかりません")
-    return ApiResponse(data=IncidentResponse.model_validate(incident))
+    svc = ITSMService(db)
+    try:
+        incident = await svc.get_incident(incident_id)
+    except IncidentNotFoundError:
+        raise HTTPException(
+            status_code=404, detail="インシデントが見つかりません"
+        ) from None
+    return ApiResponse(data=incident)
 
 
 @router.patch("/incidents/{incident_id}", response_model=ApiResponse[IncidentResponse])
@@ -107,18 +111,17 @@ async def update_incident(
     ),
 ):
     """インシデント更新・解決"""
-    repo = IncidentRepository(db)
-    incident = await repo.get_by_id(incident_id)
-    if not incident:
-        raise HTTPException(status_code=404, detail="インシデントが見つかりません")
-
-    # RESOLVED ステータス設定時に resolved_at を自動セット
-    if payload.status == "RESOLVED" and not incident.resolved_at:
-        incident.resolved_at = datetime.now(timezone.utc)
-
-    incident = await repo.update(incident, payload, updated_by=current_user.id)
+    svc = ITSMService(db)
+    try:
+        incident = await svc.update_incident(
+            incident_id, payload, updated_by=current_user.id
+        )
+    except IncidentNotFoundError:
+        raise HTTPException(
+            status_code=404, detail="インシデントが見つかりません"
+        ) from None
     return ApiResponse(
-        data=IncidentResponse.model_validate(incident),
+        data=incident,
         message="インシデントを更新しました",
     )
 
@@ -137,10 +140,10 @@ async def create_change(
     current_user=Depends(require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR)),
 ):
     """変更要求起票（SoD: IT_OPERATORのみ起票可）"""
-    repo = ChangeRequestRepository(db)
-    change = await repo.create(payload, created_by=current_user.id)
+    svc = ITSMService(db)
+    change = await svc.create_change(payload, created_by=current_user.id)
     return ApiResponse(
-        data=ChangeRequestResponse.model_validate(change),
+        data=change,
         message="変更要求を起票しました",
     )
 
@@ -156,13 +159,10 @@ async def list_changes(
         require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
     ),
 ):
-    repo = ChangeRequestRepository(db)
-    offset = (page - 1) * per_page
-    total = await repo.count(status=status_filter, change_type=change_type)
-    items_raw = await repo.list(
-        offset=offset, limit=per_page, status=status_filter, change_type=change_type
+    svc = ITSMService(db)
+    items, total = await svc.list_changes(
+        page=page, per_page=per_page, status=status_filter, change_type=change_type
     )
-    items = [ChangeRequestResponse.model_validate(r) for r in items_raw]
     return PaginatedResponse(
         data=items,
         meta=PaginationMeta(
@@ -183,22 +183,16 @@ async def approve_change(
     current_user=Depends(require_roles(UserRole.ADMIN)),
 ):
     """変更承認（SoD: ADMINのみ承認可）"""
-    repo = ChangeRequestRepository(db)
-    change = await repo.get_by_id(change_id)
-    if not change:
-        raise HTTPException(status_code=404, detail="変更要求が見つかりません")
-    if change.status not in ("DRAFT", "REVIEW"):
+    svc = ITSMService(db)
+    try:
+        change = await svc.approve_change(change_id, approved_by=current_user.id)
+    except ChangeRequestNotFoundError:
         raise HTTPException(
-            status_code=400, detail=f"ステータス{change.status}は承認できません"
-        )
-
-    change.status = "APPROVED"
-    change.approved_by = current_user.id
-    change.approved_at = datetime.now(timezone.utc)
-    change.updated_by = current_user.id
-    await db.flush()
-    await db.refresh(change)
+            status_code=404, detail="変更要求が見つかりません"
+        ) from None
+    except InvalidStatusError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
     return ApiResponse(
-        data=ChangeRequestResponse.model_validate(change),
+        data=change,
         message="変更要求を承認しました",
     )

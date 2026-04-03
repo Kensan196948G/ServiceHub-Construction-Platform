@@ -17,9 +17,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
-from app.repositories.project import ProjectRepository
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from app.services.project_service import (
+    DuplicateProjectCodeError,
+    ProjectNotFoundError,
+    ProjectService,
+)
 
 router = APIRouter(prefix="/projects", tags=["工事案件管理"])
 
@@ -43,12 +47,10 @@ async def list_projects(
     per_page: int = Query(default=20, ge=1, le=100),
     filter_status: str | None = Query(default=None, alias="status"),
 ):
-    repo = ProjectRepository(db)
-    offset = (page - 1) * per_page
-    projects = await repo.list(offset=offset, limit=per_page, status=filter_status)
-    total = await repo.count(status=filter_status)
+    svc = ProjectService(db)
+    projects, total = await svc.list_projects(page, per_page, status=filter_status)
     return PaginatedResponse(
-        data=[ProjectResponse.model_validate(p) for p in projects],
+        data=projects,
         meta=PaginationMeta(
             total=total,
             page=page,
@@ -68,11 +70,14 @@ async def create_project(
         User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
     ],
 ):
-    repo = ProjectRepository(db)
-    if await repo.get_by_code(payload.project_code):
-        raise HTTPException(status_code=400, detail="案件コードが既に存在します")
-    project = await repo.create(payload, created_by=current_user.id)
-    return ApiResponse(data=ProjectResponse.model_validate(project))
+    svc = ProjectService(db)
+    try:
+        project = await svc.create_project(payload, created_by=current_user.id)
+    except DuplicateProjectCodeError:
+        raise HTTPException(
+            status_code=400, detail="案件コードが既に存在します"
+        ) from None
+    return ApiResponse(data=project)
 
 
 @router.get("/{project_id}", response_model=ApiResponse[ProjectResponse])
@@ -92,11 +97,12 @@ async def get_project(
         ),
     ],
 ):
-    repo = ProjectRepository(db)
-    project = await repo.get_by_id(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="案件が見つかりません")
-    return ApiResponse(data=ProjectResponse.model_validate(project))
+    svc = ProjectService(db)
+    try:
+        project = await svc.get_project(project_id)
+    except ProjectNotFoundError:
+        raise HTTPException(status_code=404, detail="案件が見つかりません") from None
+    return ApiResponse(data=project)
 
 
 @router.put("/{project_id}", response_model=ApiResponse[ProjectResponse])
@@ -108,12 +114,14 @@ async def update_project(
         User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
     ],
 ):
-    repo = ProjectRepository(db)
-    project = await repo.get_by_id(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="案件が見つかりません")
-    project = await repo.update(project, payload, updated_by=current_user.id)
-    return ApiResponse(data=ProjectResponse.model_validate(project))
+    svc = ProjectService(db)
+    try:
+        project = await svc.update_project(
+            project_id, payload, updated_by=current_user.id
+        )
+    except ProjectNotFoundError:
+        raise HTTPException(status_code=404, detail="案件が見つかりません") from None
+    return ApiResponse(data=project)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -122,9 +130,9 @@ async def delete_project(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    repo = ProjectRepository(db)
-    project = await repo.get_by_id(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="案件が見つかりません")
-    await repo.soft_delete(project, deleted_by=current_user.id)
+    svc = ProjectService(db)
+    try:
+        await svc.delete_project(project_id, deleted_by=current_user.id)
+    except ProjectNotFoundError:
+        raise HTTPException(status_code=404, detail="案件が見つかりません") from None
     return None
