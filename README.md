@@ -83,26 +83,35 @@ graph TB
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 Backend テスト | **134 件**（pytest / coverage 85%） |
+| 🧪 Backend テスト | **148 件**（pytest / coverage 84%） |
 | 🧪 Frontend テスト | **23 件**（vitest） |
 | 🖥️ フロントエンドページ | **11 ページ** |
 | 🔗 API エンドポイント | **46 エンドポイント** |
 | 🏗️ Repository クラス | **12 クラス**（全 Router 統一済み） |
-| 🔧 Service クラス | **2 クラス**（AuthService / StorageService） |
-| ✅ CI ステータス | **グリーン**（ruff / mypy / pytest / bandit / build） |
+| 🔧 Service クラス | **6 クラス**（Auth / Storage / Cost / Knowledge / ITSM / Project） |
+| ✅ CI ステータス | **グリーン**（ruff / mypy / pytest / bandit / vitest / build） |
+| 🔒 STABLE 判定 | **N=5** 達成（CI 5回連続成功） |
 
 ### 🏗️ Backend アーキテクチャ
 
 ```mermaid
 graph LR
-    R["Router\n(API Layer)"] --> S["Service\n(Business Logic)"]
-    R --> Repo["Repository\n(Data Access)"]
-    S --> Repo
-    Repo --> DB["SQLAlchemy\n(ORM)"]
-    DB --> PG["PostgreSQL"]
+    R["🔀 Router\n(API Layer)"] --> S["⚙️ Service\n(Business Logic)"]
+    S --> Repo["📦 Repository\n(Data Access)"]
+    Repo --> DB["🗄️ SQLAlchemy\n(ORM)"]
+    DB --> PG["🐘 PostgreSQL"]
 ```
 
-> **全 8 Router が Repository パターンに統一済み。** Service 層は AuthService / StorageService を実装済み、残りモジュールは今後拡充予定。
+| Service クラス | 責務 |
+| :--- | :--- |
+| 🔐 AuthService | 認証・トークン管理・ログイン検証 |
+| 🪣 StorageService | MinIO ファイルアップロード・プリサインド URL |
+| 💰 CostService | 予実計算・コストサマリー・カテゴリ集計 |
+| 🤖 KnowledgeService | AI 検索・スコアリング・OpenAI 連携 |
+| 🏛️ ITSMService | インシデントステータス遷移・変更要求承認 |
+| 🗂️ ProjectService | 案件コード重複チェック・CRUD |
+
+> **全 8 Router が Router → Service → Repository の3層構造に統一済み。**
 
 ---
 
