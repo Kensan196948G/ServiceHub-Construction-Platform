@@ -54,7 +54,11 @@ async def list_users(
     )
 
 
-@router.post("", response_model=ApiResponse[UserListResponse], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ApiResponse[UserListResponse],
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_user(
     payload: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -64,7 +68,10 @@ async def create_user(
         select(User).where(User.email == payload.email, User.deleted_at.is_(None))
     )
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="このメールアドレスは既に登録されています")
+        raise HTTPException(
+            status_code=400,
+            detail="このメールアドレスは既に登録されています",
+        )
 
     user = User(
         email=payload.email,

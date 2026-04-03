@@ -1,13 +1,13 @@
 {
-  "phase": "Monitor",
+  "phase": "Close",
   "loop": "Loop-16",
   "loop_count": 16,
-  "status": "running",
-  "last_updated": "2026-04-03T13:00:00+09:00",
+  "status": "closing",
+  "last_updated": "2026-04-03T13:30:00+09:00",
   "priorities": {
     "high": [],
-    "medium": ["storage.py MinIOモックテスト（40%）", "ダッシュボード集計API"],
-    "low": ["通知機能検討", "v1.1.0 タグ検討"]
+    "medium": ["storage.py MinIOモックテスト（40%）"],
+    "low": ["通知機能検討", "manager_id フィールド編集対応", "日報・安全チェック削除機能"]
   },
   "decision_context": {
     "risk_level": "low",
@@ -19,8 +19,8 @@
     "coverage": "94%",
     "ci_status": "green",
     "e2e_pass": "7/7",
-    "frontend_pages": 9,
-    "api_endpoints": 42
+    "frontend_pages": 10,
+    "api_endpoints": 46
   },
   "loop_history": {
     "loop14": {
@@ -32,8 +32,17 @@
       "highlights": ["カバレッジ67%→94%","テスト30→111件","CI修復","VITE URL修正"]
     },
     "loop16": {
-      "status": "running",
-      "highlights": ["写真管理ページ追加","docs同期"]
+      "status": "closing",
+      "highlights": [
+        "ログイン422エラー修正（auth.ts multipart→JSON）",
+        "写真管理ページ実装",
+        "ProjectDetailPage 55行→808行 タブ式全機能実装",
+        "DashboardPage リアルデータ集計実装",
+        "ユーザー管理API+ページ実装（ADMIN限定）",
+        "SafetyPage/CostPage/KnowledgePage/DailyReportsPage 詳細改善",
+        "projects.ts location→site_address フィールド名統一",
+        "ruff E501エラー修正"
+      ]
     }
   }
 }
