@@ -32,6 +32,11 @@
 - Backend: ruff/mypy/pytest-30件/bandit 全グリーン ✅
 - Frontend: TypeScript 0エラー / Vite build 成功 ✅
 
+### E2E Verification
+- docker-compose 統合確認: 全10チェック PASS ✅
+- 起動サービス: api / db / redis / frontend / nginx / minio
+- テスト環境: docker-compose.local.yml（ポート競合回避）
+
 ---
 
 ## [1.0.0] - 2026-10-02 (社内リリース予定)
