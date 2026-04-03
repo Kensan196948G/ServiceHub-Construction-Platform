@@ -4,10 +4,10 @@ import uuid
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # 認証なし
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_safety_check_unauthorized(client):
@@ -34,6 +34,7 @@ async def test_list_safety_checks_unauthorized(client):
 # ---------------------------------------------------------------------------
 # 安全点検 CRUD
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_safety_check(auth_client, admin_headers):
@@ -126,6 +127,7 @@ async def test_pm_can_create_safety_check(auth_client, pm_headers):
 # ---------------------------------------------------------------------------
 # 品質検査 CRUD
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_quality_inspection_unauthorized(client):

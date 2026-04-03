@@ -4,10 +4,10 @@ import uuid
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # 認証なし
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_daily_reports_unauthorized(client):
@@ -31,6 +31,7 @@ async def test_create_daily_report_unauthorized(client):
 # ---------------------------------------------------------------------------
 # CRUD - 正常系
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_daily_report(auth_client, admin_headers):

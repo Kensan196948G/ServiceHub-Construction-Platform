@@ -85,7 +85,9 @@ async def refresh_token(
         )
 
     result = await db.execute(
-        select(User).where(User.id == uuid.UUID(token_data.sub), User.deleted_at.is_(None))
+        select(User).where(
+            User.id == uuid.UUID(token_data.sub), User.deleted_at.is_(None)
+        )
     )
     user = result.scalar_one_or_none()
     if not user or not user.is_active:

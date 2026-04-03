@@ -2,14 +2,14 @@
 
 import uuid
 from io import BytesIO
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # 認証なし
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_photos_unauthorized(client):
@@ -41,6 +41,7 @@ async def test_upload_photo_unauthorized(client):
 # ---------------------------------------------------------------------------
 # 写真アップロード
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_upload_photo_success(auth_client, admin_headers):
@@ -74,7 +75,9 @@ async def test_upload_photo_invalid_content_type(auth_client, admin_headers):
     resp = await auth_client.post(
         f"/api/v1/projects/{project_id}/photos",
         headers=admin_headers,
-        files={"file": ("test.exe", BytesIO(b"binary data"), "application/x-msdownload")},
+        files={
+            "file": ("test.exe", BytesIO(b"binary data"), "application/x-msdownload")
+        },
         data={"category": "GENERAL"},
     )
     assert resp.status_code == 400
@@ -104,6 +107,7 @@ async def test_upload_photo_storage_failure(auth_client, admin_headers):
 # ---------------------------------------------------------------------------
 # 写真一覧・詳細・更新・削除
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_photos_empty(auth_client, admin_headers):

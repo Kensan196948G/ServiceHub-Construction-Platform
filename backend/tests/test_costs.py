@@ -4,10 +4,10 @@ import uuid
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # 認証なし
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_cost_record_unauthorized(client):
@@ -36,6 +36,7 @@ async def test_list_cost_records_unauthorized(client):
 # ---------------------------------------------------------------------------
 # 原価レコード CRUD
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_cost_record(auth_client, admin_headers):
@@ -162,6 +163,7 @@ async def test_get_cost_summary_with_data(auth_client, admin_headers):
 # ---------------------------------------------------------------------------
 # 工数 CRUD
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_work_hour_unauthorized(client):

@@ -57,6 +57,7 @@ async def test_list_changes_requires_auth():
 # インシデント CRUD
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_create_incident(auth_client, it_headers):
     """インシデント作成 - 正常"""
@@ -217,6 +218,7 @@ async def test_resolve_incident(auth_client, it_headers):
 # ---------------------------------------------------------------------------
 # 変更要求 CRUD
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_change_request(auth_client, it_headers):
