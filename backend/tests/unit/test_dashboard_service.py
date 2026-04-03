@@ -38,7 +38,9 @@ async def test_kpi_with_projects(auth_client, admin_headers):
 
     # Update statuses (ProjectCreate has no status field, defaults to PLANNING)
     for pid, status in zip(
-        project_ids, ["PLANNING", "IN_PROGRESS", "IN_PROGRESS", "COMPLETED"]
+        project_ids,
+        ["PLANNING", "IN_PROGRESS", "IN_PROGRESS", "COMPLETED"],
+        strict=True,
     ):
         await auth_client.put(
             f"/api/v1/projects/{pid}",

@@ -104,6 +104,6 @@ class DashboardService:
 
     async def _count_active(self, model: type) -> int:
         result = await self.db.execute(
-            select(func.count()).select_from(model).where(model.deleted_at.is_(None))  # type: ignore[union-attr]
+            select(func.count()).select_from(model).where(model.deleted_at.is_(None))  # type: ignore[attr-defined]
         )
         return result.scalar_one()
