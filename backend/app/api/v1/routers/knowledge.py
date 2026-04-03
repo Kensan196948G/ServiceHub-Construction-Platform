@@ -91,8 +91,8 @@ async def list_articles(
         conditions.append(KnowledgeArticle.category == category)  # type: ignore[arg-type]
     if q:
         keyword = f"%{q}%"
-        conditions.append(  # type: ignore[arg-type]
-            or_(
+        conditions.append(
+            or_(  # type: ignore[arg-type]
                 KnowledgeArticle.title.ilike(keyword),
                 KnowledgeArticle.content.ilike(keyword),
                 KnowledgeArticle.tags.ilike(keyword),
