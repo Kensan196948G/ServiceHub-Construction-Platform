@@ -2,17 +2,32 @@
   "project": "ServiceHub Construction Platform",
   "repository": "https://github.com/Kensan196948G/ServiceHub-Construction-Platform",
   "phase": "Phase6_Release",
-  "loop_count": 10,
-  "loop": "Improvement",
+  "loop_count": 11,
+  "loop": "Close",
   "stable_success_count": 2,
-  "status": "frontend_scaffolded",
+  "status": "frontend_modules_merged",
   "current_sprint": "Sprint_Final",
   "development_start": "2026-04-02",
   "target_release": "2026-10-02",
   "daily_hours": 8,
-  "last_update": "2026-04-03T02:00:00+09:00",
-  "last_summary": "Backend CI全グリーン(PR#27マージ済)・Frontend骨格実装(PR#28マージ済)・テスト30/30・ruff/mypy全クリア",
-  "completed_issues": [1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+  "last_update": "2026-04-03T11:50:35.089653+09:00",
+  "last_summary": "PR#29マージ済：フロントエンド5モジュール（日報・安全・ITSM・ナレッジ・原価）実装完了・全CI緑",
+  "completed_issues": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
   "open_prs": [],
   "issues": [],
   "risks": [],
@@ -30,7 +45,8 @@
     "mypy": "51 files, no issues",
     "frontend_build": "dist 272KB / CSS 19KB",
     "pr27": "merged",
-    "pr28": "merged"
+    "pr28": "merged",
+    "pr29": "merged"
   },
   "metrics": {
     "completed_issues": 14,
@@ -42,10 +58,10 @@
     "db_migrations": 7,
     "test_files": 10,
     "integration_tests": 11,
-    "frontend_pages": 9,
+    "frontend_pages": 14,
     "ci_workflows": 3,
     "doc_files": 92,
     "kernel_files": 16,
-    "loop_count": 10
+    "loop_count": 11
   }
 }
