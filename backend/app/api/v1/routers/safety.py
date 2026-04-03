@@ -2,7 +2,7 @@
 
 import math
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -194,7 +194,7 @@ async def delete_safety_check(
     check = await db.get(SafetyCheck, check_id)
     if not check or check.deleted_at or check.project_id != project_id:
         raise HTTPException(status_code=404, detail="安全チェックが見つかりません")
-    check.deleted_at = datetime.now(UTC)
+    check.deleted_at = datetime.now(timezone.utc)
     await db.commit()
 
 
@@ -218,5 +218,5 @@ async def delete_quality_inspection(
     insp = await db.get(QualityInspection, inspection_id)
     if not insp or insp.deleted_at or insp.project_id != project_id:
         raise HTTPException(status_code=404, detail="品質検査が見つかりません")
-    insp.deleted_at = datetime.now(UTC)
+    insp.deleted_at = datetime.now(timezone.utc)
     await db.commit()

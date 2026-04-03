@@ -2,7 +2,7 @@
 
 import math
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Annotated
 
@@ -191,5 +191,5 @@ async def delete_cost_record(
     record = await db.get(CostRecord, record_id)
     if not record or record.deleted_at or record.project_id != project_id:
         raise HTTPException(status_code=404, detail="原価記録が見つかりません")
-    record.deleted_at = datetime.now(UTC)
+    record.deleted_at = datetime.now(timezone.utc)
     await db.commit()

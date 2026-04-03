@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 import secrets
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, func, select
@@ -31,12 +31,12 @@ router = APIRouter(prefix="/itsm", tags=["ITSM管理"])
 
 
 def _gen_incident_number() -> str:
-    ts = datetime.now(UTC).strftime("%Y%m%d")
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d")
     return f"INC-{ts}-{secrets.token_hex(3).upper()}"
 
 
 def _gen_change_number() -> str:
-    ts = datetime.now(UTC).strftime("%Y%m%d")
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d")
     return f"CHG-{ts}-{secrets.token_hex(3).upper()}"
 
 
@@ -160,7 +160,7 @@ async def update_incident(
     update_data = payload.model_dump(exclude_none=True)
     update_data["updated_by"] = current_user.id
     if update_data.get("status") == "RESOLVED" and not incident.resolved_at:
-        update_data["resolved_at"] = datetime.now(UTC)
+        update_data["resolved_at"] = datetime.now(timezone.utc)
 
     for k, v in update_data.items():
         setattr(incident, k, v)
@@ -273,7 +273,7 @@ async def approve_change(
 
     change.status = "APPROVED"
     change.approved_by = current_user.id
-    change.approved_at = datetime.now(UTC)
+    change.approved_at = datetime.now(timezone.utc)
     change.updated_by = current_user.id
     await db.commit()
     await db.refresh(change)

@@ -6,26 +6,21 @@ POST /api/v1/auth/logout  - ログアウト
 GET  /api/v1/auth/me      - 現在ユーザー取得
 """
 
-import uuid
-from datetime import UTC, datetime
 from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
-from app.core.config import settings
-from app.core.security import (
-    create_access_token,
-    create_refresh_token,
-    verify_password,
-    verify_token,
-)
 from app.db.base import get_db
 from app.models.user import User
 from app.schemas.auth import LoginRequest, RefreshRequest, TokenResponse, UserResponse
+from app.services.auth_service import (
+    AuthenticationError,
+    AuthorizationError,
+    AuthService,
+)
 
 router = APIRouter(prefix="/auth", tags=["認証"])
 logger = structlog.get_logger()
@@ -37,38 +32,19 @@ async def login(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """ログイン - JWT発行"""
-    result = await db.execute(
-        select(User).where(User.email == payload.email, User.deleted_at.is_(None))
-    )
-    user = result.scalar_one_or_none()
-
-    if not user or not verify_password(payload.password, user.hashed_password):
-        logger.warning("login_failed", email=payload.email)
+    service = AuthService(db)
+    try:
+        return await service.login(payload)
+    except AuthenticationError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="メールアドレスまたはパスワードが正しくありません",
-        )
-
-    if not user.is_active:
+            detail=str(e),
+        ) from None
+    except AuthorizationError as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="アカウントが無効化されています",
-        )
-
-    # 最終ログイン日時更新（監査ログ）
-    await db.execute(
-        update(User).where(User.id == user.id).values(last_login_at=datetime.now(UTC))
-    )
-
-    access_token = create_access_token(str(user.id), user.role)
-    refresh_token = create_refresh_token(str(user.id), user.role)
-
-    logger.info("login_success", user_id=str(user.id), role=user.role)
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
+            detail=str(e),
+        ) from None
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -77,32 +53,14 @@ async def refresh_token(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """リフレッシュトークンで新アクセストークンを発行"""
-    token_data = verify_token(payload.refresh_token)
-    if token_data is None or token_data.type != "refresh":
+    service = AuthService(db)
+    try:
+        return await service.refresh(payload.refresh_token)
+    except AuthenticationError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="リフレッシュトークンが無効です",
-        )
-
-    result = await db.execute(
-        select(User).where(
-            User.id == uuid.UUID(token_data.sub), User.deleted_at.is_(None)
-        )
-    )
-    user = result.scalar_one_or_none()
-    if not user or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="ユーザーが見つかりません"
-        )
-
-    access_token = create_access_token(str(user.id), user.role)
-    new_refresh_token = create_refresh_token(str(user.id), user.role)
-
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=new_refresh_token,
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
+            detail=str(e),
+        ) from None
 
 
 @router.get("/me", response_model=UserResponse)

@@ -8,7 +8,7 @@ from __future__ import annotations
 import math
 import time
 import uuid
-from datetime import UTC
+from datetime import timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, func, or_, select
@@ -208,7 +208,7 @@ async def delete_article(
     article = result.scalar_one_or_none()
     if not article:
         raise HTTPException(status_code=404, detail="ナレッジ記事が見つかりません")
-    article.deleted_at = datetime.now(UTC)
+    article.deleted_at = datetime.now(timezone.utc)
     article.updated_by = current_user.id
     await db.commit()
     return ApiResponse(data={}, message="ナレッジ記事を削除しました")

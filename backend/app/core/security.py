@@ -4,7 +4,7 @@ RS256署名・アクセストークン/リフレッシュトークン管理
 """
 
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -26,7 +26,7 @@ class TokenData(BaseModel):
 
 def create_access_token(user_id: str, role: str) -> str:
     """アクセストークン生成（15分）"""
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
         "role": role,
@@ -42,7 +42,7 @@ def create_access_token(user_id: str, role: str) -> str:
 
 def create_refresh_token(user_id: str, role: str) -> str:
     """リフレッシュトークン生成（7日）"""
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
         "role": role,
