@@ -3,7 +3,7 @@
 """
 
 import uuid
-from datetime import UTC
+from datetime import timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,6 +73,6 @@ class ProjectRepository:
     async def soft_delete(self, project: Project, deleted_by: uuid.UUID) -> None:
         from datetime import datetime
 
-        project.deleted_at = datetime.now(UTC)
+        project.deleted_at = datetime.now(timezone.utc)
         project.updated_by = deleted_by
         await self.db.flush()

@@ -132,7 +132,7 @@ async def delete_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     result = await db.execute(
         select(User).where(User.id == user_id, User.deleted_at.is_(None))
@@ -142,5 +142,5 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
     if user.id == current_user.id:
         raise HTTPException(status_code=400, detail="自分自身は削除できません")
-    user.deleted_at = datetime.now(datetime.UTC)
+    user.deleted_at = datetime.now(timezone.utc)
     await db.commit()

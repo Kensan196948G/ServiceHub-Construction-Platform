@@ -19,6 +19,17 @@ class CostRecordCreate(BaseModel):
     notes: str | None = None
 
 
+class CostRecordUpdate(BaseModel):
+    record_date: date | None = None
+    category: str | None = None
+    description: str | None = None
+    budgeted_amount: Decimal | None = Field(default=None, ge=0)
+    actual_amount: Decimal | None = Field(default=None, ge=0)
+    vendor_name: str | None = None
+    invoice_number: str | None = None
+    notes: str | None = None
+
+
 class CostRecordResponse(BaseModel):
     id: uuid.UUID
     project_id: uuid.UUID
