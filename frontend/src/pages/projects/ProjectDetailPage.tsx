@@ -3,13 +3,13 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Building2, ClipboardList, FileText, ShieldCheck,
-  DollarSign, Image, Plus, X, Pencil, CheckCircle, XCircle,
+  DollarSign, Image, Plus, X, Pencil, CheckCircle, XCircle, Trash2,
 } from "lucide-react";
 import { projectsApi, type Project, type ProjectCreate } from "@/api/projects";
 import { dailyReportsApi, type DailyReport, type DailyReportCreate } from "@/api/daily_reports";
 import { safetyApi, type SafetyCheck, type SafetyCheckCreate } from "@/api/safety";
 import { costApi, type CostRecord, type CostRecordCreate } from "@/api/cost";
-import { fetchPhotos, uploadPhoto, type Photo } from "@/api/photos";
+import { fetchPhotos, uploadPhoto, deletePhoto, type Photo } from "@/api/photos";
 
 const STATUS_LABELS: Record<string, string> = {
   PLANNING: "計画中", IN_PROGRESS: "進行中", COMPLETED: "完了",
@@ -202,6 +202,8 @@ function InfoTab({ project, projectId }: { project: Project; projectId: string }
 function ReportsTab({ projectId }: { projectId: string }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<DailyReportCreate>({ project_id: projectId, report_date: "", worker_count: 1 });
+  const [editReport, setEditReport] = useState<DailyReport | null>(null);
+  const [editForm, setEditForm] = useState<Partial<DailyReportCreate>>({});
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -218,7 +220,105 @@ function ReportsTab({ projectId }: { projectId: string }) {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (reportId: string) => dailyReportsApi.delete(projectId, reportId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["daily-reports", projectId] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<DailyReportCreate> }) =>
+      dailyReportsApi.update(projectId, id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["daily-reports", projectId] });
+      setEditReport(null);
+    },
+  });
+
+  const handleDelete = (r: DailyReport) => {
+    if (window.confirm(`日報「${r.report_date}」を削除しますか？`)) {
+      deleteMutation.mutate(r.id);
+    }
+  };
+
+  const startEdit = (r: DailyReport) => {
+    setEditForm({
+      report_date: r.report_date,
+      weather: r.weather ?? undefined,
+      temperature: r.temperature ?? undefined,
+      worker_count: r.worker_count,
+      work_content: r.work_content ?? undefined,
+      safety_check: r.safety_check,
+      safety_notes: r.safety_notes ?? undefined,
+      progress_rate: r.progress_rate ?? undefined,
+      issues: r.issues ?? undefined,
+    });
+    setEditReport(r);
+  };
+
   const reports: DailyReport[] = data?.data ?? [];
+
+  const reportFormFields = (
+    f: Partial<DailyReportCreate>,
+    setF: React.Dispatch<React.SetStateAction<Partial<DailyReportCreate>>>
+  ) => (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">日付 *</label>
+          <input type="date"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            value={f.report_date ?? ""}
+            onChange={(e) => setF((prev) => ({ ...prev, report_date: e.target.value }))}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">天気</label>
+          <select
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            value={f.weather ?? ""}
+            onChange={(e) => setF((prev) => ({ ...prev, weather: e.target.value || undefined }))}
+          >
+            <option value="">選択</option>
+            {Object.entries(WEATHER_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">作業員数</label>
+          <input type="number" min={0}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            value={f.worker_count ?? ""}
+            onChange={(e) => setF((prev) => ({ ...prev, worker_count: Number(e.target.value) }))}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">進捗率 (%)</label>
+          <input type="number" min={0} max={100}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            value={f.progress_rate ?? ""}
+            onChange={(e) => setF((prev) => ({ ...prev, progress_rate: e.target.value ? Number(e.target.value) : undefined }))}
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">作業内容</label>
+        <textarea
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          rows={3}
+          value={f.work_content ?? ""}
+          onChange={(e) => setF((prev) => ({ ...prev, work_content: e.target.value || undefined }))}
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">課題・特記事項</label>
+        <textarea
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          rows={2}
+          value={f.issues ?? ""}
+          onChange={(e) => setF((prev) => ({ ...prev, issues: e.target.value || undefined }))}
+        />
+      </div>
+    </>
+  );
 
   return (
     <div className="space-y-4">
@@ -242,7 +342,7 @@ function ReportsTab({ projectId }: { projectId: string }) {
           {reports.map((r) => (
             <div key={r.id} className="card hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start">
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900">{r.report_date}</p>
                   <p className="text-sm text-gray-500 mt-1">
                     {r.weather ? (WEATHER_LABELS[r.weather] ?? r.weather) : "—"} ／ 作業員: {r.worker_count}名
@@ -251,15 +351,32 @@ function ReportsTab({ projectId }: { projectId: string }) {
                     <p className="text-sm text-gray-700 mt-2 line-clamp-2">{r.work_content}</p>
                   )}
                 </div>
-                {r.progress_rate != null && (
-                  <div className="text-right ml-4 shrink-0">
-                    <p className="text-xs text-gray-500">進捗</p>
-                    <p className="text-lg font-bold text-primary-600">{r.progress_rate}%</p>
-                    <div className="w-20 h-2 bg-gray-200 rounded-full mt-1">
-                      <div className="h-full bg-primary-600 rounded-full" style={{ width: `${r.progress_rate}%` }} />
+                <div className="flex items-center gap-1 ml-4 shrink-0">
+                  {r.progress_rate != null && (
+                    <div className="text-right mr-2">
+                      <p className="text-xs text-gray-500">進捗</p>
+                      <p className="text-lg font-bold text-primary-600">{r.progress_rate}%</p>
+                      <div className="w-20 h-2 bg-gray-200 rounded-full mt-1">
+                        <div className="h-full bg-primary-600 rounded-full" style={{ width: `${r.progress_rate}%` }} />
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                  <button
+                    className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    onClick={() => startEdit(r)}
+                    title="編集"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    onClick={() => handleDelete(r)}
+                    title="削除"
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               {r.issues && (
                 <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
@@ -275,66 +392,27 @@ function ReportsTab({ projectId }: { projectId: string }) {
       {open && (
         <Modal title="日報を作成" onClose={() => setOpen(false)}>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">日付 *</label>
-                <input type="date"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.report_date}
-                  onChange={(e) => setForm((f) => ({ ...f, report_date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">天気</label>
-                <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.weather ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, weather: e.target.value || undefined }))}
-                >
-                  <option value="">選択</option>
-                  {Object.entries(WEATHER_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">作業員数</label>
-                <input type="number" min={0}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.worker_count}
-                  onChange={(e) => setForm((f) => ({ ...f, worker_count: Number(e.target.value) }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">進捗率 (%)</label>
-                <input type="number" min={0} max={100}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.progress_rate ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, progress_rate: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">作業内容</label>
-              <textarea
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                rows={3}
-                value={form.work_content ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, work_content: e.target.value || undefined }))}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">課題・特記事項</label>
-              <textarea
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                rows={2}
-                value={form.issues ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, issues: e.target.value || undefined }))}
-              />
-            </div>
+            {reportFormFields(form, setForm as React.Dispatch<React.SetStateAction<Partial<DailyReportCreate>>>)}
             <div className="flex gap-2 justify-end">
               <button className="btn-secondary" onClick={() => setOpen(false)}>キャンセル</button>
               <button className="btn-primary" disabled={mutation.isPending || !form.report_date}
                 onClick={() => mutation.mutate(form)}>
                 {mutation.isPending ? "保存中…" : "作成"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {editReport && (
+        <Modal title="日報を編集" onClose={() => setEditReport(null)}>
+          <div className="space-y-4">
+            {reportFormFields(editForm, setEditForm)}
+            <div className="flex gap-2 justify-end">
+              <button className="btn-secondary" onClick={() => setEditReport(null)}>キャンセル</button>
+              <button className="btn-primary" disabled={updateMutation.isPending || !editForm.report_date}
+                onClick={() => updateMutation.mutate({ id: editReport.id, data: editForm })}>
+                {updateMutation.isPending ? "保存中…" : "保存"}
               </button>
             </div>
           </div>
@@ -362,6 +440,17 @@ function SafetyTab({ projectId }: { projectId: string }) {
       setForm({ project_id: projectId, check_date: "" });
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (checkId: string) => safetyApi.deleteSafetyCheck(projectId, checkId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["safety-checks", projectId] }),
+  });
+
+  const handleDelete = (c: SafetyCheck) => {
+    if (window.confirm(`安全チェック「${c.check_date}」を削除しますか？`)) {
+      deleteMutation.mutate(c.id);
+    }
+  };
 
   const checks: SafetyCheck[] = data?.data ?? [];
 
@@ -397,12 +486,20 @@ function SafetyTab({ projectId }: { projectId: string }) {
                   </p>
                   {c.notes && <p className="text-sm text-gray-700 mt-2">{c.notes}</p>}
                 </div>
-                <div className="ml-4 shrink-0 flex items-center gap-1">
+                <div className="ml-4 shrink-0 flex items-center gap-2">
                   {c.overall_result === "PASS" || c.overall_result === "OK" ? (
                     <><CheckCircle className="w-5 h-5 text-green-500" /><span className="text-sm font-medium text-green-600">合格</span></>
                   ) : (
                     <><XCircle className="w-5 h-5 text-red-500" /><span className="text-sm font-medium text-red-600">不合格</span></>
                   )}
+                  <button
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    onClick={() => handleDelete(c)}
+                    title="削除"
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -517,6 +614,20 @@ function CostTab({ projectId }: { projectId: string }) {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (recordId: string) => costApi.deleteCostRecord(projectId, recordId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cost-records", projectId] });
+      qc.invalidateQueries({ queryKey: ["cost-summary", projectId] });
+    },
+  });
+
+  const handleDelete = (r: CostRecord) => {
+    if (window.confirm(`原価記録「${r.description}」を削除しますか？`)) {
+      deleteMutation.mutate(r.id);
+    }
+  };
+
   const records: CostRecord[] = data?.data ?? [];
 
   return (
@@ -563,6 +674,7 @@ function CostTab({ projectId }: { projectId: string }) {
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">予算</th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">実績</th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">差異</th>
+                <th className="py-2 px-3 text-xs font-medium text-gray-500"></th>
               </tr>
             </thead>
             <tbody>
@@ -581,6 +693,16 @@ function CostTab({ projectId }: { projectId: string }) {
                     <td className="py-2 px-3 text-right text-gray-600">¥{r.actual_amount.toLocaleString()}</td>
                     <td className={`py-2 px-3 text-right font-medium ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
                       {diff >= 0 ? "+" : ""}¥{diff.toLocaleString()}
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <button
+                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        onClick={() => handleDelete(r)}
+                        title="削除"
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -672,6 +794,17 @@ function PhotosTab({ projectId }: { projectId: string }) {
 
   const photos: Photo[] = data?.data ?? [];
 
+  const deleteMutation = useMutation({
+    mutationFn: (photoId: string) => deletePhoto(projectId, photoId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["photos", projectId] }),
+  });
+
+  const handleDelete = (p: Photo) => {
+    if (window.confirm(`写真「${p.original_filename}」を削除しますか？`)) {
+      deleteMutation.mutate(p.id);
+    }
+  };
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -734,10 +867,22 @@ function PhotosTab({ projectId }: { projectId: string }) {
                   <Image className="w-8 h-8" />
                 </div>
               )}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className={`text-xs px-1.5 py-0.5 rounded ${PHOTO_CATEGORY_COLORS[p.category]}`}>
-                  {PHOTO_CATEGORY_LABELS[p.category]}
-                </span>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-2">
+                  <button
+                    className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow"
+                    onClick={() => handleDelete(p)}
+                    title="削除"
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-2">
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${PHOTO_CATEGORY_COLORS[p.category]}`}>
+                    {PHOTO_CATEGORY_LABELS[p.category]}
+                  </span>
+                </div>
               </div>
             </div>
           ))}

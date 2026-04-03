@@ -124,3 +124,23 @@ async def update_user(
     await db.flush()
     await db.refresh(user)
     return ApiResponse(data=UserListResponse.model_validate(user))
+
+
+@router.delete("/{user_id}", status_code=204)
+async def delete_user(
+    user_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
+):
+    from datetime import datetime, timezone
+
+    result = await db.execute(
+        select(User).where(User.id == user_id, User.deleted_at.is_(None))
+    )
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="自分自身は削除できません")
+    user.deleted_at = datetime.now(timezone.utc)
+    await db.commit()

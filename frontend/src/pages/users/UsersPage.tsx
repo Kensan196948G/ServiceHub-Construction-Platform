@@ -206,6 +206,23 @@ export default function UsersPage() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => usersApi.deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+
+  function handleDelete(u: User) {
+    if (u.id === currentUser?.id) {
+      alert("自分自身は削除できません。");
+      return;
+    }
+    if (window.confirm(`「${u.full_name}」を削除しますか？この操作は取り消せません。`)) {
+      deleteMutation.mutate(u.id);
+    }
+  }
+
   if (currentUser?.role !== "ADMIN") {
     return (
       <div className="card text-center py-16">
@@ -281,12 +298,21 @@ export default function UsersPage() {
                       {new Date(u.created_at).toLocaleDateString("ja-JP")}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        className="text-xs text-primary-600 hover:underline"
-                        onClick={() => setEditTarget(u)}
-                      >
-                        編集
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          className="text-xs text-primary-600 hover:underline"
+                          onClick={() => setEditTarget(u)}
+                        >
+                          編集
+                        </button>
+                        <button
+                          className="text-xs text-red-600 hover:underline disabled:opacity-40"
+                          onClick={() => handleDelete(u)}
+                          disabled={u.id === currentUser?.id || deleteMutation.isPending}
+                        >
+                          削除
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

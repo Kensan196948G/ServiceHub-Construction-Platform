@@ -174,7 +174,7 @@ export default function CostPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    {["日付", "カテゴリ", "説明", "予算", "実績", "差異"].map((h) => (
+                    {["日付", "カテゴリ", "説明", "予算", "実績", "差異", "操作"].map((h) => (
                       <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
                     ))}
                   </tr>
@@ -193,6 +193,22 @@ export default function CostPage() {
                         <td className="px-4 py-3 text-right">{formatCurrency(r.actual_amount ?? 0)}</td>
                         <td className={`px-4 py-3 text-right font-medium ${variance < 0 ? "text-red-600" : "text-green-600"}`}>
                           {variance < 0 ? "▲" : "▼"}{formatCurrency(Math.abs(variance))}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                              onClick={() => window.alert("この操作はサポートされていません")}
+                            >
+                              編集
+                            </button>
+                            <button
+                              className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                              onClick={() => window.alert("この操作はサポートされていません")}
+                            >
+                              削除
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

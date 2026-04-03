@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Plus, Search, Sparkles, X, Eye, Star } from "lucide-react";
+import { BookOpen, Plus, Search, Sparkles, X, Eye, Star, Pencil, Trash2 } from "lucide-react";
 import { knowledgeApi, KnowledgeArticleCreate, KnowledgeArticle } from "@/api/knowledge";
 
 const CATEGORIES = ["全て", "SAFETY", "QUALITY", "COST", "TECHNICAL", "PROCEDURE", "GENERAL"] as const;
@@ -16,6 +16,14 @@ export default function KnowledgePage() {
   const [aiQuery, setAiQuery] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<KnowledgeArticle | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editForm, setEditForm] = useState<KnowledgeArticleCreate>({
+    title: "",
+    category: "GENERAL",
+    tags: "",
+    content: "",
+    is_published: true,
+  });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [form, setForm] = useState<KnowledgeArticleCreate>({
     title: "",
@@ -44,6 +52,42 @@ export default function KnowledgePage() {
       setShowCreateModal(false);
     },
   });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<KnowledgeArticleCreate> }) =>
+      knowledgeApi.update(id, data),
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: ["knowledge"] });
+      setSelectedArticle(updated);
+      setIsEditMode(false);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => knowledgeApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["knowledge"] });
+      setSelectedArticle(null);
+      setIsEditMode(false);
+    },
+  });
+
+  function openEditMode(article: KnowledgeArticle) {
+    setEditForm({
+      title: article.title,
+      category: article.category,
+      tags: article.tags ?? "",
+      content: article.content,
+      is_published: article.is_published,
+    });
+    setIsEditMode(true);
+  }
+
+  function handleDelete(article: KnowledgeArticle) {
+    if (window.confirm(`「${article.title}」を削除しますか？この操作は取り消せません。`)) {
+      deleteMutation.mutate(article.id);
+    }
+  }
 
   const articles = articlesData?.data ?? [];
 
@@ -187,51 +231,155 @@ export default function KnowledgePage() {
         </div>
       )}
 
-      {/* 記事詳細モーダル */}
+      {/* 記事詳細・編集モーダル */}
       {selectedArticle && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             <div className="flex items-start justify-between p-6 border-b">
-              <div>
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className="badge-info">
-                    {CATEGORY_LABEL[selectedArticle.category] ?? selectedArticle.category}
-                  </span>
-                  {!selectedArticle.is_published && (
-                    <span className="badge-warning">非公開</span>
-                  )}
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900">{selectedArticle.title}</h3>
-                <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
-                  <span className="flex items-center gap-1">
-                    <Eye className="w-3 h-3" />
-                    閲覧数: {selectedArticle.view_count}
-                  </span>
-                  {selectedArticle.rating != null && (
-                    <span className="flex items-center gap-1 text-yellow-500">
-                      <Star className="w-3 h-3 fill-yellow-400" />
-                      評価: {selectedArticle.rating.toFixed(1)}
-                    </span>
-                  )}
-                </div>
+              <div className="flex-1 mr-4">
+                {isEditMode ? (
+                  <input
+                    type="text"
+                    className="input text-xl font-semibold w-full"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  />
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="badge-info">
+                        {CATEGORY_LABEL[selectedArticle.category] ?? selectedArticle.category}
+                      </span>
+                      {!selectedArticle.is_published && (
+                        <span className="badge-warning">非公開</span>
+                      )}
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900">{selectedArticle.title}</h3>
+                    <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        閲覧数: {selectedArticle.view_count}
+                      </span>
+                      {selectedArticle.rating != null && (
+                        <span className="flex items-center gap-1 text-yellow-500">
+                          <Star className="w-3 h-3 fill-yellow-400" />
+                          評価: {selectedArticle.rating.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
-              <button onClick={() => setSelectedArticle(null)} className="ml-4 flex-shrink-0">
+              <button
+                onClick={() => { setSelectedArticle(null); setIsEditMode(false); }}
+                className="flex-shrink-0"
+              >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                {selectedArticle.content}
-              </div>
-              {selectedArticle.tags && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {selectedArticle.tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
-                    <span key={tag} className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-500">
-                      #{tag}
-                    </span>
-                  ))}
+              {isEditMode ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
+                      <select
+                        className="input"
+                        value={editForm.category}
+                        onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                      >
+                        {CATEGORIES.filter((c) => c !== "全て").map((c) => (
+                          <option key={c} value={c}>{CATEGORY_LABEL[c] ?? c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">タグ（カンマ区切り）</label>
+                      <input
+                        type="text"
+                        className="input"
+                        value={editForm.tags ?? ""}
+                        onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
+                        placeholder="施工, 安全, ..."
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">内容</label>
+                    <textarea
+                      className="input"
+                      rows={10}
+                      value={editForm.content}
+                      onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit_is_published"
+                      checked={editForm.is_published}
+                      onChange={(e) => setEditForm({ ...editForm, is_published: e.target.checked })}
+                    />
+                    <label htmlFor="edit_is_published" className="text-sm font-medium text-gray-700">公開する</label>
+                  </div>
+                  {updateMutation.isError && (
+                    <p className="text-red-600 text-sm">保存に失敗しました。</p>
+                  )}
                 </div>
+              ) : (
+                <>
+                  <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {selectedArticle.content}
+                  </div>
+                  {selectedArticle.tags && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {selectedArticle.tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
+                        <span key={tag} className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-500">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
+            </div>
+            <div className="flex items-center justify-between p-4 border-t">
+              <button
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50"
+                onClick={() => handleDelete(selectedArticle)}
+                disabled={deleteMutation.isPending}
+              >
+                <Trash2 className="w-4 h-4" />
+                {deleteMutation.isPending ? "削除中..." : "削除"}
+              </button>
+              <div className="flex gap-3">
+                {isEditMode ? (
+                  <>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setIsEditMode(false)}
+                      disabled={updateMutation.isPending}
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      className="btn-primary"
+                      onClick={() => updateMutation.mutate({ id: selectedArticle.id, data: editForm })}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? "保存中..." : "保存"}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="btn-secondary flex items-center gap-1"
+                    onClick={() => openEditMode(selectedArticle)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                    編集
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

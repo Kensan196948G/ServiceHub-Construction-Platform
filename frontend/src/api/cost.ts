@@ -87,4 +87,8 @@ export const costApi = {
     );
     return res.data.data;
   },
+
+  deleteCostRecord: async (projectId: string, recordId: string) => {
+    await api.delete(`/projects/${projectId}/costs/${recordId}`);
+  },
 };

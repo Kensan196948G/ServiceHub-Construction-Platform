@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Plus, CloudSun, X, ChevronDown, ChevronUp } from "lucide-react";
-import { dailyReportsApi, DailyReportCreate } from "@/api/daily_reports";
+import { dailyReportsApi, DailyReport, DailyReportCreate } from "@/api/daily_reports";
 import { projectsApi } from "@/api/projects";
 
 const WEATHER_OPTIONS = [
@@ -47,8 +47,19 @@ export default function DailyReportsPage() {
   const queryClient = useQueryClient();
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingReport, setEditingReport] = useState<DailyReport | null>(null);
   const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>({
+    project_id: "",
+    report_date: new Date().toISOString().split("T")[0],
+    weather: "SUNNY",
+    worker_count: 1,
+    progress_rate: 0,
+    safety_check: true,
+    _status: "draft",
+  });
+  const [editForm, setEditForm] = useState<FormState>({
     project_id: "",
     report_date: new Date().toISOString().split("T")[0],
     weather: "SUNNY",
@@ -80,6 +91,24 @@ export default function DailyReportsPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ reportId, data }: { reportId: string; data: Partial<DailyReportCreate> }) =>
+      dailyReportsApi.update(selectedProjectId, reportId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-reports", selectedProjectId] });
+      setShowEditModal(false);
+      setEditingReport(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (reportId: string) =>
+      dailyReportsApi.delete(selectedProjectId, reportId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-reports", selectedProjectId] });
+    },
+  });
+
   function openModal() {
     setForm({
       project_id: selectedProjectId,
@@ -93,11 +122,44 @@ export default function DailyReportsPage() {
     setShowModal(true);
   }
 
+  function openEditModal(r: DailyReport, e: React.MouseEvent) {
+    e.stopPropagation();
+    setEditingReport(r);
+    setEditForm({
+      project_id: r.project_id,
+      report_date: r.report_date,
+      weather: r.weather ?? "SUNNY",
+      worker_count: r.worker_count,
+      progress_rate: r.progress_rate ?? 0,
+      safety_check: r.safety_check,
+      work_content: r.work_content ?? "",
+      safety_notes: r.safety_notes ?? "",
+      issues: r.issues ?? "",
+      _status: r.status,
+    });
+    setShowEditModal(true);
+  }
+
+  function handleDelete(reportId: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (window.confirm("この日報を削除しますか？")) {
+      deleteMutation.mutate(reportId);
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const { _status, ...createData } = form;
     void _status;
     createMutation.mutate(createData);
+  }
+
+  function handleEditSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingReport) return;
+    const { _status, ...updateData } = editForm;
+    void _status;
+    updateMutation.mutate({ reportId: editingReport.id, data: updateData });
   }
 
   return (
@@ -228,6 +290,21 @@ export default function DailyReportsPage() {
                               </p>
                             </div>
                           </div>
+                          <div className="flex gap-3 mt-3 pt-3 border-t border-blue-200">
+                            <button
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                              onClick={(e) => openEditModal(r, e)}
+                            >
+                              編集
+                            </button>
+                            <button
+                              className="text-red-600 hover:text-red-800 text-sm"
+                              onClick={(e) => handleDelete(r.id, e)}
+                              disabled={deleteMutation.isPending}
+                            >
+                              削除
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )}
@@ -348,6 +425,122 @@ export default function DailyReportsPage() {
                 </button>
                 <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
                   {createMutation.isPending ? "作成中..." : "作成"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && editingReport && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
+              <h3 className="text-lg font-semibold">日報編集</h3>
+              <button onClick={() => { setShowEditModal(false); setEditingReport(null); }}>
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">報告日</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={editForm.report_date}
+                  onChange={(e) => setEditForm({ ...editForm, report_date: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">天気</label>
+                <select
+                  className="input"
+                  value={editForm.weather ?? "SUNNY"}
+                  onChange={(e) => setEditForm({ ...editForm, weather: e.target.value })}
+                >
+                  {WEATHER_OPTIONS.map((w) => (
+                    <option key={w.value} value={w.value}>{w.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">作業員数</label>
+                <input
+                  type="number"
+                  className="input"
+                  min={0}
+                  value={editForm.worker_count ?? 0}
+                  onChange={(e) => setEditForm({ ...editForm, worker_count: Number(e.target.value) })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  進捗率: {editForm.progress_rate ?? 0}%
+                </label>
+                <input
+                  type="range"
+                  className="w-full accent-primary-600"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={editForm.progress_rate ?? 0}
+                  onChange={(e) => setEditForm({ ...editForm, progress_rate: Number(e.target.value) })}
+                />
+                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                  <span>0%</span>
+                  <span>50%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">作業内容</label>
+                <textarea
+                  className="input"
+                  rows={3}
+                  value={editForm.work_content ?? ""}
+                  onChange={(e) => setEditForm({ ...editForm, work_content: e.target.value })}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="edit_safety_check"
+                  checked={editForm.safety_check ?? false}
+                  onChange={(e) => setEditForm({ ...editForm, safety_check: e.target.checked })}
+                />
+                <label htmlFor="edit_safety_check" className="text-sm font-medium text-gray-700">
+                  安全確認済
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">安全メモ</label>
+                <textarea
+                  className="input"
+                  rows={2}
+                  value={editForm.safety_notes ?? ""}
+                  onChange={(e) => setEditForm({ ...editForm, safety_notes: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">課題・特記事項</label>
+                <textarea
+                  className="input"
+                  rows={2}
+                  value={editForm.issues ?? ""}
+                  onChange={(e) => setEditForm({ ...editForm, issues: e.target.value })}
+                />
+              </div>
+              {updateMutation.isError && (
+                <p className="text-red-600 text-sm">更新に失敗しました。</p>
+              )}
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" className="btn-secondary" onClick={() => { setShowEditModal(false); setEditingReport(null); }}>
+                  キャンセル
+                </button>
+                <button type="submit" className="btn-primary" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? "更新中..." : "更新"}
                 </button>
               </div>
             </form>

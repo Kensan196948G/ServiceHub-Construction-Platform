@@ -28,6 +28,11 @@ export interface Incident {
   updated_at: string;
 }
 
+export interface IncidentUpdate extends Partial<IncidentCreate> {
+  status?: string;
+  resolution?: string;
+}
+
 export interface ChangeRequestCreate {
   title: string;
   description: string;
@@ -37,6 +42,10 @@ export interface ChangeRequestCreate {
   rollback_plan?: string;
   scheduled_start?: string;
   scheduled_end?: string;
+}
+
+export interface ChangeRequestUpdate extends Partial<ChangeRequestCreate> {
+  status?: string;
 }
 
 export interface ChangeRequest {
@@ -74,7 +83,7 @@ export const itsmApi = {
     return res.data.data;
   },
 
-  updateIncident: async (id: string, data: Partial<IncidentCreate>) => {
+  updateIncident: async (id: string, data: IncidentUpdate) => {
     const res = await api.put<{ data: Incident }>(
       `/itsm/incidents/${id}`,
       data
@@ -107,7 +116,7 @@ export const itsmApi = {
 
   updateChangeRequest: async (
     id: string,
-    data: Partial<ChangeRequestCreate>
+    data: ChangeRequestUpdate
   ) => {
     const res = await api.put<{ data: ChangeRequest }>(
       `/itsm/changes/${id}`,

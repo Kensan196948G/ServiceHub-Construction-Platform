@@ -30,4 +30,7 @@ export const usersApi = {
   get: (id: string) => api.get(`/users/${id}`).then((r) => r.data.data),
   update: (id: string, data: UserUpdate) =>
     api.put(`/users/${id}`, data).then((r) => r.data.data),
+  deleteUser: async (id: string) => {
+    await api.delete(`/users/${id}`);
+  },
 };

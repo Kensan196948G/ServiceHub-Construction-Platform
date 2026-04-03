@@ -88,4 +88,12 @@ export const safetyApi = {
     );
     return res.data;
   },
+
+  deleteSafetyCheck: async (projectId: string, checkId: string) => {
+    await api.delete(`/projects/${projectId}/safety-checks/${checkId}`);
+  },
+
+  deleteQualityInspection: async (projectId: string, inspectionId: string) => {
+    await api.delete(`/projects/${projectId}/quality-inspections/${inspectionId}`);
+  },
 };

@@ -96,6 +96,22 @@ export default function SafetyPage() {
     },
   });
 
+  const deleteCheckMutation = useMutation({
+    mutationFn: (checkId: string) =>
+      safetyApi.deleteSafetyCheck(selectedProjectId, checkId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["safety-checks", selectedProjectId] });
+    },
+  });
+
+  const deleteInspectionMutation = useMutation({
+    mutationFn: (inspectionId: string) =>
+      safetyApi.deleteQualityInspection(selectedProjectId, inspectionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quality-inspections", selectedProjectId] });
+    },
+  });
+
   function openModal() {
     if (tab === "checks") {
       setCheckForm({
@@ -125,6 +141,19 @@ export default function SafetyPage() {
       createCheckMutation.mutate(checkForm);
     } else {
       createInspectionMutation.mutate(inspectionForm);
+    }
+  }
+
+  function handleDeleteCheck(checkId: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (window.confirm("この安全チェックを削除しますか？")) {
+      deleteCheckMutation.mutate(checkId);
+    }
+  }
+
+  function handleDeleteInspection(inspectionId: string) {
+    if (window.confirm("この品質検査を削除しますか？")) {
+      deleteInspectionMutation.mutate(inspectionId);
     }
   }
 
@@ -202,7 +231,7 @@ export default function SafetyPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {["日付", "チェック種別", "OK数", "NG数", "総合判定", ""].map((h, i) => (
+                  {["日付", "チェック種別", "OK数", "NG数", "総合判定", "", ""].map((h, i) => (
                     <th key={i} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
                   ))}
                 </tr>
@@ -231,13 +260,22 @@ export default function SafetyPage() {
                             {c.overall_result}
                           </span>
                         </td>
+                        <td className="px-4 py-3">
+                          <button
+                            className="text-red-600 hover:text-red-800 text-sm"
+                            onClick={(e) => handleDeleteCheck(c.id, e)}
+                            disabled={deleteCheckMutation.isPending}
+                          >
+                            削除
+                          </button>
+                        </td>
                         <td className="px-4 py-3 text-gray-400">
                           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </td>
                       </tr>
                       {isExpanded && (
                         <tr className="bg-blue-50">
-                          <td colSpan={6} className="px-6 py-4">
+                          <td colSpan={7} className="px-6 py-4">
                             <div className="space-y-3">
                               <div>
                                 <div className="flex justify-between text-xs font-medium text-gray-600 mb-1">
@@ -282,7 +320,7 @@ export default function SafetyPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                {["日付", "検査種別", "対象", "測定値", "結果"].map((h) => (
+                {["日付", "検査種別", "対象", "測定値", "結果", ""].map((h) => (
                   <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
                 ))}
               </tr>
@@ -296,6 +334,15 @@ export default function SafetyPage() {
                   <td className="px-4 py-3">{i.measured_value ?? "—"}</td>
                   <td className="px-4 py-3">
                     <span className={RESULT_BADGE[i.result] ?? "badge-info"}>{i.result}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      className="text-red-600 hover:text-red-800 text-sm"
+                      onClick={() => handleDeleteInspection(i.id)}
+                      disabled={deleteInspectionMutation.isPending}
+                    >
+                      削除
+                    </button>
                   </td>
                 </tr>
               ))}
