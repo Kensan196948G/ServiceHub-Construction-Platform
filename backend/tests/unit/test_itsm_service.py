@@ -32,9 +32,7 @@ async def test_incident_crud(auth_client, admin_headers):
     assert resp.status_code == 200
 
     # List
-    resp = await auth_client.get(
-        "/api/v1/itsm/incidents", headers=admin_headers
-    )
+    resp = await auth_client.get("/api/v1/itsm/incidents", headers=admin_headers)
     assert resp.status_code == 200
     assert resp.json()["meta"]["total"] >= 1
 
@@ -92,9 +90,7 @@ async def test_change_request_crud(auth_client, admin_headers):
     assert change["change_number"].startswith("CHG-")
 
     # List
-    resp = await auth_client.get(
-        "/api/v1/itsm/changes", headers=admin_headers
-    )
+    resp = await auth_client.get("/api/v1/itsm/changes", headers=admin_headers)
     assert resp.status_code == 200
     assert resp.json()["meta"]["total"] >= 1
 

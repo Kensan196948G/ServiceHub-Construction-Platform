@@ -75,9 +75,7 @@ async def test_project_duplicate_code(auth_client, admin_headers):
 async def test_project_not_found(auth_client, admin_headers):
     """存在しないプロジェクトは404"""
     fake_id = uuid.uuid4()
-    resp = await auth_client.get(
-        f"/api/v1/projects/{fake_id}", headers=admin_headers
-    )
+    resp = await auth_client.get(f"/api/v1/projects/{fake_id}", headers=admin_headers)
     assert resp.status_code == 404
 
 
