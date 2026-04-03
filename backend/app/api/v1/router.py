@@ -6,6 +6,7 @@ from app.api.v1 import auth
 from app.api.v1.routers import (
     costs,
     daily_reports,
+    dashboard,
     itsm,
     knowledge,
     photos,
@@ -25,3 +26,4 @@ api_router.include_router(costs.router)
 api_router.include_router(itsm.router)
 api_router.include_router(knowledge.router)
 api_router.include_router(users.router)
+api_router.include_router(dashboard.router)
