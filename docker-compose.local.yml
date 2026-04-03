@@ -1,0 +1,135 @@
+version: "3.9"
+
+services:
+  # ── Backend API ──────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: servicehub-api
+    ports:
+      - "8888:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://servicehub:servicehub_pass@db:5432/servicehub_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - JWT_ALGORITHM=HS256
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - servicehub-net
+    restart: unless-stopped
+
+  # ── Frontend ─────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: servicehub-frontend
+    ports:
+      - "4173:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_APP_NAME=ServiceHub Construction Platform
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - servicehub-net
+    restart: unless-stopped
+
+  # ── PostgreSQL 15 ────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: servicehub-db
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: servicehub
+      POSTGRES_PASSWORD: servicehub_pass
+      POSTGRES_DB: servicehub_db
+      TZ: Asia/Tokyo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U servicehub -d servicehub_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - servicehub-net
+    restart: unless-stopped
+
+  # ── Redis 7 ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: servicehub-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - servicehub-net
+    restart: unless-stopped
+
+  # ── Nginx (Reverse Proxy) ────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: servicehub-nginx
+    ports:
+      - "7080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - servicehub-net
+    restart: unless-stopped
+
+  # ── MinIO (Local S3) ─────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: servicehub-minio
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - servicehub-net
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  servicehub-net:
+    driver: bridge
