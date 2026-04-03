@@ -6,6 +6,7 @@ ITSM運用管理API（ISO20000準拠）
 
 from __future__ import annotations
 
+import math
 import secrets
 import uuid
 from datetime import UTC, datetime
@@ -17,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.itsm import ChangeRequest, Incident
-from app.schemas.common import ApiResponse, PaginatedResponse
+from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.itsm import (
     ChangeRequestCreate,
     ChangeRequestResponse,
@@ -51,7 +52,7 @@ async def create_incident(
     payload: IncidentCreate,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
-        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+        require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
     ),
 ):
     """インシデント起票"""
@@ -84,15 +85,15 @@ async def list_incidents(
     per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
-        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+        require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
     ),
 ):
     """インシデント一覧"""
     conditions = [Incident.deleted_at.is_(None)]
     if status_filter:
-        conditions.append(Incident.status == status_filter)
+        conditions.append(Incident.status == status_filter)  # type: ignore[arg-type]
     if priority:
-        conditions.append(Incident.priority == priority)
+        conditions.append(Incident.priority == priority)  # type: ignore[arg-type]
 
     total_result = await db.execute(
         select(func.count()).select_from(Incident).where(and_(*conditions))
@@ -107,7 +108,15 @@ async def list_incidents(
         .limit(per_page)
     )
     items = [IncidentResponse.model_validate(r) for r in result.scalars()]
-    return PaginatedResponse(items=items, total=total, page=page, per_page=per_page)
+    return PaginatedResponse(
+        data=items,
+        meta=PaginationMeta(
+            total=total,
+            page=page,
+            per_page=per_page,
+            pages=math.ceil(total / per_page) if total > 0 else 0,
+        ),
+    )
 
 
 @router.get("/incidents/{incident_id}", response_model=ApiResponse[IncidentResponse])
@@ -115,7 +124,7 @@ async def get_incident(
     incident_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
-        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+        require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
     ),
 ):
     result = await db.execute(
@@ -135,7 +144,7 @@ async def update_incident(
     payload: IncidentUpdate,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
-        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+        require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
     ),
 ):
     """インシデント更新・解決"""
@@ -174,7 +183,7 @@ async def update_incident(
 async def create_change(
     payload: ChangeRequestCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR])),
+    current_user=Depends(require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR)),
 ):
     """変更要求起票（SoD: IT_OPERATORのみ起票可）"""
     change = ChangeRequest(
@@ -207,14 +216,14 @@ async def list_changes(
     per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
-        require_roles([UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER])
+        require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
     ),
 ):
     conditions = [ChangeRequest.deleted_at.is_(None)]
     if status_filter:
-        conditions.append(ChangeRequest.status == status_filter)
+        conditions.append(ChangeRequest.status == status_filter)  # type: ignore[arg-type]
     if change_type:
-        conditions.append(ChangeRequest.change_type == change_type)
+        conditions.append(ChangeRequest.change_type == change_type)  # type: ignore[arg-type]
 
     total_result = await db.execute(
         select(func.count()).select_from(ChangeRequest).where(and_(*conditions))
@@ -229,7 +238,15 @@ async def list_changes(
         .limit(per_page)
     )
     items = [ChangeRequestResponse.model_validate(r) for r in result.scalars()]
-    return PaginatedResponse(items=items, total=total, page=page, per_page=per_page)
+    return PaginatedResponse(
+        data=items,
+        meta=PaginationMeta(
+            total=total,
+            page=page,
+            per_page=per_page,
+            pages=math.ceil(total / per_page) if total > 0 else 0,
+        ),
+    )
 
 
 @router.patch(
@@ -238,7 +255,7 @@ async def list_changes(
 async def approve_change(
     change_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles([UserRole.ADMIN])),
+    current_user=Depends(require_roles(UserRole.ADMIN)),
 ):
     """変更承認（SoD: ADMINのみ承認可）"""
     result = await db.execute(

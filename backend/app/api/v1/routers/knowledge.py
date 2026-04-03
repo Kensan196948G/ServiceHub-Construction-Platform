@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 import uuid
 from datetime import UTC
@@ -16,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.knowledge import AiSearchLog, KnowledgeArticle
-from app.schemas.common import ApiResponse, PaginatedResponse
+from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.knowledge import (
     AiSearchRequest,
     AiSearchResponse,
@@ -41,7 +42,7 @@ async def create_article(
     payload: KnowledgeArticleCreate,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
-        require_roles([UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR])
+        require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR)
     ),
 ):
     """ナレッジ記事作成"""
@@ -73,26 +74,24 @@ async def list_articles(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
         require_roles(
-            [
-                UserRole.ADMIN,
-                UserRole.PROJECT_MANAGER,
-                UserRole.SITE_SUPERVISOR,
-                UserRole.COST_MANAGER,
-                UserRole.IT_OPERATOR,
-                UserRole.VIEWER,
-            ]
+            UserRole.ADMIN,
+            UserRole.PROJECT_MANAGER,
+            UserRole.SITE_SUPERVISOR,
+            UserRole.COST_MANAGER,
+            UserRole.IT_OPERATOR,
+            UserRole.VIEWER,
         )
     ),
 ):
     """ナレッジ記事一覧（キーワード検索対応）"""
     conditions = [KnowledgeArticle.deleted_at.is_(None)]
     if published_only:
-        conditions.append(KnowledgeArticle.is_published.is_(True))
+        conditions.append(KnowledgeArticle.is_published.is_(True))  # type: ignore[arg-type]
     if category:
-        conditions.append(KnowledgeArticle.category == category)
+        conditions.append(KnowledgeArticle.category == category)  # type: ignore[arg-type]
     if q:
         keyword = f"%{q}%"
-        conditions.append(
+        conditions.append(  # type: ignore[arg-type]
             or_(
                 KnowledgeArticle.title.ilike(keyword),
                 KnowledgeArticle.content.ilike(keyword),
@@ -113,7 +112,15 @@ async def list_articles(
         .limit(per_page)
     )
     items = [KnowledgeArticleResponse.model_validate(r) for r in result.scalars()]
-    return PaginatedResponse(items=items, total=total, page=page, per_page=per_page)
+    return PaginatedResponse(
+        data=items,
+        meta=PaginationMeta(
+            total=total,
+            page=page,
+            per_page=per_page,
+            pages=math.ceil(total / per_page) if total > 0 else 0,
+        ),
+    )
 
 
 @router.get(
@@ -124,14 +131,12 @@ async def get_article(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
         require_roles(
-            [
-                UserRole.ADMIN,
-                UserRole.PROJECT_MANAGER,
-                UserRole.SITE_SUPERVISOR,
-                UserRole.COST_MANAGER,
-                UserRole.IT_OPERATOR,
-                UserRole.VIEWER,
-            ]
+            UserRole.ADMIN,
+            UserRole.PROJECT_MANAGER,
+            UserRole.SITE_SUPERVISOR,
+            UserRole.COST_MANAGER,
+            UserRole.IT_OPERATOR,
+            UserRole.VIEWER,
         )
     ),
 ):
@@ -160,7 +165,7 @@ async def update_article(
     payload: KnowledgeArticleUpdate,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
-        require_roles([UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR])
+        require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR)
     ),
 ):
     result = await db.execute(
@@ -189,7 +194,7 @@ async def update_article(
 async def delete_article(
     article_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(require_roles([UserRole.ADMIN])),
+    current_user=Depends(require_roles(UserRole.ADMIN)),
 ):
     from datetime import datetime
 
@@ -218,14 +223,12 @@ async def ai_search(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
         require_roles(
-            [
-                UserRole.ADMIN,
-                UserRole.PROJECT_MANAGER,
-                UserRole.SITE_SUPERVISOR,
-                UserRole.COST_MANAGER,
-                UserRole.IT_OPERATOR,
-                UserRole.VIEWER,
-            ]
+            UserRole.ADMIN,
+            UserRole.PROJECT_MANAGER,
+            UserRole.SITE_SUPERVISOR,
+            UserRole.COST_MANAGER,
+            UserRole.IT_OPERATOR,
+            UserRole.VIEWER,
         )
     ),
 ):
@@ -251,7 +254,7 @@ async def ai_search(
         ),
     ]
     if payload.category:
-        conditions.append(KnowledgeArticle.category == payload.category)
+        conditions.append(KnowledgeArticle.category == payload.category)  # type: ignore[arg-type]
 
     result = await db.execute(
         select(KnowledgeArticle)
