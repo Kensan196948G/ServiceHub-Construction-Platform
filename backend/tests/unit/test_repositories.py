@@ -7,14 +7,7 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
-import pytest
-
-from app.models.cost import CostRecord, WorkHour
-from app.models.itsm import ChangeRequest, Incident
-from app.models.knowledge import KnowledgeArticle
 from app.models.project import Project
-from app.models.safety import QualityInspection, SafetyCheck
-from app.models.user import User
 from app.repositories.cost import CostRecordRepository, WorkHourRepository
 from app.repositories.itsm import ChangeRequestRepository, IncidentRepository
 from app.repositories.knowledge import (
