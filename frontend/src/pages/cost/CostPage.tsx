@@ -68,6 +68,20 @@ export default function CostPage() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (recordId: string) =>
+      costApi.deleteCostRecord(selectedProjectId, recordId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["costs", selectedProjectId] });
+      queryClient.invalidateQueries({ queryKey: ["costs-summary", selectedProjectId] });
+    },
+  });
+
+  function handleDelete(recordId: string) {
+    if (!window.confirm("この原価記録を削除しますか？")) return;
+    deleteMutation.mutate(recordId);
+  }
+
   function openModal() {
     setForm({
       project_id: selectedProjectId,
@@ -198,13 +212,13 @@ export default function CostPage() {
                           <div className="flex items-center gap-2">
                             <button
                               className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
-                              onClick={() => window.alert("この操作はサポートされていません")}
+                              onClick={() => window.alert("編集機能は今後対応予定です")}
                             >
                               編集
                             </button>
                             <button
                               className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
-                              onClick={() => window.alert("この操作はサポートされていません")}
+                              onClick={() => handleDelete(r.id)}
                             >
                               削除
                             </button>
