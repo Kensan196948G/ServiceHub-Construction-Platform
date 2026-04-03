@@ -84,13 +84,13 @@ graph TB
 | 指標 | 値 |
 | :--- | :--- |
 | 🧪 Backend テスト | **158 件**（pytest / coverage 84%） |
-| 🧪 Frontend テスト | **23 件**（vitest） |
+| 🧪 Frontend テスト | **37 件**（vitest / 9 テストファイル） |
 | 🖥️ フロントエンドページ | **11 ページ** |
 | 🔗 API エンドポイント | **46 エンドポイント** |
 | 🏗️ Repository クラス | **12 クラス**（全 Router 統一済み） |
-| 🔧 Service クラス | **9 クラス**（Auth / Storage / Cost / Knowledge / ITSM / Project / Safety / DailyReport / User） |
-| ✅ CI ステータス | **グリーン**（ruff / mypy / pytest / bandit / vitest / build） |
-| 🔒 STABLE 判定 | **N=5** 達成（CI 5回連続成功） |
+| 🔧 Service クラス | **10 クラス**（全モジュール対応 + PhotoService） |
+| ✅ CI ステータス | **グリーン**（ruff / mypy / pytest / bandit / vitest / build — 7チェック） |
+| 🔒 STABLE 判定 | **N=9+** 達成（CI 9回連続成功） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -113,8 +113,9 @@ graph LR
 | 🦺 SafetyService | 安全チェック・品質検査 CRUD |
 | 📝 DailyReportService | 日報 CRUD・ワークフロー |
 | 👤 UserService | ユーザー管理・重複検出・自己削除防止 |
+| 🖼️ PhotoService | 写真アップロード・バリデーション・プリサインドURL |
 
-> **全 8 Router が Router → Service → Repository の3層構造に統一済み（Service 9クラス）。**
+> **全 8 Router が Router → Service → Repository の3層構造に統一（Service 10クラス / Repository 12クラス）。**
 
 ---
 
