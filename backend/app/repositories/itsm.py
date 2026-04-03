@@ -74,15 +74,11 @@ class IncidentRepository:
 
     async def next_number(self) -> str:
         """次のインシデント番号を生成（INC-XXXXXX）"""
-        result = await self.db.execute(
-            select(func.count()).select_from(Incident)
-        )
+        result = await self.db.execute(select(func.count()).select_from(Incident))
         total = result.scalar_one()
         return f"INC-{total + 1:06d}"
 
-    async def create(
-        self, data: IncidentCreate, created_by: uuid.UUID
-    ) -> Incident:
+    async def create(self, data: IncidentCreate, created_by: uuid.UUID) -> Incident:
         number = await self.next_number()
         incident = Incident(
             **data.model_dump(),
@@ -105,9 +101,7 @@ class IncidentRepository:
         await self.db.refresh(incident)
         return incident
 
-    async def soft_delete(
-        self, incident: Incident, deleted_by: uuid.UUID
-    ) -> None:
+    async def soft_delete(self, incident: Incident, deleted_by: uuid.UUID) -> None:
         incident.deleted_at = datetime.now(timezone.utc)
         incident.updated_by = deleted_by
         await self.db.flush()
@@ -117,9 +111,7 @@ class ChangeRequestRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_by_id(
-        self, cr_id: uuid.UUID
-    ) -> ChangeRequest | None:
+    async def get_by_id(self, cr_id: uuid.UUID) -> ChangeRequest | None:
         result = await self.db.execute(
             select(ChangeRequest).where(
                 ChangeRequest.id == cr_id,
@@ -172,9 +164,7 @@ class ChangeRequestRepository:
 
     async def next_number(self) -> str:
         """次の変更要求番号を生成（CHG-XXXXXX）"""
-        result = await self.db.execute(
-            select(func.count()).select_from(ChangeRequest)
-        )
+        result = await self.db.execute(select(func.count()).select_from(ChangeRequest))
         total = result.scalar_one()
         return f"CHG-{total + 1:06d}"
 
@@ -203,9 +193,7 @@ class ChangeRequestRepository:
         await self.db.refresh(cr)
         return cr
 
-    async def soft_delete(
-        self, cr: ChangeRequest, deleted_by: uuid.UUID
-    ) -> None:
+    async def soft_delete(self, cr: ChangeRequest, deleted_by: uuid.UUID) -> None:
         cr.deleted_at = datetime.now(timezone.utc)
         cr.updated_by = deleted_by
         await self.db.flush()

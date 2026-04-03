@@ -270,9 +270,7 @@ class TestSafetyCheckRepository:
         assert check.id is not None
         assert check.items_total == 10
 
-        updated = await repo.update(
-            check, SafetyCheckUpdate(overall_result="OK")
-        )
+        updated = await repo.update(check, SafetyCheckUpdate(overall_result="OK"))
         assert updated.overall_result == "OK"
 
         await repo.soft_delete(check)
@@ -338,9 +336,7 @@ class TestIncidentRepository:
             ),
             created_by=ACTOR_ID,
         )
-        await repo.update(
-            i2, IncidentUpdate(status="RESOLVED"), updated_by=ACTOR_ID
-        )
+        await repo.update(i2, IncidentUpdate(status="RESOLVED"), updated_by=ACTOR_ID)
         open_list = await repo.list(status="OPEN")
         assert len(open_list) == 1
         count = await repo.count()

@@ -16,9 +16,7 @@ class KnowledgeArticleRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_by_id(
-        self, article_id: uuid.UUID
-    ) -> KnowledgeArticle | None:
+    async def get_by_id(self, article_id: uuid.UUID) -> KnowledgeArticle | None:
         result = await self.db.execute(
             select(KnowledgeArticle).where(
                 KnowledgeArticle.id == article_id,
@@ -34,9 +32,7 @@ class KnowledgeArticleRepository:
         category: str | None = None,
         is_published: bool | None = None,
     ):
-        q = select(KnowledgeArticle).where(
-            KnowledgeArticle.deleted_at.is_(None)
-        )
+        q = select(KnowledgeArticle).where(KnowledgeArticle.deleted_at.is_(None))
         if category:
             q = q.where(KnowledgeArticle.category == category)
         if is_published is not None:
@@ -148,8 +144,6 @@ class AiSearchLogRepository:
 
     async def list_recent(self, limit: int = 50):
         result = await self.db.execute(
-            select(AiSearchLog)
-            .order_by(AiSearchLog.created_at.desc())
-            .limit(limit)
+            select(AiSearchLog).order_by(AiSearchLog.created_at.desc()).limit(limit)
         )
         return result.scalars().all()
