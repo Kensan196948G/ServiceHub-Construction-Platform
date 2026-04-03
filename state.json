@@ -1,47 +1,50 @@
 {
   "phase": "Sprint 1 - 基盤安定化",
-  "loop": "Sprint1-Day1",
-  "loop_count": 17,
+  "loop": "Sprint1-Day2",
+  "loop_count": 18,
   "status": "in_progress",
-  "last_updated": "2026-04-03T14:50:00+09:00",
+  "last_updated": "2026-04-04T02:10:00+09:00",
   "development_plan": {
     "start_date": "2026-04-03",
     "release_date": "2026-10-03",
     "current_phase": "Phase 1 - 基盤安定化",
     "current_sprint": "Sprint 1",
     "total_hours": 416,
-    "hours_used": 8,
-    "schedule": "土日 × 8時間 + 今週金曜"
+    "hours_used": 16,
+    "schedule": "土日 × 8時間"
   },
   "priorities": {
     "high": [
-      "エンドポイントの Repository 移行完了",
-      "Service層実装（残りモジュール）",
-      "Frontend テストカバレッジ拡充"
+      "Service層実装（ProjectService/CostService/KnowledgeService等）",
+      "Frontend CI にテスト実行ステップ追加",
+      "E2Eテスト基盤構築（Playwright）"
     ],
     "medium": [
       "storage.py MinIOモックテスト",
-      "Frontend 共通コンポーネント設計"
+      "Frontend 共通コンポーネント設計",
+      "GitHub Actions Node.js 24 移行"
     ],
     "low": [
       "通知機能検討",
-      "manager_id フィールド編集対応"
+      "manager_id フィールド編集対応",
+      "ダークモード対応"
     ]
   },
   "decision_context": {
     "risk_level": "low",
-    "tech_debt": "medium",
+    "tech_debt": "low",
     "stability": "stable"
   },
   "metrics": {
     "test_count_backend": 134,
-    "test_count_frontend": 7,
-    "coverage_backend": "90%",
-    "ci_status": "pending",
+    "test_count_frontend": 23,
+    "coverage_backend": "85%",
+    "ci_status": "green",
     "frontend_pages": 11,
     "api_endpoints": 46,
     "repository_classes": 12,
-    "service_classes": 2
+    "service_classes": 2,
+    "routers_using_repository": "8/8"
   },
   "loop_history": {
     "sprint1_day1": {
@@ -58,6 +61,20 @@
         "Frontend vitest 基盤構築（7テスト PASS）",
         "スキーマ追加（SafetyCheckUpdate, QualityInspectionUpdate, CostRecordUpdate）",
         "ruff UP017/A003 ignore追加、pyproject.toml更新"
+      ]
+    },
+    "sprint1_day2": {
+      "date": "2026-04-04",
+      "status": "in_progress",
+      "highlights": [
+        "Backend CI 5回連続failure修復（ruff format + ALLOWED_ORIGINS修正）→PR#36 MERGED",
+        "ClaudeOS v5 カーネルファイル同期・配置完了",
+        "safety/users/knowledge/itsm Router を Repository 経由に移行→全Router統一",
+        "copilotcli-kernel/ 完全削除（.claude/claudeos/ に移行）",
+        "KnowledgeArticleRepository increment_view_count に refresh() 追加（MissingGreenlet修正）",
+        "Frontend API テスト 7→23件拡充（projects/auth/safety/itsm）",
+        "README.md 更新（メトリクス・アーキテクチャ図・ClaudeOS構成）",
+        "state.json 更新"
       ]
     }
   }
