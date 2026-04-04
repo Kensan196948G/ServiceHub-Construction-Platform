@@ -29,8 +29,8 @@ export function Modal({
   useEffect(() => {
     const el = dialogRef.current;
     if (!el) return;
-    if (open && !el.open) el.showModal();
-    if (!open && el.open) el.close();
+    if (open && !el.open) el.showModal?.();
+    if (!open && el.open) el.close?.();
   }, [open]);
 
   const handleBackdrop = useCallback(
