@@ -94,16 +94,18 @@ graph TB
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 Backend テスト | **158 件**（pytest / coverage 84%） |
-| 🧪 Frontend テスト | **70 件**（vitest / 15 テストファイル） |
+| 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
+| 🧪 Frontend テスト | **173 件**（vitest / 28 テストファイル / coverage 79%） |
 | 🎭 E2E テスト | **23 件**（Playwright / Chromium） |
-| 🖥️ フロントエンドページ | **11 ページ** |
+| 📊 総テスト数 | **381 件**（Backend + Frontend + E2E） |
+| 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
 | 🧩 共通 UI コンポーネント | **5 種**（Badge / Button / Card / Skeleton / StatCard） |
 | 🔗 API エンドポイント | **47 エンドポイント**（KPI API 追加） |
-| 🏗️ Repository クラス | **12 クラス**（全 Router 統一済み） |
-| 🔧 Service クラス | **10 クラス**（全モジュール対応 + PhotoService） |
-| ✅ CI チェック数 | **8 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E） |
-| 🔒 STABLE 判定 | **N=10** 達成（CI 10回連続成功） |
+| 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
+| 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
+| 🔀 Router | **9 本**（Dashboard Router 追加） |
+| ✅ CI チェック数 | **8 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency） |
+| 🔒 STABLE 判定 | **N=10+** 達成（CI 連続成功） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -127,8 +129,9 @@ graph LR
 | 📝 DailyReportService | 日報 CRUD・ワークフロー |
 | 👤 UserService | ユーザー管理・重複検出・自己削除防止 |
 | 🖼️ PhotoService | 写真アップロード・バリデーション・プリサインドURL |
+| 📊 DashboardService | KPI 集約・統計ダッシュボード |
 
-> **全 8 Router が Router → Service → Repository の3層構造に統一（Service 10クラス / Repository 12クラス）。**
+> **全 9 Router が Router → Service → Repository の3層構造に統一（Service 11クラス / Repository 8クラス）。**
 
 ---
 
@@ -191,8 +194,8 @@ gantt
 
 | フェーズ | 期間 | 目標 | 状態 |
 | :--- | :--- | :--- | :---: |
-| 🔵 Phase 1 基盤安定化 | 4月 Week 1 | 3層アーキテクチャ100%・E2E基盤・CI安定 | 🔄 進行中 |
-| 🟡 Phase 2 機能強化 | 4月〜5月 | UI統一・フォーム改善・E2E拡充 | ⏳ 予定 |
+| 🔵 Phase 1 基盤安定化 | 4月 Week 1 | 3層アーキテクチャ100%・E2E基盤・CI安定 | ✅ 完了 |
+| 🟡 Phase 2 機能強化 | 4月〜5月 | UI統一・フォーム改善・E2E拡充・テスト品質向上 | 🔄 進行中 |
 | 🟠 Phase 3 UX改善 | 5月〜6月 | レスポンシブ・アクセシビリティ・パフォーマンス | ⏳ 予定 |
 | 🔴 Phase 4 高度機能 | 6月〜7月 | リアルタイム通知・AI強化 | ⏳ 予定 |
 | 🟣 Phase 5 リリース準備 | 7月〜9月 | 本番環境・セキュリティ監査・ドキュメント整備 | ⏳ 予定 |
