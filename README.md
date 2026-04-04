@@ -87,19 +87,23 @@ graph TB
 | 🏷️ `Badge` | ステータス・重要度表示 | 5バリアント（default/success/warning/danger/info）/ cva ベース |
 | 🔘 `Button` | 操作ボタン | loading 状態・aria-busy・sr-only 対応 |
 | 📦 `Card` | コンテナ | padding バリアント (none/sm/md/lg) / `HTMLAttributes` 継承 |
+| 📝 `FormField` | フォームフィールド | label + error + required 表示 / Input・Textarea・Select 付属 |
+| 🪟 `Modal` | ダイアログ | HTML `<dialog>` ベース / Escape キー・バックドロップ対応 |
+| 📄 `Pagination` | ページネーション | 省略記号・aria-current・前後ナビ |
 | ⏳ `Skeleton` | ローディング表示 | `role="status"` / アクセシブル |
 | 📈 `StatCard` | KPI カード | 5色スキーム・trend（↑↓→）表示 / Link ラップ対応 |
+| 📊 `Table` | データテーブル | ジェネリック型 / カスタムレンダー / クリック対応 |
 
 ### 📊 品質メトリクス
 
 | 指標 | 値 |
 | :--- | :--- |
 | 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
-| 🧪 Frontend テスト | **173 件**（vitest / 28 テストファイル / coverage 79%） |
-| 🎭 E2E テスト | **23 件**（Playwright / Chromium） |
-| 📊 総テスト数 | **381 件**（Backend + Frontend + E2E） |
+| 🧪 Frontend テスト | **199 件**（vitest / 32 テストファイル / coverage 79%） |
+| 🎭 E2E テスト | **31 件**（Playwright / 10 テストファイル） |
+| 📊 総テスト数 | **415 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
-| 🧩 共通 UI コンポーネント | **5 種**（Badge / Button / Card / Skeleton / StatCard） |
+| 🧩 共通 UI コンポーネント | **9 種**（Badge / Button / Card / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🔗 API エンドポイント | **47 エンドポイント**（KPI API 追加） |
 | 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
 | 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
@@ -158,14 +162,17 @@ graph LR
 
 | テストファイル | テスト数 | カバー範囲 |
 | :--- | :---: | :--- |
-| `login.spec.ts` | 3 | 認証成功・失敗・ダッシュボード遷移 |
+| `login.spec.ts` | 6 | 認証成功・失敗・ダッシュボード遷移・フォーム表示 |
 | `navigation.spec.ts` | 4 | 認証済みページナビゲーション |
-| `dashboard.spec.ts` | 3 | KPI StatCard 表示・エラーバナー |
+| `dashboard.spec.ts` | 4 | KPI StatCard 表示・エラーバナー・クイックアクション |
 | `projects.spec.ts` | 3 | 案件一覧・新規ボタン・ステータスバッジ |
 | `reports.spec.ts` | 2 | 日報ページ表示 |
 | `safety.spec.ts` | 2 | 安全点検ページ表示 |
 | `cost.spec.ts` | 2 | 原価管理ページ表示 |
-| **合計** | **23** | 主要画面の E2E カバー完了 |
+| `itsm.spec.ts` | 3 | ITSM 見出し・インシデント管理・変更要求管理 |
+| `knowledge.spec.ts` | 2 | ナレッジ見出し・記事一覧 |
+| `users.spec.ts` | 3 | ユーザー見出し・一覧・ロール |
+| **合計** | **31** | **全11ページ E2E カバー完了** |
 
 ---
 
