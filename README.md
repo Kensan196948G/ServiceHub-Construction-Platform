@@ -104,6 +104,7 @@ graph TB
 | 📊 総テスト数 | **415 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
 | 🧩 共通 UI コンポーネント | **9 種**（Badge / Button / Card / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
+| 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
 | 🔗 API エンドポイント | **47 エンドポイント**（KPI API 追加） |
 | 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
 | 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
@@ -185,9 +186,9 @@ gantt
     section Phase 1: 基盤安定化
     Sprint 1 Day 1 (3層構造)    :done, s1d1, 2026-04-03, 1d
     Sprint 1 Day 2 (CI修復)     :done, s1d2, 2026-04-04, 1d
-    Sprint 1 Day 3 (E2E+UI)     :active, s1d3, 2026-04-04, 1d
+    Sprint 1 Day 3 (E2E+UI)     :done, s1d3, 2026-04-04, 1d
     section Phase 2: 機能強化
-    他ページ共通コンポーネント化  :s2a, 2026-04-05, 7d
+    共通UIコンポーネント統一     :done, s2a, 2026-04-05, 1d
     E2E テスト拡充（CRUD）       :s2b, 2026-04-05, 7d
     section Phase 3: UX改善
     フォームUI・バリデーション    :s3, 2026-04-12, 14d

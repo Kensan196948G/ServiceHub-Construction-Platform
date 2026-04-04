@@ -1,13 +1,24 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Plus, Search, Sparkles, X, Eye, Star, Pencil, Trash2 } from "lucide-react";
+import { BookOpen, Plus, Search, Sparkles, Eye, Star, Pencil, Trash2 } from "lucide-react";
 import { knowledgeApi, KnowledgeArticleCreate, KnowledgeArticle } from "@/api/knowledge";
+import { Badge, Button, Card, Modal, FormField, Input, Select, Textarea, Skeleton } from "@/components/ui";
 
 const CATEGORIES = ["全て", "SAFETY", "QUALITY", "COST", "TECHNICAL", "PROCEDURE", "GENERAL"] as const;
 const CATEGORY_LABEL: Record<string, string> = {
   全て: "全て", SAFETY: "安全", QUALITY: "品質", COST: "原価",
   TECHNICAL: "技術", PROCEDURE: "手順", GENERAL: "一般",
 };
+
+const CATEGORY_OPTIONS = CATEGORIES.filter((c) => c !== "全て").map((c) => ({
+  value: c,
+  label: CATEGORY_LABEL[c] ?? c,
+}));
+
+const FILTER_CATEGORY_OPTIONS = CATEGORIES.map((c) => ({
+  value: c,
+  label: CATEGORY_LABEL[c] ?? c,
+}));
 
 export default function KnowledgePage() {
   const queryClient = useQueryClient();
@@ -111,22 +122,20 @@ export default function KnowledgePage() {
           <BookOpen className="w-7 h-7 text-primary-600" />
           AIナレッジベース
         </h2>
-        <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
-          <Plus className="w-4 h-4 mr-1" />
+        <Button variant="primary" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowCreateModal(true)}>
           新規記事作成
-        </button>
+        </Button>
       </div>
 
       {/* AI検索エリア */}
-      <div className="card bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
+      <Card className="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
         <p className="text-sm font-semibold text-primary-700 mb-2 flex items-center gap-1">
           <Sparkles className="w-4 h-4" />
           AI検索
         </p>
         <div className="flex gap-2">
-          <input
-            type="text"
-            className="input flex-1"
+          <Input
+            className="flex-1"
             placeholder="質問を入力してください..."
             value={aiQuery}
             onChange={(e) => setAiQuery(e.target.value)}
@@ -136,43 +145,39 @@ export default function KnowledgePage() {
               }
             }}
           />
-          <button
-            className="btn-primary"
+          <Button
+            variant="primary"
+            leftIcon={<Sparkles className="w-4 h-4" />}
             onClick={() => aiQuery.trim() && aiSearchMutation.mutate(aiQuery.trim())}
-            disabled={aiSearchMutation.isPending}
+            loading={aiSearchMutation.isPending}
           >
-            <Sparkles className="w-4 h-4 mr-1" />
             {aiSearchMutation.isPending ? "検索中..." : "AI検索"}
-          </button>
+          </Button>
         </div>
         {aiAnswer && (
           <div className="mt-3 p-3 bg-white rounded-lg border border-primary-200 text-sm text-gray-700 whitespace-pre-wrap">
             {aiAnswer}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* フィルター */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            className="input pl-9"
+          <Input
+            className="pl-9"
             placeholder="キーワード検索..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
           />
         </div>
-        <select
-          className="input w-40"
+        <Select
+          className="w-40"
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-        >
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>{CATEGORY_LABEL[c] ?? c}</option>
-          ))}
-        </select>
+          options={FILTER_CATEGORY_OPTIONS}
+        />
       </div>
 
       {error && (
@@ -182,27 +187,31 @@ export default function KnowledgePage() {
       )}
 
       {isLoading ? (
-        <div className="card text-center py-16 text-gray-400">読み込み中...</div>
+        <Card className="text-center py-16">
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-10 w-full" />
+        </Card>
       ) : filtered.length === 0 ? (
-        <div className="card text-center py-16 text-gray-400">
+        <Card className="text-center py-16 text-gray-400">
           <BookOpen className="w-12 h-12 mx-auto mb-3" />
           <p className="text-lg font-medium">記事が見つかりません</p>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((article: KnowledgeArticle) => {
             const tags = article.tags ? article.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
             return (
-              <div
+              <Card
                 key={article.id}
-                className="card cursor-pointer hover:shadow-md transition-shadow"
+                className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => setSelectedArticle(article)}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="badge-info">{CATEGORY_LABEL[article.category] ?? article.category}</span>
+                    <Badge variant="info">{CATEGORY_LABEL[article.category] ?? article.category}</Badge>
                     {!article.is_published && (
-                      <span className="badge-warning">非公開</span>
+                      <Badge variant="warning">非公開</Badge>
                     )}
                   </div>
                 </div>
@@ -225,94 +234,83 @@ export default function KnowledgePage() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
       )}
 
       {/* 記事詳細・編集モーダル */}
-      {selectedArticle && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <div className="flex items-start justify-between p-6 border-b">
-              <div className="flex-1 mr-4">
-                {isEditMode ? (
-                  <input
-                    type="text"
-                    className="input text-xl font-semibold w-full"
-                    value={editForm.title}
-                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  />
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="badge-info">
-                        {CATEGORY_LABEL[selectedArticle.category] ?? selectedArticle.category}
+      <Modal
+        open={!!selectedArticle}
+        onClose={() => { setSelectedArticle(null); setIsEditMode(false); }}
+        title=""
+        size="lg"
+      >
+        {selectedArticle && (
+          <>
+            <div className="mb-4">
+              {isEditMode ? (
+                <Input
+                  className="text-xl font-semibold w-full"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                />
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <Badge variant="info">
+                      {CATEGORY_LABEL[selectedArticle.category] ?? selectedArticle.category}
+                    </Badge>
+                    {!selectedArticle.is_published && (
+                      <Badge variant="warning">非公開</Badge>
+                    )}
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">{selectedArticle.title}</h3>
+                  <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-3 h-3" />
+                      閲覧数: {selectedArticle.view_count}
+                    </span>
+                    {selectedArticle.rating != null && (
+                      <span className="flex items-center gap-1 text-yellow-500">
+                        <Star className="w-3 h-3 fill-yellow-400" />
+                        評価: {selectedArticle.rating.toFixed(1)}
                       </span>
-                      {!selectedArticle.is_published && (
-                        <span className="badge-warning">非公開</span>
-                      )}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900">{selectedArticle.title}</h3>
-                    <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        閲覧数: {selectedArticle.view_count}
-                      </span>
-                      {selectedArticle.rating != null && (
-                        <span className="flex items-center gap-1 text-yellow-500">
-                          <Star className="w-3 h-3 fill-yellow-400" />
-                          評価: {selectedArticle.rating.toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-              <button
-                onClick={() => { setSelectedArticle(null); setIsEditMode(false); }}
-                className="flex-shrink-0"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto">
               {isEditMode ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
-                      <select
-                        className="input"
+                    <FormField label="カテゴリ" htmlFor="edit_category">
+                      <Select
+                        id="edit_category"
                         value={editForm.category}
                         onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                      >
-                        {CATEGORIES.filter((c) => c !== "全て").map((c) => (
-                          <option key={c} value={c}>{CATEGORY_LABEL[c] ?? c}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">タグ（カンマ区切り）</label>
-                      <input
-                        type="text"
-                        className="input"
+                        options={CATEGORY_OPTIONS}
+                      />
+                    </FormField>
+                    <FormField label="タグ（カンマ区切り）" htmlFor="edit_tags">
+                      <Input
+                        id="edit_tags"
                         value={editForm.tags ?? ""}
                         onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
                         placeholder="施工, 安全, ..."
                       />
-                    </div>
+                    </FormField>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">内容</label>
-                    <textarea
-                      className="input"
+                  <FormField label="内容" htmlFor="edit_content">
+                    <Textarea
+                      id="edit_content"
                       rows={10}
                       value={editForm.content}
                       onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
                     />
-                  </div>
+                  </FormField>
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -343,106 +341,97 @@ export default function KnowledgePage() {
                 </>
               )}
             </div>
-            <div className="flex items-center justify-between p-4 border-t">
-              <button
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50"
+            <div className="flex items-center justify-between pt-4 border-t mt-4">
+              <Button
+                variant="danger"
+                size="sm"
+                leftIcon={<Trash2 className="w-4 h-4" />}
                 onClick={() => handleDelete(selectedArticle)}
-                disabled={deleteMutation.isPending}
+                loading={deleteMutation.isPending}
               >
-                <Trash2 className="w-4 h-4" />
                 {deleteMutation.isPending ? "削除中..." : "削除"}
-              </button>
+              </Button>
               <div className="flex gap-3">
                 {isEditMode ? (
                   <>
-                    <button
-                      className="btn-secondary"
+                    <Button
+                      variant="secondary"
                       onClick={() => setIsEditMode(false)}
-                      disabled={updateMutation.isPending}
+                      loading={updateMutation.isPending}
                     >
                       キャンセル
-                    </button>
-                    <button
-                      className="btn-primary"
+                    </Button>
+                    <Button
+                      variant="primary"
                       onClick={() => updateMutation.mutate({ id: selectedArticle.id, data: editForm })}
-                      disabled={updateMutation.isPending}
+                      loading={updateMutation.isPending}
                     >
                       {updateMutation.isPending ? "保存中..." : "保存"}
-                    </button>
+                    </Button>
                   </>
                 ) : (
-                  <button
-                    className="btn-secondary flex items-center gap-1"
+                  <Button
+                    variant="secondary"
+                    leftIcon={<Pencil className="w-4 h-4" />}
                     onClick={() => openEditMode(selectedArticle)}
                   >
-                    <Pencil className="w-4 h-4" />
                     編集
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* 記事作成モーダル */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
-              <h3 className="text-lg font-semibold">新規記事作成</h3>
-              <button onClick={() => setShowCreateModal(false)}>
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
-                <input type="text" className="input" value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
-                  <select className="input" value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                    {CATEGORIES.filter((c) => c !== "全て").map((c) => (
-                      <option key={c} value={c}>{CATEGORY_LABEL[c] ?? c}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">タグ（カンマ区切り）</label>
-                  <input type="text" className="input" value={form.tags ?? ""}
-                    onChange={(e) => setForm({ ...form, tags: e.target.value })}
-                    placeholder="施工, 安全, ..." />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">内容</label>
-                <textarea className="input" rows={8} value={form.content}
-                  onChange={(e) => setForm({ ...form, content: e.target.value })} required />
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="is_published" checked={form.is_published}
-                  onChange={(e) => setForm({ ...form, is_published: e.target.checked })} />
-                <label htmlFor="is_published" className="text-sm font-medium text-gray-700">公開する</label>
-              </div>
-              {createMutation.isError && (
-                <p className="text-red-600 text-sm">作成に失敗しました。</p>
-              )}
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)}>
-                  キャンセル
-                </button>
-                <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "作成中..." : "作成"}
-                </button>
-              </div>
-            </form>
+      <Modal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title=""
+        size="lg"
+      >
+        <h3 className="text-lg font-semibold mb-4">新規記事作成</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FormField label="タイトル" htmlFor="create_title" required>
+            <Input id="create_title" value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+          </FormField>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="カテゴリ" htmlFor="create_category">
+              <Select id="create_category" value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                options={CATEGORY_OPTIONS}
+              />
+            </FormField>
+            <FormField label="タグ（カンマ区切り）" htmlFor="create_tags">
+              <Input id="create_tags" value={form.tags ?? ""}
+                onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                placeholder="施工, 安全, ..." />
+            </FormField>
           </div>
-        </div>
-      )}
+          <FormField label="内容" htmlFor="create_content" required>
+            <Textarea id="create_content" rows={8} value={form.content}
+              onChange={(e) => setForm({ ...form, content: e.target.value })} required />
+          </FormField>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="is_published" checked={form.is_published}
+              onChange={(e) => setForm({ ...form, is_published: e.target.checked })} />
+            <label htmlFor="is_published" className="text-sm font-medium text-gray-700">公開する</label>
+          </div>
+          {createMutation.isError && (
+            <p className="text-red-600 text-sm">作成に失敗しました。</p>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+              キャンセル
+            </Button>
+            <Button type="submit" variant="primary" loading={createMutation.isPending}>
+              {createMutation.isPending ? "作成中..." : "作成"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

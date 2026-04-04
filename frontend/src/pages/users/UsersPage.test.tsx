@@ -90,6 +90,6 @@ describe("UsersPage", () => {
 
     renderPage();
     fireEvent.click(screen.getByText("新規ユーザー作成"));
-    expect(screen.getByText("新規ユーザー作成", { selector: "h3" })).toBeInTheDocument();
+    expect(screen.getByText("新規ユーザー作成", { selector: "h2" })).toBeInTheDocument();
   });
 });

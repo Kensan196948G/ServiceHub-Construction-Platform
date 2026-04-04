@@ -3,6 +3,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Users } from "lucide-react";
 import { usersApi, User, UserCreate, UserUpdate } from "@/api/users";
 import { useAuthStore } from "@/stores/authStore";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
+import { FormField, Input, Select } from "@/components/ui/FormField";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Pagination } from "@/components/ui/Pagination";
 
 const ROLE_OPTIONS = [
   "ADMIN",
@@ -14,14 +21,16 @@ const ROLE_OPTIONS = [
   "VIEWER",
 ];
 
-const ROLE_COLORS: Record<string, string> = {
-  ADMIN: "bg-red-100 text-red-700",
-  PROJECT_MANAGER: "bg-blue-100 text-blue-700",
-  SITE_SUPERVISOR: "bg-green-100 text-green-700",
-  COST_MANAGER: "bg-yellow-100 text-yellow-700",
-  SAFETY_OFFICER: "bg-orange-100 text-orange-700",
-  IT_OPERATOR: "bg-purple-100 text-purple-700",
-  VIEWER: "bg-gray-100 text-gray-700",
+const ROLE_SELECT_OPTIONS = ROLE_OPTIONS.map((r) => ({ value: r, label: r }));
+
+const ROLE_BADGE_VARIANT: Record<string, "default" | "success" | "warning" | "danger" | "info"> = {
+  ADMIN: "danger",
+  PROJECT_MANAGER: "info",
+  SITE_SUPERVISOR: "success",
+  COST_MANAGER: "warning",
+  SAFETY_OFFICER: "warning",
+  IT_OPERATOR: "default",
+  VIEWER: "default",
 };
 
 function CreateUserModal({
@@ -41,74 +50,55 @@ function CreateUserModal({
   });
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">新規ユーザー作成</h3>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              メールアドレス <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              氏名 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.full_name}
-              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              パスワード（8文字以上）<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ロール</label>
-            <select
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            >
-              {ROLE_OPTIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-          <button className="btn-secondary" onClick={onClose} disabled={loading}>
-            キャンセル
-          </button>
-          <button
-            className="btn-primary"
-            onClick={() => onSubmit(form)}
-            disabled={loading || !form.email || !form.full_name || form.password.length < 8}
-          >
-            {loading ? "作成中..." : "作成"}
-          </button>
-        </div>
+    <Modal open={true} onClose={onClose} title="新規ユーザー作成" size="sm">
+      <div className="space-y-4">
+        <FormField label="メールアドレス" htmlFor="create-email" required>
+          <Input
+            id="create-email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        </FormField>
+        <FormField label="氏名" htmlFor="create-name" required>
+          <Input
+            id="create-name"
+            type="text"
+            value={form.full_name}
+            onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+          />
+        </FormField>
+        <FormField label="パスワード（8文字以上）" htmlFor="create-password" required>
+          <Input
+            id="create-password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
+        </FormField>
+        <FormField label="ロール" htmlFor="create-role">
+          <Select
+            id="create-role"
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value })}
+            options={ROLE_SELECT_OPTIONS}
+          />
+        </FormField>
       </div>
-    </div>
+      <div className="mt-6 flex justify-end gap-3">
+        <Button variant="secondary" onClick={onClose} disabled={loading}>
+          キャンセル
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => onSubmit(form)}
+          loading={loading}
+          disabled={!form.email || !form.full_name || form.password.length < 8}
+        >
+          作成
+        </Button>
+      </div>
+    </Modal>
   );
 }
 
@@ -129,50 +119,39 @@ function EditUserModal({
   });
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">ユーザー編集</h3>
-          <p className="text-sm text-gray-500 mt-1">{user.email}</p>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ロール</label>
-            <select
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            >
-              {ROLE_OPTIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="is_active"
-              checked={form.is_active}
-              onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-              className="w-4 h-4 text-primary-600 rounded border-gray-300"
-            />
-            <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-              アクティブ
-            </label>
-          </div>
-        </div>
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-          <button className="btn-secondary" onClick={onClose} disabled={loading}>
-            キャンセル
-          </button>
-          <button className="btn-primary" onClick={() => onSubmit(form)} disabled={loading}>
-            {loading ? "保存中..." : "保存"}
-          </button>
+    <Modal open={true} onClose={onClose} title="ユーザー編集" size="sm">
+      <p className="text-sm text-gray-500 -mt-2 mb-4">{user.email}</p>
+      <div className="space-y-4">
+        <FormField label="ロール" htmlFor="edit-role">
+          <Select
+            id="edit-role"
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value })}
+            options={ROLE_SELECT_OPTIONS}
+          />
+        </FormField>
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="is_active"
+            checked={form.is_active}
+            onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+            className="w-4 h-4 text-primary-600 rounded border-gray-300"
+          />
+          <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+            アクティブ
+          </label>
         </div>
       </div>
-    </div>
+      <div className="mt-6 flex justify-end gap-3">
+        <Button variant="secondary" onClick={onClose} disabled={loading}>
+          キャンセル
+        </Button>
+        <Button variant="primary" onClick={() => onSubmit(form)} loading={loading}>
+          保存
+        </Button>
+      </div>
+    </Modal>
   );
 }
 
@@ -225,10 +204,10 @@ export default function UsersPage() {
 
   if (currentUser?.role !== "ADMIN") {
     return (
-      <div className="card text-center py-16">
+      <Card className="text-center py-16">
         <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
         <p className="text-gray-500">このページはADMINのみアクセス可能です。</p>
-      </div>
+      </Card>
     );
   }
 
@@ -236,17 +215,24 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">ユーザー管理</h2>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus className="w-4 h-4 mr-1" />
+        <Button variant="primary" onClick={() => setShowCreate(true)} leftIcon={<Plus className="w-4 h-4" />}>
           新規ユーザー作成
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (
-        <div className="card text-center py-12 text-gray-400">読み込み中...</div>
+        <Card>
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </Card>
       ) : (
         <>
-          <div className="card p-0 overflow-hidden">
+          <Card padding="none" className="overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -276,18 +262,14 @@ export default function UsersPage() {
                       <p className="text-xs text-gray-500">{u.email}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[u.role] ?? "bg-gray-100 text-gray-700"}`}
-                      >
+                      <Badge variant={ROLE_BADGE_VARIANT[u.role] ?? "default"} size="sm">
                         {u.role}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${u.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
-                      >
+                      <Badge variant={u.is_active ? "success" : "default"} size="sm">
                         {u.is_active ? "有効" : "無効"}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 hidden lg:table-cell">
                       {u.last_login_at
@@ -299,48 +281,35 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          className="text-xs text-primary-600 hover:underline"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setEditTarget(u)}
                         >
                           編集
-                        </button>
-                        <button
-                          className="text-xs text-red-600 hover:underline disabled:opacity-40"
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
                           onClick={() => handleDelete(u)}
                           disabled={u.id === currentUser?.id || deleteMutation.isPending}
                         >
                           削除
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </Card>
 
-          {/* Pagination */}
-          {data?.meta && data.meta.pages > 1 && (
-            <div className="flex justify-center gap-2">
-              <button
-                className="btn-secondary px-3 py-1 text-sm"
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                前へ
-              </button>
-              <span className="px-3 py-1 text-sm text-gray-600">
-                {page} / {data.meta.pages}
-              </span>
-              <button
-                className="btn-secondary px-3 py-1 text-sm"
-                disabled={page >= data.meta.pages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                次へ
-              </button>
-            </div>
+          {data?.meta && (
+            <Pagination
+              page={page}
+              totalPages={data.meta.pages}
+              onPageChange={setPage}
+            />
           )}
         </>
       )}
