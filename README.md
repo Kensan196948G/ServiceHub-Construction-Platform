@@ -100,8 +100,8 @@ graph TB
 | :--- | :--- |
 | 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
 | 🧪 Frontend テスト | **199 件**（vitest / 32 テストファイル / coverage 79%） |
-| 🎭 E2E テスト | **39 件**（Playwright / 12 テストファイル） |
-| 📊 総テスト数 | **423 件**（Backend + Frontend + E2E） |
+| 🎭 E2E テスト | **51 件**（Playwright / 14 テストファイル） |
+| 📊 総テスト数 | **435 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
 | 🧩 共通 UI コンポーネント | **9 種**（Badge / Button / Card / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
@@ -175,7 +175,9 @@ graph LR
 | `users.spec.ts` | 3 | ユーザー見出し・一覧・ロール |
 | `projects-crud.spec.ts` | 3 | モーダル開閉・フォーム入力・詳細リンク・一覧表示 |
 | `itsm-crud.spec.ts` | 5 | インシデント一覧・バッジ・作成モーダル・編集モーダル・タブ切替 |
-| **合計** | **39** | **全11ページ E2E カバー + CRUD フロー** |
+| `cost-crud.spec.ts` | 5 | プロジェクト選択・原価一覧・サマリー・作成モーダル・カテゴリバッジ |
+| `knowledge-crud.spec.ts` | 7 | 記事一覧・カテゴリバッジ・非公開バッジ・作成・詳細・AI検索・フィルタ |
+| **合計** | **51** | **全11ページ E2E + CRUD + AI検索** |
 
 ---
 
