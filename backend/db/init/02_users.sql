@@ -19,11 +19,16 @@ CREATE TRIGGER trg_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- 初期管理者ユーザー（パスワード: Admin1234! のbcryptハッシュ）
-INSERT INTO users (email, hashed_password, full_name, role)
-VALUES (
-    'admin@servicehub.local',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4uq1CuYMW2',
-    'システム管理者',
-    'ADMIN'
-) ON CONFLICT (email) DO NOTHING;
+-- ============================================
+-- 初期デモユーザー（パスワード: Admin123!）
+-- bcrypt hash: $2b$12$HKXNvMoWrEQKvd9chifSq.9xJHiBQ9gpnnKFkXECW3u.4MWqwPwCS
+-- ============================================
+INSERT INTO users (email, hashed_password, full_name, role) VALUES
+    ('admin@example.com',      '$2b$12$HKXNvMoWrEQKvd9chifSq.9xJHiBQ9gpnnKFkXECW3u.4MWqwPwCS', 'システム管理者',  'ADMIN'),
+    ('pm@example.com',         '$2b$12$HKXNvMoWrEQKvd9chifSq.9xJHiBQ9gpnnKFkXECW3u.4MWqwPwCS', '工事部長 田中',    'PROJECT_MANAGER'),
+    ('supervisor@example.com', '$2b$12$HKXNvMoWrEQKvd9chifSq.9xJHiBQ9gpnnKFkXECW3u.4MWqwPwCS', '現場監督 鈴木',    'SITE_SUPERVISOR'),
+    ('cost@example.com',       '$2b$12$HKXNvMoWrEQKvd9chifSq.9xJHiBQ9gpnnKFkXECW3u.4MWqwPwCS', '原価管理 山田',    'COST_MANAGER'),
+    ('safety@example.com',     '$2b$12$HKXNvMoWrEQKvd9chifSq.9xJHiBQ9gpnnKFkXECW3u.4MWqwPwCS', '安全管理 高橋',    'SAFETY_OFFICER'),
+    ('itop@example.com',       '$2b$12$HKXNvMoWrEQKvd9chifSq.9xJHiBQ9gpnnKFkXECW3u.4MWqwPwCS', 'IT運用 佐藤',      'IT_OPERATOR'),
+    ('viewer@example.com',     '$2b$12$HKXNvMoWrEQKvd9chifSq.9xJHiBQ9gpnnKFkXECW3u.4MWqwPwCS', '閲覧ユーザー',    'VIEWER')
+ON CONFLICT (email) DO NOTHING;
