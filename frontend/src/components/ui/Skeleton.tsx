@@ -5,5 +5,11 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className }: SkeletonProps) {
-  return <div className={cn('animate-pulse bg-gray-200 rounded', className)} />
+  return (
+    <div
+      role="status"
+      aria-label="読み込み中"
+      className={cn('animate-pulse bg-gray-200 rounded', className)}
+    />
+  )
 }
