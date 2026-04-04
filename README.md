@@ -78,19 +78,32 @@ graph TB
 | 🏛️       | ITSM 運用管理       | インシデント / 変更要求ワークフロー | 5   | ✅ 完了     |
 | 🤖       | AI ナレッジ管理     | 記事 CRUD / AI 検索 (OpenAI)  | 5      | ✅ 完了     |
 | 📡       | システム            | ヘルスチェック / ステータス確認 | 2     | ✅ 完了     |
+| 📊       | Dashboard KPI API   | 集計 KPI 取得 / React Query hook | 1   | ✅ 完了     |
+
+### 🧩 共通 UI コンポーネント（`src/components/ui/`）
+
+| コンポーネント | 用途 | 特徴 |
+| :--- | :--- | :--- |
+| 🏷️ `Badge` | ステータス・重要度表示 | 5バリアント（default/success/warning/danger/info）/ cva ベース |
+| 🔘 `Button` | 操作ボタン | loading 状態・aria-busy・sr-only 対応 |
+| 📦 `Card` | コンテナ | padding バリアント (none/sm/md/lg) / `HTMLAttributes` 継承 |
+| ⏳ `Skeleton` | ローディング表示 | `role="status"` / アクセシブル |
+| 📈 `StatCard` | KPI カード | 5色スキーム・trend（↑↓→）表示 / Link ラップ対応 |
 
 ### 📊 品質メトリクス
 
 | 指標 | 値 |
 | :--- | :--- |
 | 🧪 Backend テスト | **158 件**（pytest / coverage 84%） |
-| 🧪 Frontend テスト | **37 件**（vitest / 9 テストファイル） |
+| 🧪 Frontend テスト | **70 件**（vitest / 15 テストファイル） |
+| 🎭 E2E テスト | **23 件**（Playwright / Chromium） |
 | 🖥️ フロントエンドページ | **11 ページ** |
-| 🔗 API エンドポイント | **46 エンドポイント** |
+| 🧩 共通 UI コンポーネント | **5 種**（Badge / Button / Card / Skeleton / StatCard） |
+| 🔗 API エンドポイント | **47 エンドポイント**（KPI API 追加） |
 | 🏗️ Repository クラス | **12 クラス**（全 Router 統一済み） |
 | 🔧 Service クラス | **10 クラス**（全モジュール対応 + PhotoService） |
-| ✅ CI ステータス | **グリーン**（ruff / mypy / pytest / bandit / vitest / build — 7チェック） |
-| 🔒 STABLE 判定 | **N=9+** 達成（CI 9回連続成功） |
+| ✅ CI チェック数 | **8 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E） |
+| 🔒 STABLE 判定 | **N=10** 達成（CI 10回連続成功） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -119,6 +132,74 @@ graph LR
 
 ---
 
+## 🎭 E2E テスト基盤（Playwright）
+
+```mermaid
+graph LR
+    subgraph E2E["🎭 Playwright E2E テスト"]
+        L["🔐 login.spec.ts\n認証フロー"]
+        N["🧭 navigation.spec.ts\n認証済みナビ"]
+        D["📊 dashboard.spec.ts\nKPI StatCard"]
+        P["🗂️ projects.spec.ts\n案件一覧・バッジ"]
+        R["📝 reports.spec.ts\n日報ページ"]
+        S["🦺 safety.spec.ts\n安全点検"]
+        C["💰 cost.spec.ts\n原価管理"]
+    end
+
+    subgraph Fix["🔧 api-mocks.ts fixture"]
+        A["setupAuthMocks()\nloginAndNavigate()"]
+    end
+
+    Fix --> L & N & D & P & R & S & C
+```
+
+| テストファイル | テスト数 | カバー範囲 |
+| :--- | :---: | :--- |
+| `login.spec.ts` | 3 | 認証成功・失敗・ダッシュボード遷移 |
+| `navigation.spec.ts` | 4 | 認証済みページナビゲーション |
+| `dashboard.spec.ts` | 3 | KPI StatCard 表示・エラーバナー |
+| `projects.spec.ts` | 3 | 案件一覧・新規ボタン・ステータスバッジ |
+| `reports.spec.ts` | 2 | 日報ページ表示 |
+| `safety.spec.ts` | 2 | 安全点検ページ表示 |
+| `cost.spec.ts` | 2 | 原価管理ページ表示 |
+| **合計** | **23** | 主要画面の E2E カバー完了 |
+
+---
+
+## 🗺️ 開発ロードマップ（6ヶ月計画）
+
+```mermaid
+gantt
+    title ServiceHub Construction Platform — 開発ロードマップ
+    dateFormat  YYYY-MM-DD
+    section Phase 1: 基盤安定化
+    Sprint 1 Day 1 (3層構造)    :done, s1d1, 2026-04-03, 1d
+    Sprint 1 Day 2 (CI修復)     :done, s1d2, 2026-04-04, 1d
+    Sprint 1 Day 3 (E2E+UI)     :active, s1d3, 2026-04-04, 1d
+    section Phase 2: 機能強化
+    他ページ共通コンポーネント化  :s2a, 2026-04-05, 7d
+    E2E テスト拡充（CRUD）       :s2b, 2026-04-05, 7d
+    section Phase 3: UX改善
+    フォームUI・バリデーション    :s3, 2026-04-12, 14d
+    section Phase 4: 高度機能
+    リアルタイム通知・WebSocket  :s4, 2026-04-26, 14d
+    section Phase 5: リリース準備
+    本番環境構築・パフォーマンス  :s5, 2026-05-10, 21d
+    section Phase 6: リリース
+    社内公開 🎉                  :milestone, m1, 2026-10-03, 0d
+```
+
+| フェーズ | 期間 | 目標 | 状態 |
+| :--- | :--- | :--- | :---: |
+| 🔵 Phase 1 基盤安定化 | 4月 Week 1 | 3層アーキテクチャ100%・E2E基盤・CI安定 | 🔄 進行中 |
+| 🟡 Phase 2 機能強化 | 4月〜5月 | UI統一・フォーム改善・E2E拡充 | ⏳ 予定 |
+| 🟠 Phase 3 UX改善 | 5月〜6月 | レスポンシブ・アクセシビリティ・パフォーマンス | ⏳ 予定 |
+| 🔴 Phase 4 高度機能 | 6月〜7月 | リアルタイム通知・AI強化 | ⏳ 予定 |
+| 🟣 Phase 5 リリース準備 | 7月〜9月 | 本番環境・セキュリティ監査・ドキュメント整備 | ⏳ 予定 |
+| 🟢 Phase 6 リリース | 2026-10-03 | **社内公開** 🎉 | ⏳ 予定 |
+
+---
+
 ## 🛠️ 技術スタック
 
 | レイヤ         | 技術                  | バージョン | 用途                         |
@@ -143,6 +224,8 @@ graph LR
 | **CI/CD**      | GitHub Actions        | —          | 自動テスト / セキュリティスキャン |
 | **品質**       | ruff / mypy / pytest  | —          | lint / 型チェック / テスト   |
 |                | bandit                | —          | セキュリティ静的解析         |
+|                | Playwright            | latest     | E2E テスト（Chromium）       |
+|                | cva (class-variance-authority) | ^0.7.1 | UI バリアント管理    |
 
 ---
 
