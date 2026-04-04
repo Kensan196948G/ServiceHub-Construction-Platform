@@ -15,6 +15,8 @@ import { Link } from "react-router-dom";
 import { projectsApi } from "@/api/projects";
 import { itsmApi } from "@/api/itsm";
 import { useAuthStore } from "@/stores/authStore";
+import { Skeleton, StatCard } from "@/components/ui";
+import { useDashboardKPI } from "@/api/dashboard";
 
 const PRIORITY_COLORS: Record<string, string> = {
   CRITICAL: "bg-red-600 text-white",
@@ -29,51 +31,6 @@ const PRIORITY_LABELS: Record<string, string> = {
   MEDIUM: "中",
   LOW: "低",
 };
-
-// ── Skeleton ──────────────────────────────────────────────────────────────────
-function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-200 rounded ${className ?? ""}`} />;
-}
-
-// ── StatCard ──────────────────────────────────────────────────────────────────
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  to,
-  color,
-  label,
-  loading,
-}: {
-  title: string;
-  value: string | number;
-  icon: typeof Building2;
-  to: string;
-  color: string;
-  label?: string;
-  loading?: boolean;
-}) {
-  return (
-    <Link to={to} className="card hover:shadow-md transition-shadow block">
-      <div className="flex items-center justify-between">
-        <div className="min-w-0">
-          <p className="text-sm text-gray-500 truncate">{title}</p>
-          {loading ? (
-            <Skeleton className="h-8 w-16 mt-1" />
-          ) : (
-            <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          )}
-          {label && !loading && (
-            <p className="text-xs text-gray-400 mt-0.5">{label}</p>
-          )}
-        </div>
-        <div className={`p-3 rounded-full flex-shrink-0 ml-3 ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 // ── StatusBadge ───────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
@@ -144,11 +101,8 @@ function QuickActionCard({
 export default function DashboardPage() {
   const { user } = useAuthStore();
 
-  // 全案件（総数 + IN_PROGRESS フィルター用に多め取得）
-  const { data: allProjects, isLoading: loadingAllProjects } = useQuery({
-    queryKey: ["dashboard-projects-all"],
-    queryFn: () => projectsApi.list(1, 100),
-  });
+  // KPI data via shared hook
+  const { data: kpi, isLoading: kpiLoading, isError: kpiError, refetch: refetchKpi } = useDashboardKPI();
 
   // 直近5件表示用
   const { data: recentProjects, isLoading: loadingRecent } = useQuery({
@@ -156,23 +110,11 @@ export default function DashboardPage() {
     queryFn: () => projectsApi.list(1, 5),
   });
 
-  // インシデント総数（meta.total）
-  const { data: incidentsMeta, isLoading: loadingIncidentsMeta } = useQuery({
-    queryKey: ["dashboard-incidents-meta"],
-    queryFn: () => itsmApi.listIncidents(1, 1),
-  });
-
   // 直近3件インシデント
   const { data: recentIncidents, isLoading: loadingIncidents } = useQuery({
     queryKey: ["dashboard-incidents-recent"],
     queryFn: () => itsmApi.listIncidents(1, 3),
   });
-
-  const totalProjects = allProjects?.meta.total ?? 0;
-  const inProgressCount =
-    allProjects?.data.filter((p) => p.status === "IN_PROGRESS").length ?? 0;
-  const openIncidents =
-    incidentsMeta?.meta.total ?? 0;
 
   const today = new Date().toLocaleDateString("ja-JP", {
     year: "numeric",
@@ -196,42 +138,59 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="工事案件数 (合計)"
-          value={totalProjects}
-          icon={Building2}
-          to="/projects"
-          color="bg-blue-500"
-          label="全登録案件"
-          loading={loadingAllProjects}
-        />
-        <StatCard
-          title="進行中案件"
-          value={inProgressCount}
-          icon={TrendingUp}
-          to="/projects"
-          color="bg-green-500"
-          label="IN_PROGRESS"
-          loading={loadingAllProjects}
-        />
-        <StatCard
-          title="今月の日報"
-          value={inProgressCount > 0 ? `${inProgressCount} 案件分` : "—"}
-          icon={FileText}
-          to="/reports"
-          color="bg-purple-500"
-          label="進行中案件より推算"
-          loading={loadingAllProjects}
-        />
-        <StatCard
-          title="インシデント"
-          value={openIncidents}
-          icon={AlertCircle}
-          to="/itsm"
-          color="bg-red-500"
-          label="登録件数合計"
-          loading={loadingIncidentsMeta}
-        />
+        {kpiLoading ? (
+          <>
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </>
+        ) : kpiError ? (
+          <div className="col-span-full rounded-lg bg-red-50 border border-red-200 p-4 flex items-center justify-between">
+            <p className="text-sm text-red-700">KPI データの取得に失敗しました</p>
+            <button
+              onClick={() => refetchKpi()}
+              className="text-sm text-red-700 underline hover:no-underline"
+            >
+              再試行
+            </button>
+          </div>
+        ) : kpi ? (
+          <>
+            <Link to="/projects" className="block">
+              <StatCard
+                icon={<Building2 className="w-6 h-6" />}
+                title="工事案件数 (合計)"
+                value={kpi.projects.total}
+                colorScheme="blue"
+              />
+            </Link>
+            <Link to="/itsm" className="block">
+              <StatCard
+                icon={<AlertCircle className="w-6 h-6" />}
+                title="進行中インシデント"
+                value={kpi.incidents.open + kpi.incidents.in_progress}
+                colorScheme="red"
+              />
+            </Link>
+            <Link to="/cost" className="block">
+              <StatCard
+                icon={<TrendingUp className="w-6 h-6" />}
+                title="コスト達成率"
+                value={`${((1 + kpi.cost_overview.variance_rate) * 100).toFixed(1)}%`}
+                colorScheme="green"
+              />
+            </Link>
+            <Link to="/reports" className="block">
+              <StatCard
+                icon={<FileText className="w-6 h-6" />}
+                title="本日の日報件数"
+                value={kpi.daily_reports_count}
+                colorScheme="purple"
+              />
+            </Link>
+          </>
+        ) : null}
       </div>
 
       {/* Quick Actions */}
