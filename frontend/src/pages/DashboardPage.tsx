@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { projectsApi } from "@/api/projects";
 import { itsmApi } from "@/api/itsm";
 import { useAuthStore } from "@/stores/authStore";
-import { Badge, Button, Card, Skeleton, StatCard } from "@/components/ui";
+import { Badge, Button, Card, ErrorBanner, Skeleton, StatCard } from "@/components/ui";
 import { useDashboardKPI } from "@/api/dashboard";
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -152,12 +152,12 @@ export default function DashboardPage() {
             <Skeleton className="h-24 w-full" />
           </>
         ) : kpiError ? (
-          <div className="col-span-full rounded-lg bg-red-50 border border-red-200 p-4 flex items-center justify-between">
-            <p className="text-sm text-red-700">KPI データの取得に失敗しました</p>
+          <ErrorBanner className="col-span-full flex items-center justify-between">
+            <span>KPI データの取得に失敗しました</span>
             <Button variant="ghost" size="sm" onClick={() => refetchKpi()}>
               再試行
             </Button>
-          </div>
+          </ErrorBanner>
         ) : kpi ? (
           <>
             <Link to="/projects" className="block">

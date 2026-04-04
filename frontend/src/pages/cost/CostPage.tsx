@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DollarSign, Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { costApi, CostRecordCreate, CostRecord } from "@/api/cost";
 import { projectsApi } from "@/api/projects";
-import { Badge, Button, Card, Skeleton, Modal, FormField, Input, Select } from "@/components/ui";
+import { Badge, Button, Card, ErrorBanner, ErrorText, Skeleton, Modal, FormField, Input, Select } from "@/components/ui";
 
 const CATEGORY_OPTIONS = [
   { value: "LABOR", label: "労務費" },
@@ -138,9 +138,7 @@ export default function CostPage() {
       </Card>
 
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
-          データの取得に失敗しました。
-        </div>
+        <ErrorBanner />
       )}
 
       {!selectedProjectId ? (
@@ -272,7 +270,7 @@ export default function CostPage() {
               onChange={(e) => setForm({ ...form, vendor_name: e.target.value })} />
           </FormField>
           {createMutation.isError && (
-            <p className="text-red-600 text-sm">作成に失敗しました。</p>
+            <ErrorText message="作成に失敗しました。" />
           )}
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>

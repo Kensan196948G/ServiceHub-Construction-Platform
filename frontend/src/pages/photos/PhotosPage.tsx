@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchPhotos, uploadPhoto, deletePhoto, type Photo } from "@/api/photos";
 import { projectsApi, type Project as ProjectItem } from "@/api/projects";
-import { Badge, Button, Card, FormField, Input, Select, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, ErrorBanner, FormField, Input, Select, Skeleton } from "@/components/ui";
 
 const CATEGORIES: Photo["category"][] = [
   "GENERAL",
@@ -188,9 +188,7 @@ export default function PhotosPage() {
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded p-3 text-sm">
-          {error}
-        </div>
+        <ErrorBanner>{error}</ErrorBanner>
       )}
 
       {loading && (

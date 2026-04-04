@@ -93,17 +93,19 @@ graph TB
 | ⏳ `Skeleton` | ローディング表示 | `role="status"` / アクセシブル |
 | 📈 `StatCard` | KPI カード | 5色スキーム・trend（↑↓→）表示 / Link ラップ対応 |
 | 📊 `Table` | データテーブル | ジェネリック型 / カスタムレンダー / クリック対応 |
+| 🚨 `ErrorBanner` | APIエラー表示 | `role="alert"` / デフォルトメッセージ / children 対応 |
+| 📝 `ErrorText` | フォーム内エラー | インラインテキスト / `role="alert"` |
 
 ### 📊 品質メトリクス
 
 | 指標 | 値 |
 | :--- | :--- |
 | 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
-| 🧪 Frontend テスト | **199 件**（vitest / 32 テストファイル / coverage 79%） |
+| 🧪 Frontend テスト | **207 件**（vitest / 33 テストファイル / coverage 79%） |
 | 🎭 E2E テスト | **51 件**（Playwright / 14 テストファイル） |
-| 📊 総テスト数 | **435 件**（Backend + Frontend + E2E） |
+| 📊 総テスト数 | **443 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
-| 🧩 共通 UI コンポーネント | **9 種**（Badge / Button / Card / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
+| 🧩 共通 UI コンポーネント | **11 種**（Badge / Button / Card / ErrorBanner / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
 | 🔗 API エンドポイント | **47 エンドポイント**（KPI API 追加） |
 | 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
