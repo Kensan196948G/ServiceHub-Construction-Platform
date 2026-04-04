@@ -20,6 +20,6 @@ test.describe('Projects', () => {
 
   test('shows project status badge', async ({ page }) => {
     // IN_PROGRESS is displayed as "進行中"
-    await expect(page.getByText('渋谷オフィスビル新築工事')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText('進行中').first()).toBeVisible({ timeout: 10_000 })
   })
 })

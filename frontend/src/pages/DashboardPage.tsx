@@ -146,7 +146,7 @@ export default function DashboardPage() {
             <Skeleton className="h-24 w-full" />
           </>
         ) : kpiError ? (
-          <div className="col-span-4 rounded-lg bg-red-50 border border-red-200 p-4 flex items-center justify-between">
+          <div className="col-span-full rounded-lg bg-red-50 border border-red-200 p-4 flex items-center justify-between">
             <p className="text-sm text-red-700">KPI データの取得に失敗しました</p>
             <button
               onClick={() => refetchKpi()}
@@ -157,30 +157,38 @@ export default function DashboardPage() {
           </div>
         ) : kpi ? (
           <>
-            <StatCard
-              icon={<Building2 className="w-6 h-6" />}
-              title="工事案件数 (合計)"
-              value={kpi.projects.total}
-              colorScheme="blue"
-            />
-            <StatCard
-              icon={<AlertCircle className="w-6 h-6" />}
-              title="進行中インシデント"
-              value={kpi.incidents.open + kpi.incidents.in_progress}
-              colorScheme="red"
-            />
-            <StatCard
-              icon={<TrendingUp className="w-6 h-6" />}
-              title="コスト達成率"
-              value={`${((1 + kpi.cost_overview.variance_rate) * 100).toFixed(1)}%`}
-              colorScheme="green"
-            />
-            <StatCard
-              icon={<FileText className="w-6 h-6" />}
-              title="本日の日報件数"
-              value={kpi.daily_reports_count}
-              colorScheme="purple"
-            />
+            <Link to="/projects" className="block">
+              <StatCard
+                icon={<Building2 className="w-6 h-6" />}
+                title="工事案件数 (合計)"
+                value={kpi.projects.total}
+                colorScheme="blue"
+              />
+            </Link>
+            <Link to="/itsm" className="block">
+              <StatCard
+                icon={<AlertCircle className="w-6 h-6" />}
+                title="進行中インシデント"
+                value={kpi.incidents.open + kpi.incidents.in_progress}
+                colorScheme="red"
+              />
+            </Link>
+            <Link to="/cost" className="block">
+              <StatCard
+                icon={<TrendingUp className="w-6 h-6" />}
+                title="コスト達成率"
+                value={`${((1 + kpi.cost_overview.variance_rate) * 100).toFixed(1)}%`}
+                colorScheme="green"
+              />
+            </Link>
+            <Link to="/reports" className="block">
+              <StatCard
+                icon={<FileText className="w-6 h-6" />}
+                title="本日の日報件数"
+                value={kpi.daily_reports_count}
+                colorScheme="purple"
+              />
+            </Link>
           </>
         ) : null}
       </div>

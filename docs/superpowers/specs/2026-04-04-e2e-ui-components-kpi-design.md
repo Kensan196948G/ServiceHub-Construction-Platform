@@ -314,7 +314,7 @@ export async function loginAndNavigate(page: Page): Promise<void>
 - `DashboardPage` 以外のページのコンポーネント置き換えは今回スコープ外（後続スプリントで対応）
 - 既存の CSS クラス（`.btn-primary` 等）は削除しない（後方互換維持）
 - E2E テストはバックエンド起動なしで実行可能とする（CI環境の制約）
-- `cva` パッケージのバージョンは `^1.0.0` を使用
+- `cva` パッケージのバージョンは `^0.7.1` を使用（package.json 実装値に合わせる）
 
 ---
 

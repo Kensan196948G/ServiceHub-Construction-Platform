@@ -16,8 +16,7 @@ test.describe('Daily Reports', () => {
   })
 
   test('shows report date or content', async ({ page }) => {
-    // Verify that the page is not broken
-    await page.waitForTimeout(2000)
+    await expect(page.getByText(/日報/).first()).toBeVisible({ timeout: 10_000 })
     await expect(page.locator('body')).not.toContainText('Error')
   })
 })

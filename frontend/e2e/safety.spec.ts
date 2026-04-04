@@ -15,7 +15,7 @@ test.describe('Safety Inspections', () => {
   })
 
   test('page loads without errors', async ({ page }) => {
-    await page.waitForTimeout(2000)
+    await expect(page.getByText(/安全/).first()).toBeVisible({ timeout: 10_000 })
     await expect(page.locator('body')).not.toContainText('Error')
   })
 })
