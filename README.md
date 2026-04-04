@@ -87,23 +87,29 @@ graph TB
 | 🏷️ `Badge` | ステータス・重要度表示 | 5バリアント（default/success/warning/danger/info）/ cva ベース |
 | 🔘 `Button` | 操作ボタン | loading 状態・aria-busy・sr-only 対応 |
 | 📦 `Card` | コンテナ | padding バリアント (none/sm/md/lg) / `HTMLAttributes` 継承 |
+| 📝 `FormField` | フォームフィールド | label + error + required 表示 / Input・Textarea・Select 付属 |
+| 🪟 `Modal` | ダイアログ | HTML `<dialog>` ベース / Escape キー・バックドロップ対応 |
+| 📄 `Pagination` | ページネーション | 省略記号・aria-current・前後ナビ |
 | ⏳ `Skeleton` | ローディング表示 | `role="status"` / アクセシブル |
 | 📈 `StatCard` | KPI カード | 5色スキーム・trend（↑↓→）表示 / Link ラップ対応 |
+| 📊 `Table` | データテーブル | ジェネリック型 / カスタムレンダー / クリック対応 |
 
 ### 📊 品質メトリクス
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 Backend テスト | **158 件**（pytest / coverage 84%） |
-| 🧪 Frontend テスト | **70 件**（vitest / 15 テストファイル） |
-| 🎭 E2E テスト | **23 件**（Playwright / Chromium） |
-| 🖥️ フロントエンドページ | **11 ページ** |
-| 🧩 共通 UI コンポーネント | **5 種**（Badge / Button / Card / Skeleton / StatCard） |
+| 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
+| 🧪 Frontend テスト | **199 件**（vitest / 32 テストファイル / coverage 79%） |
+| 🎭 E2E テスト | **31 件**（Playwright / 10 テストファイル） |
+| 📊 総テスト数 | **415 件**（Backend + Frontend + E2E） |
+| 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
+| 🧩 共通 UI コンポーネント | **9 種**（Badge / Button / Card / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🔗 API エンドポイント | **47 エンドポイント**（KPI API 追加） |
-| 🏗️ Repository クラス | **12 クラス**（全 Router 統一済み） |
-| 🔧 Service クラス | **10 クラス**（全モジュール対応 + PhotoService） |
-| ✅ CI チェック数 | **8 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E） |
-| 🔒 STABLE 判定 | **N=10** 達成（CI 10回連続成功） |
+| 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
+| 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
+| 🔀 Router | **9 本**（Dashboard Router 追加） |
+| ✅ CI チェック数 | **8 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency） |
+| 🔒 STABLE 判定 | **N=10+** 達成（CI 連続成功） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -127,8 +133,9 @@ graph LR
 | 📝 DailyReportService | 日報 CRUD・ワークフロー |
 | 👤 UserService | ユーザー管理・重複検出・自己削除防止 |
 | 🖼️ PhotoService | 写真アップロード・バリデーション・プリサインドURL |
+| 📊 DashboardService | KPI 集約・統計ダッシュボード |
 
-> **全 8 Router が Router → Service → Repository の3層構造に統一（Service 10クラス / Repository 12クラス）。**
+> **全 9 Router が Router → Service → Repository の3層構造に統一（Service 11クラス / Repository 8クラス）。**
 
 ---
 
@@ -155,14 +162,17 @@ graph LR
 
 | テストファイル | テスト数 | カバー範囲 |
 | :--- | :---: | :--- |
-| `login.spec.ts` | 3 | 認証成功・失敗・ダッシュボード遷移 |
+| `login.spec.ts` | 6 | 認証成功・失敗・ダッシュボード遷移・フォーム表示 |
 | `navigation.spec.ts` | 4 | 認証済みページナビゲーション |
-| `dashboard.spec.ts` | 3 | KPI StatCard 表示・エラーバナー |
+| `dashboard.spec.ts` | 4 | KPI StatCard 表示・エラーバナー・クイックアクション |
 | `projects.spec.ts` | 3 | 案件一覧・新規ボタン・ステータスバッジ |
 | `reports.spec.ts` | 2 | 日報ページ表示 |
 | `safety.spec.ts` | 2 | 安全点検ページ表示 |
 | `cost.spec.ts` | 2 | 原価管理ページ表示 |
-| **合計** | **23** | 主要画面の E2E カバー完了 |
+| `itsm.spec.ts` | 3 | ITSM 見出し・インシデント管理・変更要求管理 |
+| `knowledge.spec.ts` | 2 | ナレッジ見出し・記事一覧 |
+| `users.spec.ts` | 3 | ユーザー見出し・一覧・ロール |
+| **合計** | **31** | **全11ページ E2E カバー完了** |
 
 ---
 
@@ -191,8 +201,8 @@ gantt
 
 | フェーズ | 期間 | 目標 | 状態 |
 | :--- | :--- | :--- | :---: |
-| 🔵 Phase 1 基盤安定化 | 4月 Week 1 | 3層アーキテクチャ100%・E2E基盤・CI安定 | 🔄 進行中 |
-| 🟡 Phase 2 機能強化 | 4月〜5月 | UI統一・フォーム改善・E2E拡充 | ⏳ 予定 |
+| 🔵 Phase 1 基盤安定化 | 4月 Week 1 | 3層アーキテクチャ100%・E2E基盤・CI安定 | ✅ 完了 |
+| 🟡 Phase 2 機能強化 | 4月〜5月 | UI統一・フォーム改善・E2E拡充・テスト品質向上 | 🔄 進行中 |
 | 🟠 Phase 3 UX改善 | 5月〜6月 | レスポンシブ・アクセシビリティ・パフォーマンス | ⏳ 予定 |
 | 🔴 Phase 4 高度機能 | 6月〜7月 | リアルタイム通知・AI強化 | ⏳ 予定 |
 | 🟣 Phase 5 リリース準備 | 7月〜9月 | 本番環境・セキュリティ監査・ドキュメント整備 | ⏳ 予定 |

@@ -1,35 +1,35 @@
 {
-  "phase": "Sprint 1 - 基盤安定化",
-  "loop": "Sprint1-Day2-SessionClose",
-  "loop_count": 28,
+  "phase": "Sprint 1 - 基盤安定化 → Phase 2 移行準備",
+  "loop": "Sprint2-Day3-Loop1-Complete",
+  "loop_count": 30,
   "status": "stable",
-  "last_updated": "2026-04-04T07:10:00+09:00",
+  "last_updated": "2026-04-05T02:30:00+09:00",
   "development_plan": {
     "start_date": "2026-04-03",
     "release_date": "2026-10-03",
-    "current_phase": "Phase 1 - 基盤安定化",
-    "current_sprint": "Sprint 1",
+    "current_phase": "Phase 1 完了 → Phase 2 機能拡充",
+    "current_sprint": "Sprint 2",
     "total_hours": 416,
-    "hours_used": 22,
+    "hours_used": 30,
     "schedule": "土日 × 8時間"
   },
   "priorities": {
     "high": [
-      "E2E テスト基盤構築（Playwright）",
-      "Frontend 共通コンポーネント設計（Button/Modal/Table）",
-      "ダッシュボードKPI データ集約API"
+      "既存ページの共通UIコンポーネント適用（ITSM/Cost/Reports 等）",
+      "CRUD フロー E2E テスト（作成・編集・削除）",
+      "API レスポンス型の Frontend 共有（OpenAPI → TypeScript）"
     ],
     "medium": [
-      "GitHub Actions Node.js 24 移行",
-      "pre-commit hook で ruff format 自動化",
-      "storage.py MinIO モックテスト拡充",
-      "Frontend typecheck を CI 必須チェックに追加"
+      "API レスポンス型の Frontend 共有（OpenAPI → TypeScript）",
+      "エラーハンドリング統一（Backend/Frontend）",
+      "Docker Compose ローカル開発環境の安定化",
+      "pre-commit hook で ruff format 自動化"
     ],
     "low": [
       "通知機能検討（メール/Slack）",
-      "manager_id フィールド編集対応",
       "ダークモード対応",
-      "i18n 基盤検討"
+      "i18n 基盤検討",
+      "パフォーマンス計測基盤"
     ]
   },
   "decision_context": {
@@ -38,20 +38,24 @@
     "stability": "stable"
   },
   "metrics": {
-    "test_count_backend": 158,
-    "test_count_frontend": 37,
-    "test_total": 195,
-    "coverage_backend": "84%",
+    "test_count_backend": 185,
+    "test_count_frontend": 199,
+    "test_count_e2e": 31,
+    "test_total": 415,
+    "coverage_backend": "97%",
+    "coverage_frontend": "79%",
     "ci_status": "green",
-    "ci_consecutive_success": 9,
-    "ci_checks_count": 7,
+    "ci_consecutive_success": 10,
+    "ci_checks_count": 8,
     "stable": true,
     "frontend_pages": 11,
     "api_endpoints": 46,
-    "repository_classes": 12,
-    "service_classes": 10,
-    "routers_using_service": "8/8",
-    "three_layer_architecture": "100%"
+    "repository_classes": 8,
+    "service_classes": 11,
+    "routers": 9,
+    "routers_using_service": "9/9",
+    "three_layer_architecture": "100%",
+    "ui_components": 9
   },
   "loop_history": {
     "sprint1_day1": {
