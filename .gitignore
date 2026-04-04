@@ -52,5 +52,11 @@ Thumbs.db
 *.log
 logs/
 
+# ── Playwright ───────────────────────────────────────
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/blob-report/
+/frontend/playwright/.cache/
+
 # ── ビルド成果物 ─────────────────────────────────────
 *.pyc
