@@ -1,8 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Plus, Search, Building2 } from "lucide-react";
 import { projectsApi, ProjectCreate } from "@/api/projects";
+import { Badge, Button, Card, Skeleton } from "@/components/ui";
 
 const STATUS_OPTIONS = [
   { value: "PLANNING", label: "計画中" },
@@ -12,12 +13,14 @@ const STATUS_OPTIONS = [
   { value: "CANCELLED", label: "中止" },
 ];
 
-const STATUS_BADGE: Record<string, string> = {
-  PLANNING: "badge-info",
-  IN_PROGRESS: "badge-success",
-  ON_HOLD: "badge-warning",
-  COMPLETED: "badge-info",
-  CANCELLED: "badge-danger",
+type BadgeVariant = "info" | "success" | "warning" | "danger";
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  PLANNING: "info",
+  IN_PROGRESS: "success",
+  ON_HOLD: "warning",
+  COMPLETED: "info",
+  CANCELLED: "danger",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -58,10 +61,9 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">工事案件一覧</h2>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
-          <Plus className="w-4 h-4 mr-1" />
+        <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowModal(true)}>
           新規案件
-        </button>
+        </Button>
       </div>
 
       {/* Search */}
@@ -78,9 +80,11 @@ export default function ProjectsPage() {
 
       {/* Table */}
       {isLoading ? (
-        <div className="card text-center py-12 text-gray-400">読み込み中...</div>
+        <Card className="space-y-3">
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+        </Card>
       ) : (
-        <div className="card p-0 overflow-hidden">
+        <Card padding="none" className="overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -108,9 +112,9 @@ export default function ProjectsPage() {
                     {p.start_date ?? "—"} 〜 {p.end_date ?? "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={STATUS_BADGE[p.status] ?? "badge-info"}>
+                    <Badge variant={STATUS_VARIANT[p.status] ?? "info"} size="sm">
                       {STATUS_LABEL[p.status] ?? p.status}
-                    </span>
+                    </Badge>
                   </td>
                 </tr>
               ))}
@@ -132,24 +136,26 @@ export default function ProjectsPage() {
                 全 {data.meta.total} 件 / {data.meta.total_pages ?? data.meta.pages} ページ
               </span>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="btn-secondary py-1 px-3 disabled:opacity-40"
                 >
                   前へ
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setPage((p) => p + 1)}
                   disabled={page >= (data.meta.total_pages ?? data.meta.pages ?? 1)}
-                  className="btn-secondary py-1 px-3 disabled:opacity-40"
                 >
                   次へ
-                </button>
+                </Button>
               </div>
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Create Modal */}
@@ -242,10 +248,8 @@ function CreateProjectModal({
               className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
           </div>
           <div className="flex gap-3 justify-end pt-2">
-            <button type="button" onClick={onClose} className="btn-secondary">キャンセル</button>
-            <button type="submit" disabled={loading} className="btn-primary disabled:opacity-60">
-              {loading ? "保存中..." : "作成"}
-            </button>
+            <Button type="button" variant="secondary" onClick={onClose}>キャンセル</Button>
+            <Button type="submit" loading={loading}>作成</Button>
           </div>
         </form>
       </div>

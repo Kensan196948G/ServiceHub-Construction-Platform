@@ -1,8 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DollarSign, Plus, TrendingUp, TrendingDown, X } from "lucide-react";
 import { costApi, CostRecordCreate, CostRecord } from "@/api/cost";
 import { projectsApi } from "@/api/projects";
+import { Badge, Button, Card, Skeleton } from "@/components/ui";
 
 const CATEGORY_OPTIONS = [
   { value: "LABOR", label: "労務費" },
@@ -111,13 +112,16 @@ export default function CostPage() {
           <DollarSign className="w-7 h-7 text-primary-600" />
           原価管理
         </h2>
-        <button className="btn-primary" onClick={openModal} disabled={!selectedProjectId}>
-          <Plus className="w-4 h-4 mr-1" />
+        <Button
+          leftIcon={<Plus className="w-4 h-4" />}
+          onClick={openModal}
+          disabled={!selectedProjectId}
+        >
           新規原価記録
-        </button>
+        </Button>
       </div>
 
-      <div className="card">
+      <Card>
         <label className="block text-sm font-medium text-gray-700 mb-1">プロジェクト選択</label>
         <select
           className="input w-64"
@@ -131,7 +135,7 @@ export default function CostPage() {
             </option>
           ))}
         </select>
-      </div>
+      </Card>
 
       {error && (
         <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
@@ -140,51 +144,53 @@ export default function CostPage() {
       )}
 
       {!selectedProjectId ? (
-        <div className="card text-center py-16 text-gray-400">
+        <Card className="text-center py-16 text-gray-400">
           <DollarSign className="w-12 h-12 mx-auto mb-3" />
           <p className="text-lg font-medium">プロジェクトを選択してください</p>
-        </div>
+        </Card>
       ) : isLoading ? (
-        <div className="card text-center py-16 text-gray-400">読み込み中...</div>
+        <Card className="space-y-3">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+        </Card>
       ) : (
         <>
           {summary && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="card">
+              <Card>
                 <p className="text-xs font-medium text-gray-500 mb-1">予算合計</p>
                 <p className="text-xl font-bold text-gray-900">
                   {formatCurrency(summary.total_budgeted)}
                 </p>
-              </div>
-              <div className="card">
+              </Card>
+              <Card>
                 <p className="text-xs font-medium text-gray-500 mb-1">実績合計</p>
                 <p className="text-xl font-bold text-gray-900">
                   {formatCurrency(summary.total_actual)}
                 </p>
-              </div>
-              <div className="card">
+              </Card>
+              <Card>
                 <p className="text-xs font-medium text-gray-500 mb-1">差異</p>
                 <p className={`text-xl font-bold flex items-center gap-1 ${isOver ? "text-red-600" : "text-green-600"}`}>
                   {isOver ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
                   {formatCurrency(Math.abs(summary.variance))}
                 </p>
-              </div>
-              <div className="card">
+              </Card>
+              <Card>
                 <p className="text-xs font-medium text-gray-500 mb-1">達成率</p>
                 <p className={`text-xl font-bold ${achieveRate > 100 ? "text-red-600" : "text-green-600"}`}>
                   {achieveRate}%
                 </p>
-              </div>
+              </Card>
             </div>
           )}
 
           {records.length === 0 ? (
-            <div className="card text-center py-16 text-gray-400">
+            <Card className="text-center py-16 text-gray-400">
               <DollarSign className="w-12 h-12 mx-auto mb-3" />
               <p className="text-lg font-medium">原価記録がありません</p>
-            </div>
+            </Card>
           ) : (
-            <div className="card p-0 overflow-hidden">
+            <Card padding="none" className="overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
@@ -200,7 +206,7 @@ export default function CostPage() {
                       <tr key={r.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">{r.record_date}</td>
                         <td className="px-4 py-3">
-                          <span className="badge-info">{CATEGORY_LABEL[r.category] ?? r.category}</span>
+                          <Badge variant="info" size="sm">{CATEGORY_LABEL[r.category] ?? r.category}</Badge>
                         </td>
                         <td className="px-4 py-3 max-w-xs truncate">{r.description}</td>
                         <td className="px-4 py-3 text-right">{formatCurrency(r.budgeted_amount ?? 0)}</td>
@@ -210,18 +216,20 @@ export default function CostPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <button
-                              className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => window.alert("編集機能は今後対応予定です")}
                             >
                               編集
-                            </button>
-                            <button
-                              className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
                               onClick={() => handleDelete(r.id)}
                             >
                               削除
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -229,7 +237,7 @@ export default function CostPage() {
                   })}
                 </tbody>
               </table>
-            </div>
+            </Card>
           )}
         </>
       )}
@@ -284,12 +292,12 @@ export default function CostPage() {
                 <p className="text-red-600 text-sm">作成に失敗しました。</p>
               )}
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
                   キャンセル
-                </button>
-                <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "作成中..." : "作成"}
-                </button>
+                </Button>
+                <Button type="submit" loading={createMutation.isPending}>
+                  作成
+                </Button>
               </div>
             </form>
           </div>

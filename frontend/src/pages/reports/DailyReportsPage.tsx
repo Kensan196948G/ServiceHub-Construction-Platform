@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Plus, CloudSun, X, ChevronDown, ChevronUp } from "lucide-react";
 import { dailyReportsApi, DailyReport, DailyReportCreate } from "@/api/daily_reports";
 import { projectsApi } from "@/api/projects";
+import { Badge, Button, Card, Skeleton } from "@/components/ui";
 
 const WEATHER_OPTIONS = [
   { value: "SUNNY", label: "晴れ ☀️" },
@@ -30,13 +31,16 @@ const STATUS_LABEL: Record<string, string> = {
   SUBMITTED: "提出済",
   APPROVED: "承認済",
 };
-const STATUS_BADGE: Record<string, string> = {
-  draft: "badge-secondary",
-  DRAFT: "badge-secondary",
-  submitted: "badge-info",
-  SUBMITTED: "badge-info",
-  approved: "badge-success",
-  APPROVED: "badge-success",
+
+type BadgeVariant = "default" | "info" | "success";
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  draft: "default",
+  DRAFT: "default",
+  submitted: "info",
+  SUBMITTED: "info",
+  approved: "success",
+  APPROVED: "success",
 };
 
 interface FormState extends DailyReportCreate {
@@ -169,17 +173,16 @@ export default function DailyReportsPage() {
           <FileText className="w-7 h-7 text-primary-600" />
           日報管理
         </h2>
-        <button
-          className="btn-primary"
+        <Button
+          leftIcon={<Plus className="w-4 h-4" />}
           onClick={openModal}
           disabled={!selectedProjectId}
         >
-          <Plus className="w-4 h-4 mr-1" />
           新規日報作成
-        </button>
+        </Button>
       </div>
 
-      <div className="card">
+      <Card>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           プロジェクト選択
         </label>
@@ -195,7 +198,7 @@ export default function DailyReportsPage() {
             </option>
           ))}
         </select>
-      </div>
+      </Card>
 
       {error && (
         <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
@@ -204,20 +207,22 @@ export default function DailyReportsPage() {
       )}
 
       {!selectedProjectId ? (
-        <div className="card text-center py-16 text-gray-400">
+        <Card className="text-center py-16 text-gray-400">
           <FileText className="w-12 h-12 mx-auto mb-3" />
           <p className="text-lg font-medium">プロジェクトを選択してください</p>
-        </div>
+        </Card>
       ) : isLoading ? (
-        <div className="card text-center py-16 text-gray-400">読み込み中...</div>
+        <Card className="space-y-3">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+        </Card>
       ) : reports.length === 0 ? (
-        <div className="card text-center py-16 text-gray-400">
+        <Card className="text-center py-16 text-gray-400">
           <CloudSun className="w-12 h-12 mx-auto mb-3" />
           <p className="text-lg font-medium">日報がまだありません</p>
           <p className="text-sm mt-1">「新規日報作成」から追加してください</p>
-        </div>
+        </Card>
       ) : (
-        <div className="card p-0 overflow-hidden">
+        <Card padding="none" className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -253,15 +258,15 @@ export default function DailyReportsPage() {
                       </td>
                       <td className="px-4 py-3">
                         {r.safety_check ? (
-                          <span className="badge-success">確認済</span>
+                          <Badge variant="success" size="sm">確認済</Badge>
                         ) : (
-                          <span className="badge-danger">未確認</span>
+                          <Badge variant="danger" size="sm">未確認</Badge>
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={STATUS_BADGE[r.status] ?? "badge-info"}>
+                        <Badge variant={STATUS_VARIANT[r.status] ?? "info"} size="sm">
                           {STATUS_LABEL[r.status] ?? r.status}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-4 py-3 text-gray-400">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -313,7 +318,7 @@ export default function DailyReportsPage() {
               })}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
 
       {showModal && (
@@ -420,12 +425,12 @@ export default function DailyReportsPage() {
                 <p className="text-red-600 text-sm">作成に失敗しました。</p>
               )}
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
                   キャンセル
-                </button>
-                <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "作成中..." : "作成"}
-                </button>
+                </Button>
+                <Button type="submit" loading={createMutation.isPending}>
+                  作成
+                </Button>
               </div>
             </form>
           </div>
@@ -536,12 +541,16 @@ export default function DailyReportsPage() {
                 <p className="text-red-600 text-sm">更新に失敗しました。</p>
               )}
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => { setShowEditModal(false); setEditingReport(null); }}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => { setShowEditModal(false); setEditingReport(null); }}
+                >
                   キャンセル
-                </button>
-                <button type="submit" className="btn-primary" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? "更新中..." : "更新"}
-                </button>
+                </Button>
+                <Button type="submit" loading={updateMutation.isPending}>
+                  更新
+                </Button>
               </div>
             </form>
           </div>
