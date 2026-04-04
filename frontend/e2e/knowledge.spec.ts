@@ -37,7 +37,7 @@ test.describe("Knowledge Page", () => {
 
   test("displays knowledge page heading", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: /ナレッジ/ })
+      page.getByRole("heading", { name: /AIナレッジベース/ })
     ).toBeVisible({ timeout: 10_000 });
   });
 

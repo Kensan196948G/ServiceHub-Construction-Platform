@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchPhotos, uploadPhoto, deletePhoto, type Photo } from "@/api/photos";
 import { projectsApi, type Project as ProjectItem } from "@/api/projects";
+import { Badge, Button, Card, FormField, Input, Select, Skeleton } from "@/components/ui";
 
 const CATEGORIES: Photo["category"][] = [
   "GENERAL",
@@ -19,12 +20,12 @@ const CATEGORY_LABELS: Record<Photo["category"], string> = {
   TROUBLE: "障害",
 };
 
-const CATEGORY_COLORS: Record<Photo["category"], string> = {
-  GENERAL: "bg-gray-100 text-gray-700",
-  PROGRESS: "bg-blue-100 text-blue-700",
-  SAFETY: "bg-yellow-100 text-yellow-700",
-  COMPLETION: "bg-green-100 text-green-700",
-  TROUBLE: "bg-red-100 text-red-700",
+const CATEGORY_BADGE_VARIANT: Record<Photo["category"], "default" | "info" | "warning" | "success" | "danger"> = {
+  GENERAL: "default",
+  PROGRESS: "info",
+  SAFETY: "warning",
+  COMPLETION: "success",
+  TROUBLE: "danger",
 };
 
 export default function PhotosPage() {
@@ -86,6 +87,9 @@ export default function PhotosPage() {
   const filtered =
     filterCategory === "ALL" ? photos : photos.filter((p) => p.category === filterCategory);
 
+  const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
+  const categoryOptions = CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }));
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -94,55 +98,55 @@ export default function PhotosPage() {
       </div>
 
       {/* プロジェクト選択 */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">工事案件</label>
-        <select
-          className="w-full md:w-64 border border-gray-300 rounded-md px-3 py-2 text-sm"
-          value={selectedProject}
-          onChange={(e) => setSelectedProject(e.target.value)}
-        >
-          <option value="">案件を選択...</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Card padding="sm">
+        <FormField label="工事案件" htmlFor="project-select">
+          <Select
+            id="project-select"
+            className="w-full md:w-64"
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            options={projectOptions}
+            placeholder="案件を選択..."
+          />
+        </FormField>
+      </Card>
 
       {selectedProject && (
         <>
           {/* アップロードフォーム */}
-          <div className="bg-white rounded-lg shadow p-4 space-y-3">
+          <Card padding="sm" className="space-y-3">
             <h2 className="text-sm font-semibold text-gray-700">📤 写真アップロード</h2>
             <div className="flex flex-wrap gap-3 items-end">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">カテゴリ</label>
-                <select
-                  className="border border-gray-300 rounded px-2 py-1.5 text-sm"
+              <FormField label="カテゴリ" htmlFor="category-select">
+                <Select
+                  id="category-select"
                   value={category}
                   onChange={(e) => setCategory(e.target.value as Photo["category"])}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {CATEGORY_LABELS[c]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex-1 min-w-40">
-                <label className="block text-xs text-gray-500 mb-1">説明（任意）</label>
-                <input
-                  type="text"
-                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  placeholder="写真の説明"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  options={categoryOptions}
                 />
+              </FormField>
+              <div className="flex-1 min-w-40">
+                <FormField label="説明（任意）" htmlFor="description-input">
+                  <Input
+                    id="description-input"
+                    type="text"
+                    placeholder="写真の説明"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </FormField>
               </div>
               <div>
-                <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition">
-                  {uploading ? "アップロード中..." : "ファイル選択"}
+                <label className="cursor-pointer">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    loading={uploading}
+                    as-child="true"
+                    className="pointer-events-none"
+                  >
+                    {uploading ? "アップロード中..." : "ファイル選択"}
+                  </Button>
                   <input
                     type="file"
                     accept="image/*,.pdf"
@@ -153,34 +157,30 @@ export default function PhotosPage() {
                 </label>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* フィルター */}
           <div className="flex gap-2 flex-wrap">
-            <button
+            <Button
+              variant={filterCategory === "ALL" ? "primary" : "secondary"}
+              size="sm"
               onClick={() => setFilterCategory("ALL")}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition ${
-                filterCategory === "ALL"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
+              className="rounded-full"
             >
               すべて ({photos.length})
-            </button>
+            </Button>
             {CATEGORIES.map((c) => {
               const count = photos.filter((p) => p.category === c).length;
               return (
-                <button
+                <Button
                   key={c}
+                  variant={filterCategory === c ? "primary" : "secondary"}
+                  size="sm"
                   onClick={() => setFilterCategory(c)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition ${
-                    filterCategory === c
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
+                  className="rounded-full"
                 >
                   {CATEGORY_LABELS[c]} ({count})
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -194,10 +194,13 @@ export default function PhotosPage() {
       )}
 
       {loading && (
-        <div className="text-center py-12 text-gray-400">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3" />
-          読み込み中...
-        </div>
+        <Card padding="md">
+          <div className="space-y-4">
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </Card>
       )}
 
       {!loading && selectedProject && filtered.length === 0 && (
@@ -219,9 +222,10 @@ export default function PhotosPage() {
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((photo) => (
-            <div
+            <Card
               key={photo.id}
-              className="bg-white rounded-lg shadow overflow-hidden group relative"
+              padding="none"
+              className="overflow-hidden group relative"
             >
               {photo.url ? (
                 <img
@@ -236,17 +240,17 @@ export default function PhotosPage() {
               )}
               <div className="p-3 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded-full ${CATEGORY_COLORS[photo.category]}`}
-                  >
+                  <Badge variant={CATEGORY_BADGE_VARIANT[photo.category]} size="sm">
                     {CATEGORY_LABELS[photo.category]}
-                  </span>
-                  <button
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDelete(photo.id)}
-                    className="text-xs text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"
+                    className="text-xs text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 h-auto px-1 py-0"
                   >
                     削除
-                  </button>
+                  </Button>
                 </div>
                 <p className="text-xs text-gray-600 truncate">{photo.original_filename}</p>
                 {photo.description && (
@@ -257,7 +261,7 @@ export default function PhotosPage() {
                   {new Date(photo.created_at).toLocaleDateString("ja-JP")}
                 </p>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

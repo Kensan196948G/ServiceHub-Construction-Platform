@@ -39,21 +39,21 @@ describe("LoginPage", () => {
   it("ログインフォームが表示される", () => {
     renderPage();
     expect(screen.getByText("ServiceHub 工事管理")).toBeInTheDocument();
-    expect(screen.getByLabelText("メールアドレス")).toBeInTheDocument();
-    expect(screen.getByLabelText("パスワード")).toBeInTheDocument();
+    expect(screen.getByLabelText(/メールアドレス/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/パスワード/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "ログイン" })).toBeInTheDocument();
   });
 
   it("メールアドレスを入力できる", () => {
     renderPage();
-    const emailInput = screen.getByLabelText("メールアドレス");
+    const emailInput = screen.getByLabelText(/メールアドレス/);
     fireEvent.change(emailInput, { target: { value: "user@example.com" } });
     expect(emailInput).toHaveValue("user@example.com");
   });
 
   it("パスワードを入力できる", () => {
     renderPage();
-    const passwordInput = screen.getByLabelText("パスワード");
+    const passwordInput = screen.getByLabelText(/パスワード/);
     fireEvent.change(passwordInput, { target: { value: "secret" } });
     expect(passwordInput).toHaveValue("secret");
   });
@@ -69,10 +69,10 @@ describe("LoginPage", () => {
 
     renderPage();
 
-    fireEvent.change(screen.getByLabelText("メールアドレス"), {
+    fireEvent.change(screen.getByLabelText(/メールアドレス/), {
       target: { value: "user@example.com" },
     });
-    fireEvent.change(screen.getByLabelText("パスワード"), {
+    fireEvent.change(screen.getByLabelText(/パスワード/), {
       target: { value: "password" },
     });
     fireEvent.click(screen.getByRole("button", { name: "ログイン" }));
@@ -87,10 +87,10 @@ describe("LoginPage", () => {
 
     renderPage();
 
-    fireEvent.change(screen.getByLabelText("メールアドレス"), {
+    fireEvent.change(screen.getByLabelText(/メールアドレス/), {
       target: { value: "bad@example.com" },
     });
-    fireEvent.change(screen.getByLabelText("パスワード"), {
+    fireEvent.change(screen.getByLabelText(/パスワード/), {
       target: { value: "wrong" },
     });
     fireEvent.click(screen.getByRole("button", { name: "ログイン" }));
@@ -108,16 +108,16 @@ describe("LoginPage", () => {
 
     renderPage();
 
-    fireEvent.change(screen.getByLabelText("メールアドレス"), {
+    fireEvent.change(screen.getByLabelText(/メールアドレス/), {
       target: { value: "user@example.com" },
     });
-    fireEvent.change(screen.getByLabelText("パスワード"), {
+    fireEvent.change(screen.getByLabelText(/パスワード/), {
       target: { value: "password" },
     });
     fireEvent.click(screen.getByRole("button", { name: "ログイン" }));
 
     await waitFor(() => {
-      expect(screen.getByText("ログイン中...")).toBeInTheDocument();
+      expect(screen.getByText("処理中...")).toBeInTheDocument();
     });
   });
 });

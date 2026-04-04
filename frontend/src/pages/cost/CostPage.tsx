@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DollarSign, Plus, TrendingUp, TrendingDown, X } from "lucide-react";
+import { DollarSign, Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { costApi, CostRecordCreate, CostRecord } from "@/api/cost";
 import { projectsApi } from "@/api/projects";
-import { Badge, Button, Card, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, Skeleton, Modal, FormField, Input, Select } from "@/components/ui";
 
 const CATEGORY_OPTIONS = [
   { value: "LABOR", label: "労務費" },
@@ -242,67 +242,48 @@ export default function CostPage() {
         </>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">新規原価記録作成</h3>
-              <button onClick={() => setShowModal(false)}>
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">日付</label>
-                <input type="date" className="input" value={form.record_date}
-                  onChange={(e) => setForm({ ...form, record_date: e.target.value })} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
-                <select className="input" value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                  {CATEGORY_OPTIONS.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">説明</label>
-                <input type="text" className="input" value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">予算金額 (円)</label>
-                  <input type="number" className="input" min={0} value={form.budgeted_amount ?? 0}
-                    onChange={(e) => setForm({ ...form, budgeted_amount: Number(e.target.value) })} required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">実績金額 (円)</label>
-                  <input type="number" className="input" min={0} value={form.actual_amount ?? 0}
-                    onChange={(e) => setForm({ ...form, actual_amount: Number(e.target.value) })} required />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">業者名</label>
-                <input type="text" className="input" value={form.vendor_name ?? ""}
-                  onChange={(e) => setForm({ ...form, vendor_name: e.target.value })} />
-              </div>
-              {createMutation.isError && (
-                <p className="text-red-600 text-sm">作成に失敗しました。</p>
-              )}
-              <div className="flex justify-end gap-3 pt-2">
-                <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
-                  キャンセル
-                </Button>
-                <Button type="submit" loading={createMutation.isPending}>
-                  作成
-                </Button>
-              </div>
-            </form>
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="新規原価記録作成">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FormField label="日付" htmlFor="cost-date" required>
+            <Input id="cost-date" type="date" value={form.record_date}
+              onChange={(e) => setForm({ ...form, record_date: e.target.value })} required />
+          </FormField>
+          <FormField label="カテゴリ" htmlFor="cost-category" required>
+            <Select id="cost-category" value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              options={[...CATEGORY_OPTIONS]} />
+          </FormField>
+          <FormField label="説明" htmlFor="cost-desc" required>
+            <Input id="cost-desc" value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+          </FormField>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="予算金額 (円)" htmlFor="cost-budget" required>
+              <Input id="cost-budget" type="number" min={0} value={form.budgeted_amount ?? 0}
+                onChange={(e) => setForm({ ...form, budgeted_amount: Number(e.target.value) })} required />
+            </FormField>
+            <FormField label="実績金額 (円)" htmlFor="cost-actual" required>
+              <Input id="cost-actual" type="number" min={0} value={form.actual_amount ?? 0}
+                onChange={(e) => setForm({ ...form, actual_amount: Number(e.target.value) })} required />
+            </FormField>
           </div>
-        </div>
-      )}
+          <FormField label="業者名" htmlFor="cost-vendor">
+            <Input id="cost-vendor" value={form.vendor_name ?? ""}
+              onChange={(e) => setForm({ ...form, vendor_name: e.target.value })} />
+          </FormField>
+          {createMutation.isError && (
+            <p className="text-red-600 text-sm">作成に失敗しました。</p>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
+              キャンセル
+            </Button>
+            <Button type="submit" loading={createMutation.isPending}>
+              作成
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

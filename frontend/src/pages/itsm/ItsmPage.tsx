@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Plus, RefreshCw, X, Pencil } from "lucide-react";
+import { AlertCircle, Plus, RefreshCw, Pencil } from "lucide-react";
+import { Badge, Button, Card, Modal, FormField, Input, Select, Textarea, Skeleton } from "@/components/ui";
 import { itsmApi, IncidentCreate, ChangeRequestCreate, Incident, ChangeRequest, IncidentUpdate, ChangeRequestUpdate } from "@/api/itsm";
 
 type Tab = "incidents" | "changes";
 
-const PRIORITY_BADGE: Record<string, string> = {
-  critical: "badge-danger",
-  high: "badge-danger",
-  medium: "badge-warning",
-  low: "badge-info",
+type BadgeVariant = "danger" | "warning" | "info" | "success";
+
+const PRIORITY_BADGE: Record<string, BadgeVariant> = {
+  critical: "danger",
+  high: "danger",
+  medium: "warning",
+  low: "info",
 };
 const PRIORITY_LABEL: Record<string, string> = {
   critical: "緊急",
@@ -17,25 +20,25 @@ const PRIORITY_LABEL: Record<string, string> = {
   medium: "中",
   low: "低",
 };
-const SEVERITY_BADGE: Record<string, string> = {
-  critical: "badge-danger",
-  major: "badge-warning",
-  minor: "badge-info",
+const SEVERITY_BADGE: Record<string, BadgeVariant> = {
+  critical: "danger",
+  major: "warning",
+  minor: "info",
 };
 const SEVERITY_LABEL: Record<string, string> = {
   critical: "重大",
   major: "中度",
   minor: "軽微",
 };
-const STATUS_BADGE: Record<string, string> = {
-  open: "badge-danger",
-  in_progress: "badge-warning",
-  resolved: "badge-success",
-  closed: "badge-info",
-  pending: "badge-warning",
-  approved: "badge-success",
-  rejected: "badge-danger",
-  implemented: "badge-success",
+const STATUS_BADGE: Record<string, BadgeVariant> = {
+  open: "danger",
+  in_progress: "warning",
+  resolved: "success",
+  closed: "info",
+  pending: "warning",
+  approved: "success",
+  rejected: "danger",
+  implemented: "success",
 };
 const STATUS_LABEL: Record<string, string> = {
   open: "オープン",
@@ -47,12 +50,58 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: "却下",
   implemented: "実施済",
 };
-const RISK_BADGE: Record<string, string> = {
-  high: "badge-danger",
-  medium: "badge-warning",
-  low: "badge-info",
+const RISK_BADGE: Record<string, BadgeVariant> = {
+  high: "danger",
+  medium: "warning",
+  low: "info",
 };
 const RISK_LABEL: Record<string, string> = { high: "高", medium: "中", low: "低" };
+
+const CATEGORY_OPTIONS = [
+  { value: "infrastructure", label: "インフラ" },
+  { value: "application", label: "アプリ" },
+  { value: "security", label: "セキュリティ" },
+  { value: "other", label: "その他" },
+];
+
+const PRIORITY_OPTIONS = [
+  { value: "critical", label: "緊急" },
+  { value: "high", label: "高" },
+  { value: "medium", label: "中" },
+  { value: "low", label: "低" },
+];
+
+const SEVERITY_OPTIONS = [
+  { value: "critical", label: "重大" },
+  { value: "major", label: "中度" },
+  { value: "minor", label: "軽微" },
+];
+
+const CHANGE_TYPE_OPTIONS = [
+  { value: "normal", label: "標準" },
+  { value: "emergency", label: "緊急" },
+  { value: "standard", label: "定型" },
+];
+
+const RISK_OPTIONS = [
+  { value: "high", label: "高" },
+  { value: "medium", label: "中" },
+  { value: "low", label: "低" },
+];
+
+const INCIDENT_STATUS_OPTIONS = [
+  { value: "open", label: "オープン" },
+  { value: "in_progress", label: "対応中" },
+  { value: "resolved", label: "解決済" },
+  { value: "closed", label: "クローズ" },
+];
+
+const CHANGE_STATUS_OPTIONS = [
+  { value: "pending", label: "保留中" },
+  { value: "approved", label: "承認済" },
+  { value: "rejected", label: "却下" },
+  { value: "implemented", label: "実施済" },
+];
 
 export default function ItsmPage() {
   const queryClient = useQueryClient();
@@ -180,10 +229,9 @@ export default function ItsmPage() {
           <AlertCircle className="w-7 h-7 text-primary-600" />
           ITSM（インシデント・変更管理）
         </h2>
-        <button className="btn-primary" onClick={openModal}>
-          <Plus className="w-4 h-4 mr-1" />
+        <Button variant="primary" onClick={openModal} leftIcon={<Plus className="w-4 h-4" />}>
           新規作成
-        </button>
+        </Button>
       </div>
 
       <div className="flex gap-1 border-b border-gray-200">
@@ -207,15 +255,21 @@ export default function ItsmPage() {
       </div>
 
       {isLoading ? (
-        <div className="card text-center py-16 text-gray-400">読み込み中...</div>
+        <Card>
+          <div className="space-y-4 py-8">
+            <Skeleton className="h-6 w-1/3 mx-auto" />
+            <Skeleton className="h-4 w-1/2 mx-auto" />
+            <Skeleton className="h-4 w-2/3 mx-auto" />
+          </div>
+        </Card>
       ) : tab === "incidents" ? (
         incidents.length === 0 ? (
-          <div className="card text-center py-16 text-gray-400">
+          <Card className="text-center py-16 text-gray-400">
             <AlertCircle className="w-12 h-12 mx-auto mb-3" />
             <p className="text-lg font-medium">インシデントがありません</p>
-          </div>
+          </Card>
         ) : (
-          <div className="card p-0 overflow-hidden">
+          <Card padding="none" className="overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -231,41 +285,43 @@ export default function ItsmPage() {
                     <td className="px-4 py-3 font-medium max-w-xs truncate">{inc.title}</td>
                     <td className="px-4 py-3">{inc.category}</td>
                     <td className="px-4 py-3">
-                      <span className={PRIORITY_BADGE[inc.priority] ?? "badge-info"}>
+                      <Badge variant={PRIORITY_BADGE[inc.priority] ?? "info"} size="sm">
                         {PRIORITY_LABEL[inc.priority] ?? inc.priority}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={SEVERITY_BADGE[inc.severity] ?? "badge-info"}>
+                      <Badge variant={SEVERITY_BADGE[inc.severity] ?? "info"} size="sm">
                         {SEVERITY_LABEL[inc.severity] ?? inc.severity}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={STATUS_BADGE[inc.status] ?? "badge-info"}>
+                      <Badge variant={STATUS_BADGE[inc.status] ?? "info"} size="sm">
                         {STATUS_LABEL[inc.status] ?? inc.status}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors flex items-center gap-1"
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={<Pencil className="w-3 h-3" />}
                         onClick={() => openEditIncident(inc)}
                       >
-                        <Pencil className="w-3 h-3" />詳細/編集
-                      </button>
+                        詳細/編集
+                      </Button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </Card>
         )
       ) : changes.length === 0 ? (
-        <div className="card text-center py-16 text-gray-400">
+        <Card className="text-center py-16 text-gray-400">
           <RefreshCw className="w-12 h-12 mx-auto mb-3" />
           <p className="text-lg font-medium">変更要求がありません</p>
-        </div>
+        </Card>
       ) : (
-        <div className="card p-0 overflow-hidden">
+        <Card padding="none" className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -281,292 +337,199 @@ export default function ItsmPage() {
                   <td className="px-4 py-3 font-medium max-w-xs truncate">{cr.title}</td>
                   <td className="px-4 py-3">{cr.change_type}</td>
                   <td className="px-4 py-3">
-                    <span className={RISK_BADGE[cr.risk_level] ?? "badge-info"}>
+                    <Badge variant={RISK_BADGE[cr.risk_level] ?? "info"} size="sm">
                       {RISK_LABEL[cr.risk_level] ?? cr.risk_level}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={STATUS_BADGE[cr.status] ?? "badge-info"}>
+                    <Badge variant={STATUS_BADGE[cr.status] ?? "info"} size="sm">
                       {STATUS_LABEL[cr.status] ?? cr.status}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors flex items-center gap-1"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={<Pencil className="w-3 h-3" />}
                       onClick={() => openEditChange(cr)}
                     >
-                      <Pencil className="w-3 h-3" />詳細/編集
-                    </button>
+                      詳細/編集
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">
-                {tab === "incidents" ? "インシデント新規作成" : "変更要求新規作成"}
-              </h3>
-              <button onClick={() => setShowModal(false)}>
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {tab === "incidents" ? (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
-                    <input type="text" className="input" value={incidentForm.title}
-                      onChange={(e) => setIncidentForm({ ...incidentForm, title: e.target.value })} required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">説明</label>
-                    <textarea className="input" rows={3} value={incidentForm.description}
-                      onChange={(e) => setIncidentForm({ ...incidentForm, description: e.target.value })} required />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
-                      <select className="input" value={incidentForm.category ?? "infrastructure"}
-                        onChange={(e) => setIncidentForm({ ...incidentForm, category: e.target.value })}>
-                        <option value="infrastructure">インフラ</option>
-                        <option value="application">アプリ</option>
-                        <option value="security">セキュリティ</option>
-                        <option value="other">その他</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">優先度</label>
-                      <select className="input" value={incidentForm.priority ?? "medium"}
-                        onChange={(e) => setIncidentForm({ ...incidentForm, priority: e.target.value })}>
-                        <option value="critical">緊急</option>
-                        <option value="high">高</option>
-                        <option value="medium">中</option>
-                        <option value="low">低</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">重大度</label>
-                    <select className="input" value={incidentForm.severity ?? "minor"}
-                      onChange={(e) => setIncidentForm({ ...incidentForm, severity: e.target.value })}>
-                      <option value="critical">重大</option>
-                      <option value="major">中度</option>
-                      <option value="minor">軽微</option>
-                    </select>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
-                    <input type="text" className="input" value={changeForm.title}
-                      onChange={(e) => setChangeForm({ ...changeForm, title: e.target.value })} required />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">説明</label>
-                    <textarea className="input" rows={3} value={changeForm.description}
-                      onChange={(e) => setChangeForm({ ...changeForm, description: e.target.value })} required />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">変更タイプ</label>
-                      <select className="input" value={changeForm.change_type ?? "normal"}
-                        onChange={(e) => setChangeForm({ ...changeForm, change_type: e.target.value })}>
-                        <option value="normal">標準</option>
-                        <option value="emergency">緊急</option>
-                        <option value="standard">定型</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">リスク</label>
-                      <select className="input" value={changeForm.risk_level ?? "medium"}
-                        onChange={(e) => setChangeForm({ ...changeForm, risk_level: e.target.value })}>
-                        <option value="high">高</option>
-                        <option value="medium">中</option>
-                        <option value="low">低</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">影響範囲</label>
-                    <textarea className="input" rows={2} value={changeForm.impact ?? ""}
-                      onChange={(e) => setChangeForm({ ...changeForm, impact: e.target.value })} />
-                  </div>
-                </>
-              )}
-              {isError && <p className="text-red-600 text-sm">作成に失敗しました。</p>}
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
-                  キャンセル
-                </button>
-                <button type="submit" className="btn-primary" disabled={isPending}>
-                  {isPending ? "作成中..." : "作成"}
-                </button>
+      {/* 新規作成モーダル */}
+      <Modal open={showModal} onClose={() => setShowModal(false)} title={tab === "incidents" ? "インシデント新規作成" : "変更要求新規作成"} size="md">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {tab === "incidents" ? (
+            <>
+              <FormField label="タイトル" htmlFor="inc-title" required>
+                <Input id="inc-title" value={incidentForm.title}
+                  onChange={(e) => setIncidentForm({ ...incidentForm, title: e.target.value })} required />
+              </FormField>
+              <FormField label="説明" htmlFor="inc-desc" required>
+                <Textarea id="inc-desc" rows={3} value={incidentForm.description}
+                  onChange={(e) => setIncidentForm({ ...incidentForm, description: e.target.value })} required />
+              </FormField>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="カテゴリ" htmlFor="inc-category">
+                  <Select id="inc-category" value={incidentForm.category ?? "infrastructure"}
+                    onChange={(e) => setIncidentForm({ ...incidentForm, category: e.target.value })}
+                    options={CATEGORY_OPTIONS} />
+                </FormField>
+                <FormField label="優先度" htmlFor="inc-priority">
+                  <Select id="inc-priority" value={incidentForm.priority ?? "medium"}
+                    onChange={(e) => setIncidentForm({ ...incidentForm, priority: e.target.value })}
+                    options={PRIORITY_OPTIONS} />
+                </FormField>
               </div>
-            </form>
+              <FormField label="重大度" htmlFor="inc-severity">
+                <Select id="inc-severity" value={incidentForm.severity ?? "minor"}
+                  onChange={(e) => setIncidentForm({ ...incidentForm, severity: e.target.value })}
+                  options={SEVERITY_OPTIONS} />
+              </FormField>
+            </>
+          ) : (
+            <>
+              <FormField label="タイトル" htmlFor="cr-title" required>
+                <Input id="cr-title" value={changeForm.title}
+                  onChange={(e) => setChangeForm({ ...changeForm, title: e.target.value })} required />
+              </FormField>
+              <FormField label="説明" htmlFor="cr-desc" required>
+                <Textarea id="cr-desc" rows={3} value={changeForm.description}
+                  onChange={(e) => setChangeForm({ ...changeForm, description: e.target.value })} required />
+              </FormField>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="変更タイプ" htmlFor="cr-type">
+                  <Select id="cr-type" value={changeForm.change_type ?? "normal"}
+                    onChange={(e) => setChangeForm({ ...changeForm, change_type: e.target.value })}
+                    options={CHANGE_TYPE_OPTIONS} />
+                </FormField>
+                <FormField label="リスク" htmlFor="cr-risk">
+                  <Select id="cr-risk" value={changeForm.risk_level ?? "medium"}
+                    onChange={(e) => setChangeForm({ ...changeForm, risk_level: e.target.value })}
+                    options={RISK_OPTIONS} />
+                </FormField>
+              </div>
+              <FormField label="影響範囲" htmlFor="cr-impact">
+                <Textarea id="cr-impact" rows={2} value={changeForm.impact ?? ""}
+                  onChange={(e) => setChangeForm({ ...changeForm, impact: e.target.value })} />
+              </FormField>
+            </>
+          )}
+          {isError && <p className="text-red-600 text-sm">作成に失敗しました。</p>}
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
+              キャンセル
+            </Button>
+            <Button type="submit" variant="primary" loading={isPending}>
+              {isPending ? "作成中..." : "作成"}
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
 
       {/* インシデント編集モーダル */}
-      {editingIncident && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">インシデント編集</h3>
-              <button onClick={() => setEditingIncident(null)}>
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <form onSubmit={(e) => { e.preventDefault(); updateIncidentMutation.mutate({ id: editingIncident.id, data: incidentEditForm }); }} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
-                <input type="text" className="input" value={incidentEditForm.title ?? ""}
-                  onChange={(e) => setIncidentEditForm({ ...incidentEditForm, title: e.target.value })} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">説明</label>
-                <textarea className="input" rows={3} value={incidentEditForm.description ?? ""}
-                  onChange={(e) => setIncidentEditForm({ ...incidentEditForm, description: e.target.value })} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
-                  <select className="input" value={incidentEditForm.category ?? "infrastructure"}
-                    onChange={(e) => setIncidentEditForm({ ...incidentEditForm, category: e.target.value })}>
-                    <option value="infrastructure">インフラ</option>
-                    <option value="application">アプリ</option>
-                    <option value="security">セキュリティ</option>
-                    <option value="other">その他</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">優先度</label>
-                  <select className="input" value={incidentEditForm.priority ?? "medium"}
-                    onChange={(e) => setIncidentEditForm({ ...incidentEditForm, priority: e.target.value })}>
-                    <option value="critical">緊急</option>
-                    <option value="high">高</option>
-                    <option value="medium">中</option>
-                    <option value="low">低</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">重大度</label>
-                  <select className="input" value={incidentEditForm.severity ?? "minor"}
-                    onChange={(e) => setIncidentEditForm({ ...incidentEditForm, severity: e.target.value })}>
-                    <option value="critical">重大</option>
-                    <option value="major">中度</option>
-                    <option value="minor">軽微</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
-                  <select className="input" value={incidentEditForm.status ?? "open"}
-                    onChange={(e) => setIncidentEditForm({ ...incidentEditForm, status: e.target.value })}>
-                    <option value="open">オープン</option>
-                    <option value="in_progress">対応中</option>
-                    <option value="resolved">解決済</option>
-                    <option value="closed">クローズ</option>
-                  </select>
-                </div>
-              </div>
-              {updateIncidentMutation.isError && (
-                <p className="text-red-600 text-sm">更新に失敗しました。</p>
-              )}
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => setEditingIncident(null)}>
-                  キャンセル
-                </button>
-                <button type="submit" className="btn-primary" disabled={updateIncidentMutation.isPending}>
-                  {updateIncidentMutation.isPending ? "更新中..." : "更新"}
-                </button>
-              </div>
-            </form>
+      <Modal open={!!editingIncident} onClose={() => setEditingIncident(null)} title="インシデント編集" size="md">
+        <form onSubmit={(e) => { e.preventDefault(); if (editingIncident) updateIncidentMutation.mutate({ id: editingIncident.id, data: incidentEditForm }); }} className="space-y-4">
+          <FormField label="タイトル" htmlFor="edit-inc-title" required>
+            <Input id="edit-inc-title" value={incidentEditForm.title ?? ""}
+              onChange={(e) => setIncidentEditForm({ ...incidentEditForm, title: e.target.value })} required />
+          </FormField>
+          <FormField label="説明" htmlFor="edit-inc-desc" required>
+            <Textarea id="edit-inc-desc" rows={3} value={incidentEditForm.description ?? ""}
+              onChange={(e) => setIncidentEditForm({ ...incidentEditForm, description: e.target.value })} required />
+          </FormField>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="カテゴリ" htmlFor="edit-inc-category">
+              <Select id="edit-inc-category" value={incidentEditForm.category ?? "infrastructure"}
+                onChange={(e) => setIncidentEditForm({ ...incidentEditForm, category: e.target.value })}
+                options={CATEGORY_OPTIONS} />
+            </FormField>
+            <FormField label="優先度" htmlFor="edit-inc-priority">
+              <Select id="edit-inc-priority" value={incidentEditForm.priority ?? "medium"}
+                onChange={(e) => setIncidentEditForm({ ...incidentEditForm, priority: e.target.value })}
+                options={PRIORITY_OPTIONS} />
+            </FormField>
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="重大度" htmlFor="edit-inc-severity">
+              <Select id="edit-inc-severity" value={incidentEditForm.severity ?? "minor"}
+                onChange={(e) => setIncidentEditForm({ ...incidentEditForm, severity: e.target.value })}
+                options={SEVERITY_OPTIONS} />
+            </FormField>
+            <FormField label="ステータス" htmlFor="edit-inc-status">
+              <Select id="edit-inc-status" value={incidentEditForm.status ?? "open"}
+                onChange={(e) => setIncidentEditForm({ ...incidentEditForm, status: e.target.value })}
+                options={INCIDENT_STATUS_OPTIONS} />
+            </FormField>
+          </div>
+          {updateIncidentMutation.isError && (
+            <p className="text-red-600 text-sm">更新に失敗しました。</p>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={() => setEditingIncident(null)}>
+              キャンセル
+            </Button>
+            <Button type="submit" variant="primary" loading={updateIncidentMutation.isPending}>
+              {updateIncidentMutation.isPending ? "更新中..." : "更新"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* 変更要求編集モーダル */}
-      {editingChange && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">変更要求編集</h3>
-              <button onClick={() => setEditingChange(null)}>
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <form onSubmit={(e) => { e.preventDefault(); updateChangeMutation.mutate({ id: editingChange.id, data: changeEditForm }); }} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
-                <input type="text" className="input" value={changeEditForm.title ?? ""}
-                  onChange={(e) => setChangeEditForm({ ...changeEditForm, title: e.target.value })} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">説明</label>
-                <textarea className="input" rows={3} value={changeEditForm.description ?? ""}
-                  onChange={(e) => setChangeEditForm({ ...changeEditForm, description: e.target.value })} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">変更タイプ</label>
-                  <select className="input" value={changeEditForm.change_type ?? "normal"}
-                    onChange={(e) => setChangeEditForm({ ...changeEditForm, change_type: e.target.value })}>
-                    <option value="normal">標準</option>
-                    <option value="emergency">緊急</option>
-                    <option value="standard">定型</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">リスク</label>
-                  <select className="input" value={changeEditForm.risk_level ?? "medium"}
-                    onChange={(e) => setChangeEditForm({ ...changeEditForm, risk_level: e.target.value })}>
-                    <option value="high">高</option>
-                    <option value="medium">中</option>
-                    <option value="low">低</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
-                  <select className="input" value={changeEditForm.status ?? "pending"}
-                    onChange={(e) => setChangeEditForm({ ...changeEditForm, status: e.target.value })}>
-                    <option value="pending">保留中</option>
-                    <option value="approved">承認済</option>
-                    <option value="rejected">却下</option>
-                    <option value="implemented">実施済</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">影響範囲</label>
-                <textarea className="input" rows={2} value={changeEditForm.impact ?? ""}
-                  onChange={(e) => setChangeEditForm({ ...changeEditForm, impact: e.target.value })} />
-              </div>
-              {updateChangeMutation.isError && (
-                <p className="text-red-600 text-sm">更新に失敗しました。</p>
-              )}
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => setEditingChange(null)}>
-                  キャンセル
-                </button>
-                <button type="submit" className="btn-primary" disabled={updateChangeMutation.isPending}>
-                  {updateChangeMutation.isPending ? "更新中..." : "更新"}
-                </button>
-              </div>
-            </form>
+      <Modal open={!!editingChange} onClose={() => setEditingChange(null)} title="変更要求編集" size="md">
+        <form onSubmit={(e) => { e.preventDefault(); if (editingChange) updateChangeMutation.mutate({ id: editingChange.id, data: changeEditForm }); }} className="space-y-4">
+          <FormField label="タイトル" htmlFor="edit-cr-title" required>
+            <Input id="edit-cr-title" value={changeEditForm.title ?? ""}
+              onChange={(e) => setChangeEditForm({ ...changeEditForm, title: e.target.value })} required />
+          </FormField>
+          <FormField label="説明" htmlFor="edit-cr-desc" required>
+            <Textarea id="edit-cr-desc" rows={3} value={changeEditForm.description ?? ""}
+              onChange={(e) => setChangeEditForm({ ...changeEditForm, description: e.target.value })} required />
+          </FormField>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="変更タイプ" htmlFor="edit-cr-type">
+              <Select id="edit-cr-type" value={changeEditForm.change_type ?? "normal"}
+                onChange={(e) => setChangeEditForm({ ...changeEditForm, change_type: e.target.value })}
+                options={CHANGE_TYPE_OPTIONS} />
+            </FormField>
+            <FormField label="リスク" htmlFor="edit-cr-risk">
+              <Select id="edit-cr-risk" value={changeEditForm.risk_level ?? "medium"}
+                onChange={(e) => setChangeEditForm({ ...changeEditForm, risk_level: e.target.value })}
+                options={RISK_OPTIONS} />
+            </FormField>
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="ステータス" htmlFor="edit-cr-status">
+              <Select id="edit-cr-status" value={changeEditForm.status ?? "pending"}
+                onChange={(e) => setChangeEditForm({ ...changeEditForm, status: e.target.value })}
+                options={CHANGE_STATUS_OPTIONS} />
+            </FormField>
+          </div>
+          <FormField label="影響範囲" htmlFor="edit-cr-impact">
+            <Textarea id="edit-cr-impact" rows={2} value={changeEditForm.impact ?? ""}
+              onChange={(e) => setChangeEditForm({ ...changeEditForm, impact: e.target.value })} />
+          </FormField>
+          {updateChangeMutation.isError && (
+            <p className="text-red-600 text-sm">更新に失敗しました。</p>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={() => setEditingChange(null)}>
+              キャンセル
+            </Button>
+            <Button type="submit" variant="primary" loading={updateChangeMutation.isPending}>
+              {updateChangeMutation.isPending ? "更新中..." : "更新"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

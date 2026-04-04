@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { projectsApi } from "@/api/projects";
 import { itsmApi } from "@/api/itsm";
 import { useAuthStore } from "@/stores/authStore";
-import { Skeleton, StatCard } from "@/components/ui";
+import { Badge, Button, Card, Skeleton, StatCard } from "@/components/ui";
 import { useDashboardKPI } from "@/api/dashboard";
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -33,42 +33,46 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 // ── StatusBadge ───────────────────────────────────────────────────────────────
+const STATUS_VARIANT: Record<string, "info" | "success" | "warning" | "danger"> = {
+  PLANNING: "info",
+  IN_PROGRESS: "success",
+  ON_HOLD: "warning",
+  COMPLETED: "info",
+  CANCELLED: "danger",
+};
+const STATUS_LABELS: Record<string, string> = {
+  PLANNING: "計画中",
+  IN_PROGRESS: "進行中",
+  ON_HOLD: "保留",
+  COMPLETED: "完了",
+  CANCELLED: "中止",
+};
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    PLANNING: "badge-info",
-    IN_PROGRESS: "badge-success",
-    ON_HOLD: "badge-warning",
-    COMPLETED: "badge-info",
-    CANCELLED: "badge-danger",
-  };
-  const labels: Record<string, string> = {
-    PLANNING: "計画中",
-    IN_PROGRESS: "進行中",
-    ON_HOLD: "保留",
-    COMPLETED: "完了",
-    CANCELLED: "中止",
-  };
   return (
-    <span className={map[status] ?? "badge-info"}>{labels[status] ?? status}</span>
+    <Badge variant={STATUS_VARIANT[status] ?? "info"} size="sm">
+      {STATUS_LABELS[status] ?? status}
+    </Badge>
   );
 }
 
 // ── IncidentStatusBadge ───────────────────────────────────────────────────────
+const INCIDENT_STATUS_VARIANT: Record<string, "danger" | "warning" | "success" | "info"> = {
+  OPEN: "danger",
+  IN_PROGRESS: "warning",
+  RESOLVED: "success",
+  CLOSED: "info",
+};
+const INCIDENT_STATUS_LABELS: Record<string, string> = {
+  OPEN: "未対応",
+  IN_PROGRESS: "対応中",
+  RESOLVED: "解決済",
+  CLOSED: "クローズ",
+};
 function IncidentStatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    OPEN: "badge-danger",
-    IN_PROGRESS: "badge-warning",
-    RESOLVED: "badge-success",
-    CLOSED: "badge-info",
-  };
-  const labels: Record<string, string> = {
-    OPEN: "未対応",
-    IN_PROGRESS: "対応中",
-    RESOLVED: "解決済",
-    CLOSED: "クローズ",
-  };
   return (
-    <span className={map[status] ?? "badge-info"}>{labels[status] ?? status}</span>
+    <Badge variant={INCIDENT_STATUS_VARIANT[status] ?? "info"} size="sm">
+      {INCIDENT_STATUS_LABELS[status] ?? status}
+    </Badge>
   );
 }
 
@@ -87,12 +91,14 @@ function QuickActionCard({
   return (
     <Link
       to={to}
-      className="card flex flex-col items-center gap-3 py-5 hover:shadow-md hover:scale-[1.02] transition-all text-center"
+      className="block"
     >
+    <Card className="flex flex-col items-center gap-3 py-5 hover:shadow-md hover:scale-[1.02] transition-all text-center">
       <div className={`p-3 rounded-full ${color}`}>
         <Icon className="w-6 h-6 text-white" />
       </div>
       <span className="text-sm font-medium text-gray-700">{label}</span>
+    </Card>
     </Link>
   );
 }
@@ -148,12 +154,9 @@ export default function DashboardPage() {
         ) : kpiError ? (
           <div className="col-span-full rounded-lg bg-red-50 border border-red-200 p-4 flex items-center justify-between">
             <p className="text-sm text-red-700">KPI データの取得に失敗しました</p>
-            <button
-              onClick={() => refetchKpi()}
-              className="text-sm text-red-700 underline hover:no-underline"
-            >
+            <Button variant="ghost" size="sm" onClick={() => refetchKpi()}>
               再試行
-            </button>
+            </Button>
           </div>
         ) : kpi ? (
           <>
@@ -208,7 +211,7 @@ export default function DashboardPage() {
       {/* Bottom Grid: Recent Projects + Recent Incidents */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Projects Table */}
-        <div className="card lg:col-span-2">
+        <Card className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">最近の工事案件</h3>
             <Link to="/projects" className="text-sm text-primary-600 hover:text-primary-700">
@@ -270,10 +273,10 @@ export default function DashboardPage() {
               <p className="text-sm">案件がありません</p>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Recent Incidents */}
-        <div className="card">
+        <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">最近のインシデント</h3>
             <Link to="/itsm" className="text-sm text-primary-600 hover:text-primary-700">
@@ -325,7 +328,7 @@ export default function DashboardPage() {
               <p className="text-sm">インシデントなし</p>
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

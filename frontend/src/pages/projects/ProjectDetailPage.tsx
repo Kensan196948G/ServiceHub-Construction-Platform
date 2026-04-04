@@ -3,8 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Building2, ClipboardList, FileText, ShieldCheck,
-  DollarSign, Image, Plus, X, Pencil, CheckCircle, XCircle, Trash2,
+  DollarSign, Image, Plus, Pencil, CheckCircle, XCircle, Trash2,
 } from "lucide-react";
+import { Badge, Button, Card, Modal, FormField, Input, Select, Textarea, Skeleton } from "@/components/ui";
 import { projectsApi, type Project, type ProjectCreate } from "@/api/projects";
 import { dailyReportsApi, type DailyReport, type DailyReportCreate } from "@/api/daily_reports";
 import { safetyApi, type SafetyCheck, type SafetyCheckCreate } from "@/api/safety";
@@ -15,12 +16,12 @@ const STATUS_LABELS: Record<string, string> = {
   PLANNING: "計画中", IN_PROGRESS: "進行中", COMPLETED: "完了",
   SUSPENDED: "保留", CANCELLED: "中止",
 };
-const STATUS_BADGE: Record<string, string> = {
-  PLANNING: "bg-blue-100 text-blue-700",
-  IN_PROGRESS: "bg-green-100 text-green-700",
-  COMPLETED: "bg-gray-100 text-gray-700",
-  SUSPENDED: "bg-yellow-100 text-yellow-700",
-  CANCELLED: "bg-red-100 text-red-700",
+const STATUS_BADGE_VARIANT: Record<string, "info" | "success" | "default" | "warning" | "danger"> = {
+  PLANNING: "info",
+  IN_PROGRESS: "success",
+  COMPLETED: "default",
+  SUSPENDED: "warning",
+  CANCELLED: "danger",
 };
 const WEATHER_LABELS: Record<string, string> = {
   SUNNY: "☀️ 晴れ", CLOUDY: "☁️ 曇り", RAINY: "🌧️ 雨", SNOWY: "❄️ 雪",
@@ -33,12 +34,12 @@ const PHOTO_CATEGORY_LABELS: Record<Photo["category"], string> = {
   GENERAL: "一般", PROGRESS: "工程", SAFETY: "安全",
   COMPLETION: "完了", TROUBLE: "障害",
 };
-const PHOTO_CATEGORY_COLORS: Record<Photo["category"], string> = {
-  GENERAL: "bg-gray-100 text-gray-700",
-  PROGRESS: "bg-blue-100 text-blue-700",
-  SAFETY: "bg-yellow-100 text-yellow-700",
-  COMPLETION: "bg-green-100 text-green-700",
-  TROUBLE: "bg-red-100 text-red-700",
+const PHOTO_CATEGORY_VARIANT: Record<Photo["category"], "default" | "info" | "warning" | "success" | "danger"> = {
+  GENERAL: "default",
+  PROGRESS: "info",
+  SAFETY: "warning",
+  COMPLETION: "success",
+  TROUBLE: "danger",
 };
 
 type TabKey = "info" | "reports" | "safety" | "cost" | "photos";
@@ -51,22 +52,6 @@ const TABS: TabDef[] = [
   { key: "cost",    label: "原価",         icon: <DollarSign className="w-4 h-4" /> },
   { key: "photos",  label: "写真",         icon: <Image className="w-4 h-4" /> },
 ];
-
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-5">{children}</div>
-      </div>
-    </div>
-  );
-}
 
 function InfoTab({ project, projectId }: { project: Project; projectId: string }) {
   const [editing, setEditing] = useState(false);
@@ -93,74 +78,70 @@ function InfoTab({ project, projectId }: { project: Project; projectId: string }
   };
 
   if (editing) {
+    const fieldLabels: Record<string, string> = {
+      project_code: "案件コード", name: "案件名", client_name: "施主名", site_address: "現場住所",
+    };
     return (
-      <div className="card space-y-4">
+      <Card className="space-y-4">
         <h4 className="font-semibold text-gray-900">基本情報を編集</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {(["project_code", "name", "client_name", "site_address"] as const).map((key) => (
-            <div key={key}>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                {{ project_code: "案件コード", name: "案件名", client_name: "施主名", site_address: "現場住所" }[key]}
-              </label>
-              <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            <FormField key={key} label={fieldLabels[key]} htmlFor={`edit-${key}`}>
+              <Input
+                id={`edit-${key}`}
                 value={(form[key] as string) ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
               />
-            </div>
+            </FormField>
           ))}
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">ステータス</label>
-            <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          <FormField label="ステータス" htmlFor="edit-status">
+            <Select
+              id="edit-status"
               value={form.status ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-            >
-              {Object.entries(STATUS_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">予算 (円)</label>
-            <input
+              options={Object.entries(STATUS_LABELS).map(([v, l]) => ({ value: v, label: l }))}
+            />
+          </FormField>
+          <FormField label="予算 (円)" htmlFor="edit-budget">
+            <Input
+              id="edit-budget"
               type="number"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               value={form.budget ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, budget: e.target.value ? Number(e.target.value) : undefined }))}
             />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">開始日</label>
-            <input type="date"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          </FormField>
+          <FormField label="開始日" htmlFor="edit-start-date">
+            <Input
+              id="edit-start-date"
+              type="date"
               value={form.start_date ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, start_date: e.target.value }))}
             />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">完了日</label>
-            <input type="date"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          </FormField>
+          <FormField label="完了日" htmlFor="edit-end-date">
+            <Input
+              id="edit-end-date"
+              type="date"
               value={form.end_date ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))}
             />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="block text-xs font-medium text-gray-500 mb-1">説明</label>
-            <textarea
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          </FormField>
+          <FormField label="説明" htmlFor="edit-description" className="sm:col-span-2">
+            <Textarea
+              id="edit-description"
               rows={3}
               value={form.description ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
-          </div>
+          </FormField>
         </div>
         <div className="flex gap-2 justify-end">
-          <button className="btn-secondary" onClick={() => setEditing(false)}>キャンセル</button>
-          <button className="btn-primary" disabled={mutation.isPending} onClick={() => mutation.mutate(form)}>
-            {mutation.isPending ? "保存中…" : "保存"}
-          </button>
+          <Button variant="secondary" onClick={() => setEditing(false)}>キャンセル</Button>
+          <Button variant="primary" loading={mutation.isPending} onClick={() => mutation.mutate(form)}>
+            保存
+          </Button>
         </div>
-      </div>
+      </Card>
     );
   }
 
@@ -175,17 +156,17 @@ function InfoTab({ project, projectId }: { project: Project; projectId: string }
   ];
 
   return (
-    <div className="card space-y-4">
+    <Card className="space-y-4">
       <div className="flex justify-between items-center">
         <h4 className="font-semibold text-gray-900">基本情報</h4>
-        <button className="btn-secondary flex items-center gap-1 text-sm" onClick={startEdit}>
-          <Pencil className="w-4 h-4" /> 編集
-        </button>
+        <Button variant="secondary" size="sm" leftIcon={<Pencil className="w-4 h-4" />} onClick={startEdit}>
+          編集
+        </Button>
       </div>
       <div>
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[project.status] ?? "bg-gray-100 text-gray-700"}`}>
+        <Badge variant={STATUS_BADGE_VARIANT[project.status] ?? "default"} size="sm">
           {STATUS_LABELS[project.status] ?? project.status}
-        </span>
+        </Badge>
       </div>
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
         {fields.map(({ label, value }) => (
@@ -195,7 +176,7 @@ function InfoTab({ project, projectId }: { project: Project; projectId: string }
           </div>
         ))}
       </dl>
-    </div>
+    </Card>
   );
 }
 
@@ -257,66 +238,68 @@ function ReportsTab({ projectId }: { projectId: string }) {
 
   const reports: DailyReport[] = data?.data ?? [];
 
+  const weatherOptions = Object.entries(WEATHER_LABELS).map(([v, l]) => ({ value: v, label: l }));
+
   const reportFormFields = (
     f: Partial<DailyReportCreate>,
-    setF: React.Dispatch<React.SetStateAction<Partial<DailyReportCreate>>>
+    setF: React.Dispatch<React.SetStateAction<Partial<DailyReportCreate>>>,
+    prefix: string,
   ) => (
     <>
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">日付 *</label>
-          <input type="date"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+        <FormField label="日付" htmlFor={`${prefix}-date`} required>
+          <Input
+            id={`${prefix}-date`}
+            type="date"
             value={f.report_date ?? ""}
             onChange={(e) => setF((prev) => ({ ...prev, report_date: e.target.value }))}
           />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">天気</label>
-          <select
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+        </FormField>
+        <FormField label="天気" htmlFor={`${prefix}-weather`}>
+          <Select
+            id={`${prefix}-weather`}
             value={f.weather ?? ""}
             onChange={(e) => setF((prev) => ({ ...prev, weather: e.target.value || undefined }))}
-          >
-            <option value="">選択</option>
-            {Object.entries(WEATHER_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">作業員数</label>
-          <input type="number" min={0}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            options={weatherOptions}
+            placeholder="選択"
+          />
+        </FormField>
+        <FormField label="作業員数" htmlFor={`${prefix}-workers`}>
+          <Input
+            id={`${prefix}-workers`}
+            type="number"
+            min={0}
             value={f.worker_count ?? ""}
             onChange={(e) => setF((prev) => ({ ...prev, worker_count: Number(e.target.value) }))}
           />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">進捗率 (%)</label>
-          <input type="number" min={0} max={100}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+        </FormField>
+        <FormField label="進捗率 (%)" htmlFor={`${prefix}-progress`}>
+          <Input
+            id={`${prefix}-progress`}
+            type="number"
+            min={0}
+            max={100}
             value={f.progress_rate ?? ""}
             onChange={(e) => setF((prev) => ({ ...prev, progress_rate: e.target.value ? Number(e.target.value) : undefined }))}
           />
-        </div>
+        </FormField>
       </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">作業内容</label>
-        <textarea
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+      <FormField label="作業内容" htmlFor={`${prefix}-content`}>
+        <Textarea
+          id={`${prefix}-content`}
           rows={3}
           value={f.work_content ?? ""}
           onChange={(e) => setF((prev) => ({ ...prev, work_content: e.target.value || undefined }))}
         />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">課題・特記事項</label>
-        <textarea
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+      </FormField>
+      <FormField label="課題・特記事項" htmlFor={`${prefix}-issues`}>
+        <Textarea
+          id={`${prefix}-issues`}
           rows={2}
           value={f.issues ?? ""}
           onChange={(e) => setF((prev) => ({ ...prev, issues: e.target.value || undefined }))}
         />
-      </div>
+      </FormField>
     </>
   );
 
@@ -324,23 +307,27 @@ function ReportsTab({ projectId }: { projectId: string }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h4 className="font-semibold text-gray-900">日報一覧</h4>
-        <button className="btn-primary flex items-center gap-1 text-sm" onClick={() => setOpen(true)}>
-          <Plus className="w-4 h-4" /> 新規作成
-        </button>
+        <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setOpen(true)}>
+          新規作成
+        </Button>
       </div>
 
       {isLoading ? (
-        <p className="text-center text-gray-400 py-8">読み込み中…</p>
+        <Card className="space-y-3">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </Card>
       ) : reports.length === 0 ? (
-        <div className="card text-center py-12">
+        <Card className="text-center py-12">
           <p className="text-4xl mb-3">📋</p>
           <p className="text-gray-500 mb-4">日報がまだありません</p>
-          <button className="btn-primary text-sm" onClick={() => setOpen(true)}>追加する</button>
-        </div>
+          <Button variant="primary" size="sm" onClick={() => setOpen(true)}>追加する</Button>
+        </Card>
       ) : (
         <div className="space-y-3">
           {reports.map((r) => (
-            <div key={r.id} className="card hover:shadow-md transition-shadow">
+            <Card key={r.id} className="hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900">{r.report_date}</p>
@@ -384,40 +371,36 @@ function ReportsTab({ projectId }: { projectId: string }) {
                   <p className="text-sm text-yellow-800 mt-0.5">{r.issues}</p>
                 </div>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       )}
 
-      {open && (
-        <Modal title="日報を作成" onClose={() => setOpen(false)}>
-          <div className="space-y-4">
-            {reportFormFields(form, setForm as React.Dispatch<React.SetStateAction<Partial<DailyReportCreate>>>)}
-            <div className="flex gap-2 justify-end">
-              <button className="btn-secondary" onClick={() => setOpen(false)}>キャンセル</button>
-              <button className="btn-primary" disabled={mutation.isPending || !form.report_date}
-                onClick={() => mutation.mutate(form)}>
-                {mutation.isPending ? "保存中…" : "作成"}
-              </button>
-            </div>
+      <Modal open={open} onClose={() => setOpen(false)} title="日報を作成">
+        <div className="space-y-4">
+          {reportFormFields(form, setForm as React.Dispatch<React.SetStateAction<Partial<DailyReportCreate>>>, "create-report")}
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setOpen(false)}>キャンセル</Button>
+            <Button variant="primary" loading={mutation.isPending} disabled={!form.report_date}
+              onClick={() => mutation.mutate(form)}>
+              作成
+            </Button>
           </div>
-        </Modal>
-      )}
+        </div>
+      </Modal>
 
-      {editReport && (
-        <Modal title="日報を編集" onClose={() => setEditReport(null)}>
-          <div className="space-y-4">
-            {reportFormFields(editForm, setEditForm)}
-            <div className="flex gap-2 justify-end">
-              <button className="btn-secondary" onClick={() => setEditReport(null)}>キャンセル</button>
-              <button className="btn-primary" disabled={updateMutation.isPending || !editForm.report_date}
-                onClick={() => updateMutation.mutate({ id: editReport.id, data: editForm })}>
-                {updateMutation.isPending ? "保存中…" : "保存"}
-              </button>
-            </div>
+      <Modal open={!!editReport} onClose={() => setEditReport(null)} title="日報を編集">
+        <div className="space-y-4">
+          {reportFormFields(editForm, setEditForm, "edit-report")}
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setEditReport(null)}>キャンセル</Button>
+            <Button variant="primary" loading={updateMutation.isPending} disabled={!editForm.report_date}
+              onClick={() => editReport && updateMutation.mutate({ id: editReport.id, data: editForm })}>
+              保存
+            </Button>
           </div>
-        </Modal>
-      )}
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -458,28 +441,32 @@ function SafetyTab({ projectId }: { projectId: string }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h4 className="font-semibold text-gray-900">安全チェック一覧</h4>
-        <button className="btn-primary flex items-center gap-1 text-sm" onClick={() => setOpen(true)}>
-          <Plus className="w-4 h-4" /> 新規作成
-        </button>
+        <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setOpen(true)}>
+          新規作成
+        </Button>
       </div>
 
       {isLoading ? (
-        <p className="text-center text-gray-400 py-8">読み込み中…</p>
+        <Card className="space-y-3">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </Card>
       ) : checks.length === 0 ? (
-        <div className="card text-center py-12">
+        <Card className="text-center py-12">
           <p className="text-4xl mb-3">🦺</p>
           <p className="text-gray-500 mb-4">安全チェックがまだありません</p>
-          <button className="btn-primary text-sm" onClick={() => setOpen(true)}>追加する</button>
-        </div>
+          <Button variant="primary" size="sm" onClick={() => setOpen(true)}>追加する</Button>
+        </Card>
       ) : (
         <div className="space-y-3">
           {checks.map((c) => (
-            <div key={c.id} className="card hover:shadow-md transition-shadow">
+            <Card key={c.id} className="hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-gray-900">{c.check_date}</p>
-                    <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">{c.check_type}</span>
+                    <Badge variant="info" size="sm">{c.check_type}</Badge>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">
                     全{c.items_total}項目 ／ OK: {c.items_ok} ／ NG: {c.items_ng}
@@ -502,88 +489,87 @@ function SafetyTab({ projectId }: { projectId: string }) {
                   </button>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}
 
-      {open && (
-        <Modal title="安全チェックを作成" onClose={() => setOpen(false)}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">チェック日 *</label>
-                <input type="date"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.check_date}
-                  onChange={(e) => setForm((f) => ({ ...f, check_date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">チェック種別</label>
-                <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="例: 朝礼前点検"
-                  value={form.check_type ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, check_type: e.target.value || undefined }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">総項目数</label>
-                <input type="number" min={0}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.items_total ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, items_total: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">OK項目数</label>
-                <input type="number" min={0}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.items_ok ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, items_ok: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">NG項目数</label>
-                <input type="number" min={0}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.items_ng ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, items_ng: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">総合判定</label>
-                <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.overall_result ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, overall_result: e.target.value || undefined }))}
-                >
-                  <option value="">選択</option>
-                  <option value="PASS">合格 (PASS)</option>
-                  <option value="FAIL">不合格 (FAIL)</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">備考</label>
-              <textarea
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                rows={2}
-                value={form.notes ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value || undefined }))}
+      <Modal open={open} onClose={() => setOpen(false)} title="安全チェックを作成" size="lg">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="チェック日" htmlFor="safety-date" required>
+              <Input
+                id="safety-date"
+                type="date"
+                value={form.check_date}
+                onChange={(e) => setForm((f) => ({ ...f, check_date: e.target.value }))}
               />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button className="btn-secondary" onClick={() => setOpen(false)}>キャンセル</button>
-              <button className="btn-primary" disabled={mutation.isPending || !form.check_date}
-                onClick={() => mutation.mutate(form)}>
-                {mutation.isPending ? "保存中…" : "作成"}
-              </button>
-            </div>
+            </FormField>
+            <FormField label="チェック種別" htmlFor="safety-type">
+              <Input
+                id="safety-type"
+                placeholder="例: 朝礼前点検"
+                value={form.check_type ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, check_type: e.target.value || undefined }))}
+              />
+            </FormField>
+            <FormField label="総項目数" htmlFor="safety-total">
+              <Input
+                id="safety-total"
+                type="number"
+                min={0}
+                value={form.items_total ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, items_total: e.target.value ? Number(e.target.value) : undefined }))}
+              />
+            </FormField>
+            <FormField label="OK項目数" htmlFor="safety-ok">
+              <Input
+                id="safety-ok"
+                type="number"
+                min={0}
+                value={form.items_ok ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, items_ok: e.target.value ? Number(e.target.value) : undefined }))}
+              />
+            </FormField>
+            <FormField label="NG項目数" htmlFor="safety-ng">
+              <Input
+                id="safety-ng"
+                type="number"
+                min={0}
+                value={form.items_ng ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, items_ng: e.target.value ? Number(e.target.value) : undefined }))}
+              />
+            </FormField>
+            <FormField label="総合判定" htmlFor="safety-result">
+              <Select
+                id="safety-result"
+                value={form.overall_result ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, overall_result: e.target.value || undefined }))}
+                options={[
+                  { value: "PASS", label: "合格 (PASS)" },
+                  { value: "FAIL", label: "不合格 (FAIL)" },
+                ]}
+                placeholder="選択"
+              />
+            </FormField>
           </div>
-        </Modal>
-      )}
+          <FormField label="備考" htmlFor="safety-notes">
+            <Textarea
+              id="safety-notes"
+              rows={2}
+              value={form.notes ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value || undefined }))}
+            />
+          </FormField>
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setOpen(false)}>キャンセル</Button>
+            <Button variant="primary" loading={mutation.isPending} disabled={!form.check_date}
+              onClick={() => mutation.mutate(form)}>
+              作成
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -634,9 +620,9 @@ function CostTab({ projectId }: { projectId: string }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h4 className="font-semibold text-gray-900">原価管理</h4>
-        <button className="btn-primary flex items-center gap-1 text-sm" onClick={() => setOpen(true)}>
-          <Plus className="w-4 h-4" /> 新規作成
-        </button>
+        <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setOpen(true)}>
+          新規作成
+        </Button>
       </div>
 
       {summary && (
@@ -647,136 +633,138 @@ function CostTab({ projectId }: { projectId: string }) {
             { label: "差異", value: `¥${summary.variance.toLocaleString()}`, color: summary.variance >= 0 ? "text-green-600" : "text-red-600" },
             { label: "差異率", value: `${summary.variance_rate.toFixed(1)}%`, color: summary.variance_rate >= 0 ? "text-green-600" : "text-red-600" },
           ].map(({ label, value, color }) => (
-            <div key={label} className="card text-center py-3">
+            <Card key={label} className="text-center py-3">
               <p className="text-xs text-gray-500">{label}</p>
               <p className={`text-lg font-bold mt-1 ${color}`}>{value}</p>
-            </div>
+            </Card>
           ))}
         </div>
       )}
 
       {isLoading ? (
-        <p className="text-center text-gray-400 py-8">読み込み中…</p>
+        <Card className="space-y-3">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </Card>
       ) : records.length === 0 ? (
-        <div className="card text-center py-12">
+        <Card className="text-center py-12">
           <p className="text-4xl mb-3">💰</p>
           <p className="text-gray-500 mb-4">原価記録がまだありません</p>
-          <button className="btn-primary text-sm" onClick={() => setOpen(true)}>追加する</button>
-        </div>
+          <Button variant="primary" size="sm" onClick={() => setOpen(true)}>追加する</Button>
+        </Card>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">日付</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">カテゴリ</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">内容</th>
-                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">予算</th>
-                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">実績</th>
-                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">差異</th>
-                <th className="py-2 px-3 text-xs font-medium text-gray-500"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((r) => {
-                const diff = r.budgeted_amount - r.actual_amount;
-                return (
-                  <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-2 px-3 text-gray-600">{r.record_date}</td>
-                    <td className="py-2 px-3">
-                      <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
-                        {COST_CATEGORY_LABELS[r.category] ?? r.category}
-                      </span>
-                    </td>
-                    <td className="py-2 px-3 text-gray-800 max-w-xs truncate">{r.description}</td>
-                    <td className="py-2 px-3 text-right text-gray-600">¥{r.budgeted_amount.toLocaleString()}</td>
-                    <td className="py-2 px-3 text-right text-gray-600">¥{r.actual_amount.toLocaleString()}</td>
-                    <td className={`py-2 px-3 text-right font-medium ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
-                      {diff >= 0 ? "+" : ""}¥{diff.toLocaleString()}
-                    </td>
-                    <td className="py-2 px-3 text-center">
-                      <button
-                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                        onClick={() => handleDelete(r)}
-                        title="削除"
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <Card padding="none">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">日付</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">カテゴリ</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">内容</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">予算</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">実績</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">差異</th>
+                  <th className="py-2 px-3 text-xs font-medium text-gray-500"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((r) => {
+                  const diff = r.budgeted_amount - r.actual_amount;
+                  return (
+                    <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="py-2 px-3 text-gray-600">{r.record_date}</td>
+                      <td className="py-2 px-3">
+                        <Badge variant="info" size="sm">
+                          {COST_CATEGORY_LABELS[r.category] ?? r.category}
+                        </Badge>
+                      </td>
+                      <td className="py-2 px-3 text-gray-800 max-w-xs truncate">{r.description}</td>
+                      <td className="py-2 px-3 text-right text-gray-600">¥{r.budgeted_amount.toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right text-gray-600">¥{r.actual_amount.toLocaleString()}</td>
+                      <td className={`py-2 px-3 text-right font-medium ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {diff >= 0 ? "+" : ""}¥{diff.toLocaleString()}
+                      </td>
+                      <td className="py-2 px-3 text-center">
+                        <button
+                          className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          onClick={() => handleDelete(r)}
+                          title="削除"
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
 
-      {open && (
-        <Modal title="原価を記録" onClose={() => setOpen(false)}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">日付 *</label>
-                <input type="date"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.record_date}
-                  onChange={(e) => setForm((f) => ({ ...f, record_date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">カテゴリ *</label>
-                <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                >
-                  {Object.entries(COST_CATEGORY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-500 mb-1">内容 *</label>
-                <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">予算額 (円)</label>
-                <input type="number" min={0}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.budgeted_amount ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, budgeted_amount: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">実績額 (円)</label>
-                <input type="number" min={0}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.actual_amount ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, actual_amount: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-500 mb-1">仕入先</label>
-                <input
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={form.vendor_name ?? ""}
-                  onChange={(e) => setForm((f) => ({ ...f, vendor_name: e.target.value || undefined }))}
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button className="btn-secondary" onClick={() => setOpen(false)}>キャンセル</button>
-              <button className="btn-primary" disabled={mutation.isPending || !form.record_date || !form.description}
-                onClick={() => mutation.mutate(form)}>
-                {mutation.isPending ? "保存中…" : "作成"}
-              </button>
-            </div>
+      <Modal open={open} onClose={() => setOpen(false)} title="原価を記録" size="lg">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="日付" htmlFor="cost-date" required>
+              <Input
+                id="cost-date"
+                type="date"
+                value={form.record_date}
+                onChange={(e) => setForm((f) => ({ ...f, record_date: e.target.value }))}
+              />
+            </FormField>
+            <FormField label="カテゴリ" htmlFor="cost-category" required>
+              <Select
+                id="cost-category"
+                value={form.category}
+                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                options={Object.entries(COST_CATEGORY_LABELS).map(([v, l]) => ({ value: v, label: l }))}
+              />
+            </FormField>
+            <FormField label="内容" htmlFor="cost-description" required className="col-span-2">
+              <Input
+                id="cost-description"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              />
+            </FormField>
+            <FormField label="予算額 (円)" htmlFor="cost-budget">
+              <Input
+                id="cost-budget"
+                type="number"
+                min={0}
+                value={form.budgeted_amount ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, budgeted_amount: e.target.value ? Number(e.target.value) : undefined }))}
+              />
+            </FormField>
+            <FormField label="実績額 (円)" htmlFor="cost-actual">
+              <Input
+                id="cost-actual"
+                type="number"
+                min={0}
+                value={form.actual_amount ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, actual_amount: e.target.value ? Number(e.target.value) : undefined }))}
+              />
+            </FormField>
+            <FormField label="仕入先" htmlFor="cost-vendor" className="col-span-2">
+              <Input
+                id="cost-vendor"
+                value={form.vendor_name ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, vendor_name: e.target.value || undefined }))}
+              />
+            </FormField>
           </div>
-        </Modal>
-      )}
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setOpen(false)}>キャンセル</Button>
+            <Button variant="primary" loading={mutation.isPending} disabled={!form.record_date || !form.description}
+              onClick={() => mutation.mutate(form)}>
+              作成
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -821,21 +809,22 @@ function PhotosTab({ projectId }: { projectId: string }) {
     }
   };
 
+  const photoCategoryOptions = (Object.keys(PHOTO_CATEGORY_LABELS) as Photo["category"][]).map(
+    (c) => ({ value: c, label: PHOTO_CATEGORY_LABELS[c] })
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap justify-between items-center gap-2">
         <h4 className="font-semibold text-gray-900">写真一覧</h4>
         <div className="flex items-center gap-2">
-          <select
-            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          <Select
             value={category}
             onChange={(e) => setCategory(e.target.value as Photo["category"])}
-          >
-            {(Object.keys(PHOTO_CATEGORY_LABELS) as Photo["category"][]).map((c) => (
-              <option key={c} value={c}>{PHOTO_CATEGORY_LABELS[c]}</option>
-            ))}
-          </select>
-          <label className="btn-primary flex items-center gap-1 text-sm cursor-pointer">
+            options={photoCategoryOptions}
+            className="py-1.5"
+          />
+          <label className="inline-flex items-center justify-center rounded-md font-medium transition-colors bg-primary-600 text-white hover:bg-primary-700 h-8 px-3 text-sm cursor-pointer gap-1">
             <Plus className="w-4 h-4" />
             {uploading ? "アップロード中…" : "写真を追加"}
             <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
@@ -846,16 +835,20 @@ function PhotosTab({ projectId }: { projectId: string }) {
       {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
       {isLoading ? (
-        <p className="text-center text-gray-400 py-8">読み込み中…</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="aspect-square rounded-xl" />
+          ))}
+        </div>
       ) : photos.length === 0 ? (
-        <div className="card text-center py-12">
+        <Card className="text-center py-12">
           <p className="text-4xl mb-3">🖼️</p>
           <p className="text-gray-500 mb-4">写真がまだありません</p>
-          <label className="btn-primary text-sm cursor-pointer">
+          <label className="inline-flex items-center justify-center rounded-md font-medium transition-colors bg-primary-600 text-white hover:bg-primary-700 h-8 px-3 text-sm cursor-pointer">
             追加する
             <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
           </label>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {photos.map((p) => (
@@ -879,9 +872,9 @@ function PhotosTab({ projectId }: { projectId: string }) {
                   </button>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-2">
-                  <span className={`text-xs px-1.5 py-0.5 rounded ${PHOTO_CATEGORY_COLORS[p.category]}`}>
+                  <Badge variant={PHOTO_CATEGORY_VARIANT[p.category]} size="sm">
                     {PHOTO_CATEGORY_LABELS[p.category]}
-                  </span>
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -903,10 +896,15 @@ export default function ProjectDetailPage() {
   });
 
   if (isLoading) {
-    return <div className="card text-center py-12 text-gray-400">読み込み中…</div>;
+    return (
+      <Card className="text-center py-12">
+        <Skeleton className="h-8 w-48 mx-auto mb-4" />
+        <Skeleton className="h-4 w-32 mx-auto" />
+      </Card>
+    );
   }
   if (!project || !id) {
-    return <div className="card text-center py-12 text-red-400">案件が見つかりません</div>;
+    return <Card className="text-center py-12 text-red-400">案件が見つかりません</Card>;
   }
 
   return (

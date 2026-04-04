@@ -185,7 +185,20 @@ export async function setupAllApiMocks(page: Page): Promise<void> {
   })
 
   // Mock incidents for ITSM page
-  await page.route('**/api/v1/incidents**', (route) => {
+  await page.route('**/api/v1/itsm/incidents**', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: [],
+        meta: { page: 1, per_page: 20, total: 0 },
+      }),
+    })
+  })
+
+  // Mock change requests for ITSM page
+  await page.route('**/api/v1/itsm/changes**', (route) => {
     route.fulfill({
       status: 200,
       contentType: 'application/json',

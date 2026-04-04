@@ -100,10 +100,11 @@ graph TB
 | :--- | :--- |
 | 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
 | 🧪 Frontend テスト | **199 件**（vitest / 32 テストファイル / coverage 79%） |
-| 🎭 E2E テスト | **31 件**（Playwright / 10 テストファイル） |
-| 📊 総テスト数 | **415 件**（Backend + Frontend + E2E） |
+| 🎭 E2E テスト | **51 件**（Playwright / 14 テストファイル） |
+| 📊 総テスト数 | **435 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
 | 🧩 共通 UI コンポーネント | **9 種**（Badge / Button / Card / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
+| 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
 | 🔗 API エンドポイント | **47 エンドポイント**（KPI API 追加） |
 | 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
 | 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
@@ -172,7 +173,11 @@ graph LR
 | `itsm.spec.ts` | 3 | ITSM 見出し・インシデント管理・変更要求管理 |
 | `knowledge.spec.ts` | 2 | ナレッジ見出し・記事一覧 |
 | `users.spec.ts` | 3 | ユーザー見出し・一覧・ロール |
-| **合計** | **31** | **全11ページ E2E カバー完了** |
+| `projects-crud.spec.ts` | 3 | モーダル開閉・フォーム入力・詳細リンク・一覧表示 |
+| `itsm-crud.spec.ts` | 5 | インシデント一覧・バッジ・作成モーダル・編集モーダル・タブ切替 |
+| `cost-crud.spec.ts` | 5 | プロジェクト選択・原価一覧・サマリー・作成モーダル・カテゴリバッジ |
+| `knowledge-crud.spec.ts` | 7 | 記事一覧・カテゴリバッジ・非公開バッジ・作成・詳細・AI検索・フィルタ |
+| **合計** | **51** | **全11ページ E2E + CRUD + AI検索** |
 
 ---
 
@@ -185,9 +190,9 @@ gantt
     section Phase 1: 基盤安定化
     Sprint 1 Day 1 (3層構造)    :done, s1d1, 2026-04-03, 1d
     Sprint 1 Day 2 (CI修復)     :done, s1d2, 2026-04-04, 1d
-    Sprint 1 Day 3 (E2E+UI)     :active, s1d3, 2026-04-04, 1d
+    Sprint 1 Day 3 (E2E+UI)     :done, s1d3, 2026-04-04, 1d
     section Phase 2: 機能強化
-    他ページ共通コンポーネント化  :s2a, 2026-04-05, 7d
+    共通UIコンポーネント統一     :done, s2a, 2026-04-05, 1d
     E2E テスト拡充（CRUD）       :s2b, 2026-04-05, 7d
     section Phase 3: UX改善
     フォームUI・バリデーション    :s3, 2026-04-12, 14d
