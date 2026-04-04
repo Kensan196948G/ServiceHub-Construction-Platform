@@ -7,6 +7,7 @@ import {
   QualityInspectionCreate,
 } from "@/api/safety";
 import { projectsApi } from "@/api/projects";
+import { Badge, Button, Card, Skeleton } from "@/components/ui";
 
 type Tab = "checks" | "inspections";
 
@@ -22,13 +23,15 @@ const CHECK_TYPE_LABEL: Record<string, string> = {
   MONTHLY: "月次",
 };
 
-const RESULT_BADGE: Record<string, string> = {
-  合格: "badge-success",
-  pass: "badge-success",
-  OK: "badge-success",
-  不合格: "badge-danger",
-  fail: "badge-danger",
-  NG: "badge-danger",
+type BadgeVariant = "success" | "danger" | "info";
+
+const RESULT_VARIANT: Record<string, BadgeVariant> = {
+  合格: "success",
+  pass: "success",
+  OK: "success",
+  不合格: "danger",
+  fail: "danger",
+  NG: "danger",
 };
 
 export default function SafetyPage() {
@@ -167,17 +170,16 @@ export default function SafetyPage() {
           <HardHat className="w-7 h-7 text-primary-600" />
           安全品質管理
         </h2>
-        <button
-          className="btn-primary"
+        <Button
+          leftIcon={<Plus className="w-4 h-4" />}
           onClick={openModal}
           disabled={!selectedProjectId}
         >
-          <Plus className="w-4 h-4 mr-1" />
           新規作成
-        </button>
+        </Button>
       </div>
 
-      <div className="card">
+      <Card>
         <label className="block text-sm font-medium text-gray-700 mb-1">プロジェクト選択</label>
         <select
           className="input w-64"
@@ -191,7 +193,7 @@ export default function SafetyPage() {
             </option>
           ))}
         </select>
-      </div>
+      </Card>
 
       <div className="flex gap-1 border-b border-gray-200">
         {(["checks", "inspections"] as Tab[]).map((t) => (
@@ -214,20 +216,22 @@ export default function SafetyPage() {
       </div>
 
       {!selectedProjectId ? (
-        <div className="card text-center py-16 text-gray-400">
+        <Card className="text-center py-16 text-gray-400">
           <HardHat className="w-12 h-12 mx-auto mb-3" />
           <p className="text-lg font-medium">プロジェクトを選択してください</p>
-        </div>
+        </Card>
       ) : isLoading ? (
-        <div className="card text-center py-16 text-gray-400">読み込み中...</div>
+        <Card className="space-y-3">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+        </Card>
       ) : tab === "checks" ? (
         checks.length === 0 ? (
-          <div className="card text-center py-16 text-gray-400">
+          <Card className="text-center py-16 text-gray-400">
             <CheckCircle className="w-12 h-12 mx-auto mb-3" />
             <p className="text-lg font-medium">安全チェックデータがありません</p>
-          </div>
+          </Card>
         ) : (
-          <div className="card p-0 overflow-hidden">
+          <Card padding="none" className="overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -249,16 +253,16 @@ export default function SafetyPage() {
                       >
                         <td className="px-4 py-3">{c.check_date}</td>
                         <td className="px-4 py-3">
-                          <span className="badge-info">
+                          <Badge variant="info" size="sm">
                             {CHECK_TYPE_LABEL[c.check_type] ?? c.check_type}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="px-4 py-3 text-green-700 font-medium">{c.items_ok}</td>
                         <td className="px-4 py-3 text-red-600 font-medium">{c.items_ng}</td>
                         <td className="px-4 py-3">
-                          <span className={RESULT_BADGE[c.overall_result] ?? "badge-info"}>
+                          <Badge variant={RESULT_VARIANT[c.overall_result] ?? "info"} size="sm">
                             {c.overall_result}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="px-4 py-3">
                           <button
@@ -308,15 +312,15 @@ export default function SafetyPage() {
                 })}
               </tbody>
             </table>
-          </div>
+          </Card>
         )
       ) : inspections.length === 0 ? (
-        <div className="card text-center py-16 text-gray-400">
+        <Card className="text-center py-16 text-gray-400">
           <FlaskConical className="w-12 h-12 mx-auto mb-3" />
           <p className="text-lg font-medium">品質検査データがありません</p>
-        </div>
+        </Card>
       ) : (
-        <div className="card p-0 overflow-hidden">
+        <Card padding="none" className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -333,7 +337,9 @@ export default function SafetyPage() {
                   <td className="px-4 py-3">{i.target_item}</td>
                   <td className="px-4 py-3">{i.measured_value ?? "—"}</td>
                   <td className="px-4 py-3">
-                    <span className={RESULT_BADGE[i.result] ?? "badge-info"}>{i.result}</span>
+                    <Badge variant={RESULT_VARIANT[i.result] ?? "info"} size="sm">
+                      {i.result}
+                    </Badge>
                   </td>
                   <td className="px-4 py-3">
                     <button
@@ -348,7 +354,7 @@ export default function SafetyPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
 
       {showModal && (
@@ -451,12 +457,12 @@ export default function SafetyPage() {
               )}
               {isError && <p className="text-red-600 text-sm">作成に失敗しました。</p>}
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
                   キャンセル
-                </button>
-                <button type="submit" className="btn-primary" disabled={isPending}>
-                  {isPending ? "作成中..." : "作成"}
-                </button>
+                </Button>
+                <Button type="submit" loading={isPending}>
+                  作成
+                </Button>
               </div>
             </form>
           </div>
