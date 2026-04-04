@@ -7,7 +7,7 @@ import {
   QualityInspectionCreate,
 } from "@/api/safety";
 import { projectsApi } from "@/api/projects";
-import { Badge, Button, Card, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, ErrorText, Skeleton } from "@/components/ui";
 
 type Tab = "checks" | "inspections";
 
@@ -455,7 +455,7 @@ export default function SafetyPage() {
                   </div>
                 </>
               )}
-              {isError && <p className="text-red-600 text-sm">作成に失敗しました。</p>}
+              {isError && <ErrorText message="作成に失敗しました。" />}
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
                   キャンセル

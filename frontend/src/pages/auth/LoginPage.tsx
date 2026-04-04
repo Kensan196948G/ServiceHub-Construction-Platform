@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { HardHat } from "lucide-react";
 import { authApi } from "@/api/auth";
 import { useAuthStore } from "@/stores/authStore";
-import { Button, Card, FormField, Input } from "@/components/ui";
+import { Button, Card, ErrorBanner, FormField, Input } from "@/components/ui";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -47,9 +47,7 @@ export default function LoginPage() {
         <Card className="mt-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-                {error}
-              </div>
+              <ErrorBanner>{error}</ErrorBanner>
             )}
 
             <div className="space-y-4">

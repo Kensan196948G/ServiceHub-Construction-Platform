@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, Plus, Search, Sparkles, Eye, Star, Pencil, Trash2 } from "lucide-react";
 import { knowledgeApi, KnowledgeArticleCreate, KnowledgeArticle } from "@/api/knowledge";
-import { Badge, Button, Card, Modal, FormField, Input, Select, Textarea, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, ErrorBanner, ErrorText, Modal, FormField, Input, Select, Textarea, Skeleton } from "@/components/ui";
 
 const CATEGORIES = ["全て", "SAFETY", "QUALITY", "COST", "TECHNICAL", "PROCEDURE", "GENERAL"] as const;
 const CATEGORY_LABEL: Record<string, string> = {
@@ -181,9 +181,7 @@ export default function KnowledgePage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
-          データの取得に失敗しました。
-        </div>
+        <ErrorBanner />
       )}
 
       {isLoading ? (
@@ -321,7 +319,7 @@ export default function KnowledgePage() {
                     <label htmlFor="edit_is_published" className="text-sm font-medium text-gray-700">公開する</label>
                   </div>
                   {updateMutation.isError && (
-                    <p className="text-red-600 text-sm">保存に失敗しました。</p>
+                    <ErrorText message="保存に失敗しました。" />
                   )}
                 </div>
               ) : (
@@ -420,7 +418,7 @@ export default function KnowledgePage() {
             <label htmlFor="is_published" className="text-sm font-medium text-gray-700">公開する</label>
           </div>
           {createMutation.isError && (
-            <p className="text-red-600 text-sm">作成に失敗しました。</p>
+            <ErrorText message="作成に失敗しました。" />
           )}
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="secondary" onClick={() => setShowCreateModal(false)}>

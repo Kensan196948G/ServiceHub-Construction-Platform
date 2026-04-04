@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Plus, CloudSun, X, ChevronDown, ChevronUp } from "lucide-react";
 import { dailyReportsApi, DailyReport, DailyReportCreate } from "@/api/daily_reports";
 import { projectsApi } from "@/api/projects";
-import { Badge, Button, Card, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, ErrorBanner, ErrorText, Skeleton } from "@/components/ui";
 
 const WEATHER_OPTIONS = [
   { value: "SUNNY", label: "晴れ ☀️" },
@@ -201,9 +201,7 @@ export default function DailyReportsPage() {
       </Card>
 
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
-          データの取得に失敗しました。
-        </div>
+        <ErrorBanner />
       )}
 
       {!selectedProjectId ? (
@@ -422,7 +420,7 @@ export default function DailyReportsPage() {
                 />
               </div>
               {createMutation.isError && (
-                <p className="text-red-600 text-sm">作成に失敗しました。</p>
+                <ErrorText message="作成に失敗しました。" />
               )}
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
@@ -538,7 +536,7 @@ export default function DailyReportsPage() {
                 />
               </div>
               {updateMutation.isError && (
-                <p className="text-red-600 text-sm">更新に失敗しました。</p>
+                <ErrorText message="更新に失敗しました。" />
               )}
               <div className="flex justify-end gap-3 pt-2">
                 <Button

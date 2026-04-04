@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Plus, RefreshCw, Pencil } from "lucide-react";
-import { Badge, Button, Card, Modal, FormField, Input, Select, Textarea, Skeleton } from "@/components/ui";
+import { Badge, Button, Card, ErrorText, Modal, FormField, Input, Select, Textarea, Skeleton } from "@/components/ui";
 import { itsmApi, IncidentCreate, ChangeRequestCreate, Incident, ChangeRequest, IncidentUpdate, ChangeRequestUpdate } from "@/api/itsm";
 
 type Tab = "incidents" | "changes";
@@ -422,7 +422,7 @@ export default function ItsmPage() {
               </FormField>
             </>
           )}
-          {isError && <p className="text-red-600 text-sm">作成に失敗しました。</p>}
+          {isError && <ErrorText message="作成に失敗しました。" />}
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
               キャンセル
@@ -470,7 +470,7 @@ export default function ItsmPage() {
             </FormField>
           </div>
           {updateIncidentMutation.isError && (
-            <p className="text-red-600 text-sm">更新に失敗しました。</p>
+            <ErrorText message="更新に失敗しました。" />
           )}
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setEditingIncident(null)}>
@@ -518,7 +518,7 @@ export default function ItsmPage() {
               onChange={(e) => setChangeEditForm({ ...changeEditForm, impact: e.target.value })} />
           </FormField>
           {updateChangeMutation.isError && (
-            <p className="text-red-600 text-sm">更新に失敗しました。</p>
+            <ErrorText message="更新に失敗しました。" />
           )}
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setEditingChange(null)}>
