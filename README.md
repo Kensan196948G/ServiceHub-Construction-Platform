@@ -100,8 +100,8 @@ graph TB
 | :--- | :--- |
 | 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
 | 🧪 Frontend テスト | **199 件**（vitest / 32 テストファイル / coverage 79%） |
-| 🎭 E2E テスト | **31 件**（Playwright / 10 テストファイル） |
-| 📊 総テスト数 | **415 件**（Backend + Frontend + E2E） |
+| 🎭 E2E テスト | **39 件**（Playwright / 12 テストファイル） |
+| 📊 総テスト数 | **423 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
 | 🧩 共通 UI コンポーネント | **9 種**（Badge / Button / Card / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
@@ -173,7 +173,9 @@ graph LR
 | `itsm.spec.ts` | 3 | ITSM 見出し・インシデント管理・変更要求管理 |
 | `knowledge.spec.ts` | 2 | ナレッジ見出し・記事一覧 |
 | `users.spec.ts` | 3 | ユーザー見出し・一覧・ロール |
-| **合計** | **31** | **全11ページ E2E カバー完了** |
+| `projects-crud.spec.ts` | 3 | モーダル開閉・フォーム入力・詳細リンク・一覧表示 |
+| `itsm-crud.spec.ts` | 5 | インシデント一覧・バッジ・作成モーダル・編集モーダル・タブ切替 |
+| **合計** | **39** | **全11ページ E2E カバー + CRUD フロー** |
 
 ---
 
