@@ -112,7 +112,7 @@ graph TB
 | 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
 | 🔀 Router | **9 本**（Dashboard Router 追加） |
 | ✅ CI チェック数 | **8 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency） |
-| 🔒 STABLE 判定 | **N=10+** 達成（CI 連続成功） |
+| 🔒 STABLE 判定 | **達成**（main CI 全 success / Node.js 24 対応済み） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -140,27 +140,81 @@ graph LR
 
 > **全 9 Router が Router → Service → Repository の3層構造に統一（Service 11クラス / Repository 8クラス）。**
 
+### 🖥️ Frontend アーキテクチャ
+
+```mermaid
+graph TD
+    subgraph Pages["📄 ページ (11)"]
+        LP["🔐 LoginPage"]
+        DP["📊 DashboardPage"]
+        PP["🗂️ ProjectsPage"]
+        PD["📋 ProjectDetail\n(5 tabs)"]
+        RP["📝 DailyReportsPage"]
+        SP["🦺 SafetyPage"]
+        CP["💰 CostPage"]
+        IP["🏛️ ItsmPage"]
+        KP["🤖 KnowledgePage"]
+        PhP["🖼️ PhotosPage"]
+        UP["👤 UsersPage"]
+    end
+
+    subgraph UI["🧩 共通 UI (11 種)"]
+        Badge["🏷️ Badge"]
+        Button["🔘 Button"]
+        Card["📦 Card"]
+        Modal["🪟 Modal"]
+        FormField["📝 FormField\n+ Input/Textarea/Select"]
+        ErrorBanner["🚨 ErrorBanner\n+ ErrorText"]
+        Skeleton["⏳ Skeleton"]
+        StatCard["📈 StatCard"]
+        Table["📊 Table"]
+        Pagination["📄 Pagination"]
+    end
+
+    subgraph State["🗄️ 状態管理"]
+        Zustand["Zustand Store"]
+        RQ["React Query\n(Server State)"]
+    end
+
+    Pages --> UI
+    Pages --> State
+    State --> API["🔗 Axios API Client\n(/api/v1)"]
+```
+
 ---
 
 ## 🎭 E2E テスト基盤（Playwright）
 
 ```mermaid
 graph LR
-    subgraph E2E["🎭 Playwright E2E テスト"]
-        L["🔐 login.spec.ts\n認証フロー"]
-        N["🧭 navigation.spec.ts\n認証済みナビ"]
-        D["📊 dashboard.spec.ts\nKPI StatCard"]
-        P["🗂️ projects.spec.ts\n案件一覧・バッジ"]
-        R["📝 reports.spec.ts\n日報ページ"]
-        S["🦺 safety.spec.ts\n安全点検"]
-        C["💰 cost.spec.ts\n原価管理"]
+    subgraph Basic["🎭 基本テスト"]
+        L["🔐 login\n6件"]
+        N["🧭 navigation\n4件"]
+        D["📊 dashboard\n4件"]
     end
 
-    subgraph Fix["🔧 api-mocks.ts fixture"]
-        A["setupAuthMocks()\nloginAndNavigate()"]
+    subgraph Pages["📄 ページ表示テスト"]
+        P["🗂️ projects\n3件"]
+        R["📝 reports\n2件"]
+        S["🦺 safety\n2件"]
+        C["💰 cost\n2件"]
+        I["🏛️ itsm\n3件"]
+        K["🤖 knowledge\n2件"]
+        U["👤 users\n3件"]
     end
 
-    Fix --> L & N & D & P & R & S & C
+    subgraph CRUD["🔄 CRUD フロー"]
+        PC["🗂️ projects-crud\n3件"]
+        IC["🏛️ itsm-crud\n5件"]
+        CC["💰 cost-crud\n5件"]
+        KC["🤖 knowledge-crud\n7件"]
+    end
+
+    subgraph Fix["🔧 Fixtures"]
+        A["api-mocks.ts"]
+    end
+
+    Fix --> Basic & Pages & CRUD
 ```
 
 | テストファイル | テスト数 | カバー範囲 |
@@ -190,20 +244,24 @@ gantt
     title ServiceHub Construction Platform — 開発ロードマップ
     dateFormat  YYYY-MM-DD
     section Phase 1: 基盤安定化
-    Sprint 1 Day 1 (3層構造)    :done, s1d1, 2026-04-03, 1d
-    Sprint 1 Day 2 (CI修復)     :done, s1d2, 2026-04-04, 1d
-    Sprint 1 Day 3 (E2E+UI)     :done, s1d3, 2026-04-04, 1d
+    Sprint 1 Day 1 (3層構造)         :done, s1d1, 2026-04-03, 1d
+    Sprint 1 Day 2 (CI修復)          :done, s1d2, 2026-04-04, 1d
+    Sprint 1 Day 3 (E2E+UI基盤)      :done, s1d3, 2026-04-04, 1d
     section Phase 2: 機能強化
-    共通UIコンポーネント統一     :done, s2a, 2026-04-05, 1d
-    E2E テスト拡充（CRUD）       :s2b, 2026-04-05, 7d
+    共通UIコンポーネント統一 11/11     :done, s2a, 2026-04-05, 1d
+    E2E CRUD テスト 51件              :done, s2b, 2026-04-05, 1d
+    リファクタリング+ErrorBanner      :done, s2c, 2026-04-05, 1d
+    DBシード+CORS+Node24              :done, s2d, 2026-04-05, 1d
+    API型共有 (OpenAPI codegen)       :s2e, 2026-04-12, 7d
+    テストカバレッジ 85%              :s2f, 2026-04-12, 7d
     section Phase 3: UX改善
-    フォームUI・バリデーション    :s3, 2026-04-12, 14d
+    レスポンシブ・アクセシビリティ    :s3, 2026-04-19, 14d
     section Phase 4: 高度機能
-    リアルタイム通知・WebSocket  :s4, 2026-04-26, 14d
+    リアルタイム通知・WebSocket       :s4, 2026-05-03, 14d
     section Phase 5: リリース準備
-    本番環境構築・パフォーマンス  :s5, 2026-05-10, 21d
+    本番環境構築・パフォーマンス      :s5, 2026-05-17, 21d
     section Phase 6: リリース
-    社内公開 🎉                  :milestone, m1, 2026-10-03, 0d
+    社内公開                          :milestone, m1, 2026-10-03, 0d
 ```
 
 | フェーズ | 期間 | 目標 | 状態 |
