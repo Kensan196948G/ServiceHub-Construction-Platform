@@ -68,7 +68,7 @@ async def test_project_duplicate_code(auth_client, admin_headers):
     resp2 = await auth_client.post(
         "/api/v1/projects", json=payload, headers=admin_headers
     )
-    assert resp2.status_code == 400
+    assert resp2.status_code == 409
 
 
 @pytest.mark.asyncio

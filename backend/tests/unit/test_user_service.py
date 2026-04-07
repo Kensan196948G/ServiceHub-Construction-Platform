@@ -59,7 +59,7 @@ async def test_user_duplicate_email(auth_client, admin_headers):
     assert resp1.status_code == 201
 
     resp2 = await auth_client.post("/api/v1/users", json=payload, headers=admin_headers)
-    assert resp2.status_code == 400
+    assert resp2.status_code == 409
 
 
 @pytest.mark.asyncio
