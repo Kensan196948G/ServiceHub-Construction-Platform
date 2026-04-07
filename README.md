@@ -101,16 +101,17 @@ graph TB
 | 指標 | 値 |
 | :--- | :--- |
 | 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
-| 🧪 Frontend テスト | **207 件**（vitest / 33 テストファイル / coverage 79%） |
+| 🧪 Frontend テスト | **263 件**（vitest / 40 テストファイル / coverage **88%**） |
 | 🎭 E2E テスト | **51 件**（Playwright / 14 テストファイル） |
-| 📊 総テスト数 | **443 件**（Backend + Frontend + E2E） |
+| 📊 総テスト数 | **499 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
 | 🧩 共通 UI コンポーネント | **11 種**（Badge / Button / Card / ErrorBanner / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
-| 🔗 API エンドポイント | **47 エンドポイント**（KPI API 追加） |
+| 🔗 API エンドポイント | **48 エンドポイント**（ITSM 変更要求更新追加） |
 | 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
 | 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
 | 🔀 Router | **9 本**（Dashboard Router 追加） |
+| 📐 OpenAPI codegen | **31 エンドポイント / 68 スキーマ**（TypeScript 型自動生成） |
 | ✅ CI チェック数 | **8 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency） |
 | 🔒 STABLE 判定 | **達成**（main CI 全 success / Node.js 24 対応済み） |
 
@@ -252,8 +253,8 @@ gantt
     E2E CRUD テスト 51件              :done, s2b, 2026-04-05, 1d
     リファクタリング+ErrorBanner      :done, s2c, 2026-04-05, 1d
     DBシード+CORS+Node24              :done, s2d, 2026-04-05, 1d
-    API型共有 (OpenAPI codegen)       :s2e, 2026-04-12, 7d
-    テストカバレッジ 85%              :s2f, 2026-04-12, 7d
+    テストカバレッジ 88% + API型統一    :done, s2e, 2026-04-07, 1d
+    OpenAPI codegen + エラーハンドリング :done, s2f, 2026-04-07, 1d
     section Phase 3: UX改善
     レスポンシブ・アクセシビリティ    :s3, 2026-04-19, 14d
     section Phase 4: 高度機能
@@ -407,6 +408,7 @@ curl http://localhost/api/v1/status   # → {"status":"ok",...}
 | `PATCH`  | `/itsm/incidents/{id}`             | インシデント更新     |
 | `POST`   | `/itsm/changes`                    | 変更要求作成         |
 | `GET`    | `/itsm/changes`                    | 変更要求一覧取得     |
+| `PATCH`  | `/itsm/changes/{id}`               | 変更要求更新         |
 | `PATCH`  | `/itsm/changes/{id}/approve`       | 変更要求承認         |
 
 ### 🤖 AI ナレッジ管理 (`/knowledge`)
@@ -474,6 +476,7 @@ ServiceHub-Construction-Platform/
 │   ├── src/
 │   │   ├── components/          # UI コンポーネント
 │   │   ├── pages/               # ページコンポーネント
+│   │   ├── generated/           # OpenAPI codegen 自動生成型
 │   │   ├── store/               # Zustand ストア
 │   │   └── api/                 # API クライアント
 │   └── vite.config.ts
