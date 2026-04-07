@@ -68,7 +68,7 @@ test.describe("Cost CRUD", () => {
       });
     });
 
-    await page.route("**/api/v1/projects/1/costs/summary", (route) => {
+    await page.route("**/api/v1/projects/1/cost-summary", (route) => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -76,7 +76,7 @@ test.describe("Cost CRUD", () => {
       });
     });
 
-    await page.route("**/api/v1/projects/1/costs**", (route) => {
+    await page.route("**/api/v1/projects/1/cost-records**", (route) => {
       if (route.request().method() === "POST") {
         route.fulfill({
           status: 201,

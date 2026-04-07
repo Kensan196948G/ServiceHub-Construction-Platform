@@ -84,7 +84,7 @@ export const itsmApi = {
   },
 
   updateIncident: async (id: string, data: IncidentUpdate) => {
-    const res = await api.put<{ data: Incident }>(
+    const res = await api.patch<{ data: Incident }>(
       `/itsm/incidents/${id}`,
       data
     );
@@ -118,7 +118,7 @@ export const itsmApi = {
     id: string,
     data: ChangeRequestUpdate
   ) => {
-    const res = await api.put<{ data: ChangeRequest }>(
+    const res = await api.patch<{ data: ChangeRequest }>(
       `/itsm/changes/${id}`,
       data
     );

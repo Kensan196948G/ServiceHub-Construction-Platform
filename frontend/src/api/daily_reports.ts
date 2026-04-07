@@ -48,26 +48,26 @@ export const dailyReportsApi = {
     return res.data.data;
   },
 
-  get: async (projectId: string, reportId: string) => {
+  get: async (_projectId: string, reportId: string) => {
     const res = await api.get<{ data: DailyReport }>(
-      `/projects/${projectId}/daily-reports/${reportId}`
+      `/daily-reports/${reportId}`
     );
     return res.data.data;
   },
 
   update: async (
-    projectId: string,
+    _projectId: string,
     reportId: string,
     data: Partial<DailyReportCreate>
   ) => {
     const res = await api.put<{ data: DailyReport }>(
-      `/projects/${projectId}/daily-reports/${reportId}`,
+      `/daily-reports/${reportId}`,
       data
     );
     return res.data.data;
   },
 
-  delete: async (projectId: string, reportId: string) => {
-    await api.delete(`/projects/${projectId}/daily-reports/${reportId}`);
+  delete: async (_projectId: string, reportId: string) => {
+    await api.delete(`/daily-reports/${reportId}`);
   },
 };

@@ -50,17 +50,17 @@ describe("dailyReportsApi", () => {
     expect(result.id).toBe("r1");
   });
 
-  it("get は GET /projects/:id/daily-reports/:reportId を呼ぶ", async () => {
+  it("get は GET /daily-reports/:reportId を呼ぶ", async () => {
     const mockReport = { id: "r1", project_id: "p1", status: "SUBMITTED" };
     vi.mocked(api.get).mockResolvedValue({ data: { data: mockReport } });
 
     const result = await dailyReportsApi.get("p1", "r1");
 
-    expect(api.get).toHaveBeenCalledWith("/projects/p1/daily-reports/r1");
+    expect(api.get).toHaveBeenCalledWith("/daily-reports/r1");
     expect(result.id).toBe("r1");
   });
 
-  it("update は PUT /projects/:id/daily-reports/:reportId を呼ぶ", async () => {
+  it("update は PUT /daily-reports/:reportId を呼ぶ", async () => {
     const patch = { work_content: "更新内容" };
     const mockReport = { id: "r1", project_id: "p1", ...patch };
     vi.mocked(api.put).mockResolvedValue({ data: { data: mockReport } });
@@ -68,17 +68,17 @@ describe("dailyReportsApi", () => {
     const result = await dailyReportsApi.update("p1", "r1", patch);
 
     expect(api.put).toHaveBeenCalledWith(
-      "/projects/p1/daily-reports/r1",
+      "/daily-reports/r1",
       patch,
     );
     expect(result.work_content).toBe("更新内容");
   });
 
-  it("delete は DELETE /projects/:id/daily-reports/:reportId を呼ぶ", async () => {
+  it("delete は DELETE /daily-reports/:reportId を呼ぶ", async () => {
     vi.mocked(api.delete).mockResolvedValue({});
 
     await dailyReportsApi.delete("p1", "r1");
 
-    expect(api.delete).toHaveBeenCalledWith("/projects/p1/daily-reports/r1");
+    expect(api.delete).toHaveBeenCalledWith("/daily-reports/r1");
   });
 });
