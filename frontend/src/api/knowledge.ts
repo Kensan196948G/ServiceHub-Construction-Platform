@@ -69,7 +69,7 @@ export const knowledgeApi = {
   },
 
   update: async (id: string, data: Partial<KnowledgeArticleCreate>) => {
-    const res = await api.put<{ data: KnowledgeArticle }>(
+    const res = await api.patch<{ data: KnowledgeArticle }>(
       `/knowledge/articles/${id}`,
       data
     );

@@ -31,7 +31,7 @@ describe("costApi", () => {
 
     const result = await costApi.createCostRecord("proj-1", payload);
 
-    expect(api.post).toHaveBeenCalledWith("/projects/proj-1/costs", payload);
+    expect(api.post).toHaveBeenCalledWith("/projects/proj-1/cost-records", payload);
     expect(result.category).toBe("材料費");
   });
 
@@ -45,7 +45,7 @@ describe("costApi", () => {
 
     const result = await costApi.listCostRecords("proj-1");
 
-    expect(api.get).toHaveBeenCalledWith("/projects/proj-1/costs", {
+    expect(api.get).toHaveBeenCalledWith("/projects/proj-1/cost-records", {
       params: { page: 1, per_page: 20 },
     });
     expect(result.data).toHaveLength(1);
@@ -65,7 +65,7 @@ describe("costApi", () => {
 
     const result = await costApi.getCostSummary("proj-1");
 
-    expect(api.get).toHaveBeenCalledWith("/projects/proj-1/costs/summary");
+    expect(api.get).toHaveBeenCalledWith("/projects/proj-1/cost-summary");
     expect(result.variance_rate).toBe(5.0);
   });
 
@@ -94,6 +94,6 @@ describe("costApi", () => {
 
     await costApi.deleteCostRecord("proj-1", "cr-1");
 
-    expect(api.delete).toHaveBeenCalledWith("/projects/proj-1/costs/cr-1");
+    expect(api.delete).toHaveBeenCalledWith("/projects/proj-1/cost-records/cr-1");
   });
 });

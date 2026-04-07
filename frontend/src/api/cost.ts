@@ -59,7 +59,7 @@ export interface WorkHour {
 export const costApi = {
   createCostRecord: async (projectId: string, data: CostRecordCreate) => {
     const res = await api.post<{ data: CostRecord }>(
-      `/projects/${projectId}/costs`,
+      `/projects/${projectId}/cost-records`,
       data
     );
     return res.data.data;
@@ -67,7 +67,7 @@ export const costApi = {
 
   listCostRecords: async (projectId: string, page = 1, perPage = 20) => {
     const res = await api.get<PaginatedResponse<CostRecord>>(
-      `/projects/${projectId}/costs`,
+      `/projects/${projectId}/cost-records`,
       { params: { page, per_page: perPage } }
     );
     return res.data;
@@ -75,7 +75,7 @@ export const costApi = {
 
   getCostSummary: async (projectId: string) => {
     const res = await api.get<{ data: CostSummary }>(
-      `/projects/${projectId}/costs/summary`
+      `/projects/${projectId}/cost-summary`
     );
     return res.data.data;
   },
@@ -89,6 +89,6 @@ export const costApi = {
   },
 
   deleteCostRecord: async (projectId: string, recordId: string) => {
-    await api.delete(`/projects/${projectId}/costs/${recordId}`);
+    await api.delete(`/projects/${projectId}/cost-records/${recordId}`);
   },
 };

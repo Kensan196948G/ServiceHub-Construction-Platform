@@ -18,6 +18,7 @@ from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.itsm import (
     ChangeRequestCreate,
     ChangeRequestResponse,
+    ChangeRequestUpdate,
     IncidentCreate,
     IncidentResponse,
     IncidentUpdate,
@@ -172,6 +173,30 @@ async def list_changes(
             pages=math.ceil(total / per_page) if total > 0 else 0,
         ),
     )
+
+
+@router.patch(
+    "/changes/{change_id}", response_model=ApiResponse[ChangeRequestResponse]
+)
+async def update_change(
+    change_id: uuid.UUID,
+    payload: ChangeRequestUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(
+        require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.IT_OPERATOR)
+    ),
+):
+    """変更要求更新"""
+    svc = ITSMService(db)
+    try:
+        change = await svc.update_change(
+            change_id, payload, updated_by=current_user.id
+        )
+    except ChangeRequestNotFoundError:
+        raise HTTPException(
+            status_code=404, detail="変更要求が見つかりません"
+        ) from None
+    return ApiResponse(data=change)
 
 
 @router.patch(

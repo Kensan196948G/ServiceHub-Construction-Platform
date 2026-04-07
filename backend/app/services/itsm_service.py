@@ -12,6 +12,7 @@ from app.repositories.itsm import ChangeRequestRepository, IncidentRepository
 from app.schemas.itsm import (
     ChangeRequestCreate,
     ChangeRequestResponse,
+    ChangeRequestUpdate,
     IncidentCreate,
     IncidentResponse,
     IncidentUpdate,
@@ -110,6 +111,19 @@ class ITSMService:
             offset=offset, limit=per_page, status=status, change_type=change_type
         )
         return [ChangeRequestResponse.model_validate(i) for i in items], total
+
+    async def update_change(
+        self,
+        change_id: uuid.UUID,
+        data: ChangeRequestUpdate,
+        updated_by: uuid.UUID,
+    ) -> ChangeRequestResponse:
+        """変更要求更新"""
+        change = await self.change_repo.get_by_id(change_id)
+        if not change:
+            raise ChangeRequestNotFoundError("変更要求が見つかりません")
+        change = await self.change_repo.update(change, data, updated_by=updated_by)
+        return ChangeRequestResponse.model_validate(change)
 
     async def approve_change(
         self, change_id: uuid.UUID, approved_by: uuid.UUID
