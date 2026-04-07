@@ -9,7 +9,7 @@ import math
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -23,7 +23,7 @@ from app.schemas.knowledge import (
     KnowledgeArticleResponse,
     KnowledgeArticleUpdate,
 )
-from app.services.knowledge_service import ArticleNotFoundError, KnowledgeService
+from app.services.knowledge_service import KnowledgeService
 
 router = APIRouter(prefix="/knowledge", tags=["ナレッジ管理"])
 
@@ -118,12 +118,7 @@ async def get_article(
 ):
     """ナレッジ記事詳細（閲覧カウント+1）"""
     svc = KnowledgeService(db)
-    try:
-        article = await svc.get_article(article_id)
-    except ArticleNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="ナレッジ記事が見つかりません"
-        ) from None
+    article = await svc.get_article(article_id)
     return ApiResponse(data=article)
 
 
@@ -145,14 +140,7 @@ async def update_article(
 ):
     """ナレッジ記事更新"""
     svc = KnowledgeService(db)
-    try:
-        article = await svc.update_article(
-            article_id, payload, updated_by=current_user.id
-        )
-    except ArticleNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="ナレッジ記事が見つかりません"
-        ) from None
+    article = await svc.update_article(article_id, payload, updated_by=current_user.id)
     return ApiResponse(data=article, message="ナレッジ記事を更新しました")
 
 
@@ -164,12 +152,7 @@ async def delete_article(
 ):
     """ナレッジ記事削除（論理削除）"""
     svc = KnowledgeService(db)
-    try:
-        await svc.delete_article(article_id, deleted_by=current_user.id)
-    except ArticleNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="ナレッジ記事が見つかりません"
-        ) from None
+    await svc.delete_article(article_id, deleted_by=current_user.id)
     return ApiResponse(data={}, message="ナレッジ記事を削除しました")
 
 

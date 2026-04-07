@@ -8,6 +8,7 @@ import uuid
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import BadRequestError, NotFoundError, ServiceError
 from app.repositories.photo import PhotoRepository
 from app.schemas.photo import PhotoResponse, PhotoUpdate
 from app.services.storage import storage_service
@@ -15,20 +16,20 @@ from app.services.storage import storage_service
 logger = structlog.get_logger()
 
 
-class PhotoNotFoundError(Exception):
-    """写真が見つからない"""
+class PhotoNotFoundError(NotFoundError):
+    detail = "写真が見つかりません"
 
 
-class InvalidFileTypeError(Exception):
-    """許可されていないファイル形式"""
+class InvalidFileTypeError(BadRequestError):
+    detail = "無効なファイル形式です"
 
 
-class FileTooLargeError(Exception):
-    """ファイルサイズ上限超過"""
+class FileTooLargeError(BadRequestError):
+    detail = "ファイルサイズが上限を超えています"
 
 
-class UploadFailedError(Exception):
-    """アップロード失敗"""
+class UploadFailedError(ServiceError):
+    detail = "ファイルのアップロードに失敗しました"
 
 
 class PhotoService:

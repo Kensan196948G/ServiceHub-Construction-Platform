@@ -7,6 +7,7 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.exceptions import ForbiddenError, ServiceError
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -69,13 +70,10 @@ class AuthService:
         )
 
 
-class AuthenticationError(Exception):
-    """認証エラー（401）"""
+class AuthenticationError(ServiceError):
+    status_code = 401
+    detail = "認証に失敗しました"
 
-    pass
 
-
-class AuthorizationError(Exception):
-    """認可エラー（403）"""
-
-    pass
+class AuthorizationError(ForbiddenError):
+    detail = "アクセスが拒否されました"

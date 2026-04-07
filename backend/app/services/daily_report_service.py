@@ -6,6 +6,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotFoundError
 from app.repositories.daily_report import DailyReportRepository
 from app.schemas.daily_report import (
     DailyReportCreate,
@@ -14,8 +15,8 @@ from app.schemas.daily_report import (
 )
 
 
-class ReportNotFoundError(Exception):
-    """日報が見つからない"""
+class ReportNotFoundError(NotFoundError):
+    detail = "日報が見つかりません"
 
 
 class DailyReportService:

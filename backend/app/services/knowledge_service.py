@@ -10,6 +10,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotFoundError
 from app.repositories.knowledge import AiSearchLogRepository, KnowledgeArticleRepository
 from app.schemas.knowledge import (
     AiSearchResponse,
@@ -20,8 +21,8 @@ from app.schemas.knowledge import (
 )
 
 
-class ArticleNotFoundError(Exception):
-    """ナレッジ記事が見つからない"""
+class ArticleNotFoundError(NotFoundError):
+    detail = "記事が見つかりません"
 
 
 class KnowledgeService:

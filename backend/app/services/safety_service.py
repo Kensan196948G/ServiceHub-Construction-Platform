@@ -6,6 +6,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotFoundError
 from app.repositories.safety import QualityInspectionRepository, SafetyCheckRepository
 from app.schemas.safety import (
     QualityInspectionCreate,
@@ -76,9 +77,9 @@ class SafetyService:
         await self.inspection_repo.soft_delete(insp)
 
 
-class SafetyCheckNotFoundError(Exception):
-    """安全チェックが見つからない"""
+class SafetyCheckNotFoundError(NotFoundError):
+    detail = "安全チェックが見つかりません"
 
 
-class QualityInspectionNotFoundError(Exception):
-    """品質検査が見つからない"""
+class QualityInspectionNotFoundError(NotFoundError):
+    detail = "品質検査が見つかりません"

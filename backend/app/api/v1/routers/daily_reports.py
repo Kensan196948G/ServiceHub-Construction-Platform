@@ -11,7 +11,7 @@ import math
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -23,7 +23,7 @@ from app.schemas.daily_report import (
     DailyReportResponse,
     DailyReportUpdate,
 )
-from app.services.daily_report_service import DailyReportService, ReportNotFoundError
+from app.services.daily_report_service import DailyReportService
 
 router = APIRouter(tags=["日報管理"])
 
@@ -104,10 +104,7 @@ async def get_daily_report(
     ],
 ):
     svc = DailyReportService(db)
-    try:
-        report = await svc.get_report(report_id)
-    except ReportNotFoundError:
-        raise HTTPException(status_code=404, detail="日報が見つかりません") from None
+    report = await svc.get_report(report_id)
     return ApiResponse(data=report)
 
 
@@ -128,10 +125,7 @@ async def update_daily_report(
     ],
 ):
     svc = DailyReportService(db)
-    try:
-        report = await svc.update_report(report_id, payload, updated_by=current_user.id)
-    except ReportNotFoundError:
-        raise HTTPException(status_code=404, detail="日報が見つかりません") from None
+    report = await svc.update_report(report_id, payload, updated_by=current_user.id)
     return ApiResponse(data=report)
 
 
@@ -144,8 +138,5 @@ async def delete_daily_report(
     ],
 ):
     svc = DailyReportService(db)
-    try:
-        await svc.delete_report(report_id, deleted_by=current_user.id)
-    except ReportNotFoundError:
-        raise HTTPException(status_code=404, detail="日報が見つかりません") from None
+    await svc.delete_report(report_id, deleted_by=current_user.id)
     return None

@@ -17,7 +17,6 @@ from fastapi import (
     Depends,
     File,
     Form,
-    HTTPException,
     Query,
     UploadFile,
     status,
@@ -29,13 +28,7 @@ from app.db.base import get_db
 from app.models.user import User
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.photo import PhotoResponse, PhotoUpdate
-from app.services.photo_service import (
-    FileTooLargeError,
-    InvalidFileTypeError,
-    PhotoNotFoundError,
-    PhotoService,
-    UploadFailedError,
-)
+from app.services.photo_service import PhotoService
 
 router = APIRouter(tags=["写真・資料管理"])
 logger = structlog.get_logger()
@@ -64,23 +57,16 @@ async def upload_photo(
 ):
     file_data = await file.read()
     svc = PhotoService(db)
-    try:
-        response_data = await svc.upload(
-            project_id=project_id,
-            file_data=file_data,
-            filename=file.filename or "upload",
-            content_type=file.content_type,
-            category=category,
-            caption=caption,
-            daily_report_id=daily_report_id,
-            created_by=current_user.id,
-        )
-    except InvalidFileTypeError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-    except FileTooLargeError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-    except UploadFailedError as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    response_data = await svc.upload(
+        project_id=project_id,
+        file_data=file_data,
+        filename=file.filename or "upload",
+        content_type=file.content_type,
+        category=category,
+        caption=caption,
+        daily_report_id=daily_report_id,
+        created_by=current_user.id,
+    )
     return ApiResponse(data=response_data)
 
 
@@ -135,10 +121,7 @@ async def get_photo(
     ],
 ):
     svc = PhotoService(db)
-    try:
-        response_data = await svc.get_photo(photo_id)
-    except PhotoNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+    response_data = await svc.get_photo(photo_id)
     return ApiResponse(data=response_data)
 
 
@@ -157,10 +140,7 @@ async def update_photo(
     ],
 ):
     svc = PhotoService(db)
-    try:
-        response_data = await svc.update_photo(photo_id, payload)
-    except PhotoNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+    response_data = await svc.update_photo(photo_id, payload)
     return ApiResponse(data=response_data)
 
 
@@ -173,8 +153,5 @@ async def delete_photo(
     ],
 ):
     svc = PhotoService(db)
-    try:
-        await svc.delete_photo(photo_id)
-    except PhotoNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+    await svc.delete_photo(photo_id)
     return None

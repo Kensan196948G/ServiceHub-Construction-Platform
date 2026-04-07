@@ -6,6 +6,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import BadRequestError, ConflictError, NotFoundError
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserListResponse, UserUpdate
 
@@ -56,13 +57,13 @@ class UserService:
         await self.repo.soft_delete(user)
 
 
-class UserNotFoundError(Exception):
-    """User not found"""
+class UserNotFoundError(NotFoundError):
+    detail = "ユーザーが見つかりません"
 
 
-class DuplicateEmailError(Exception):
-    """Email already registered"""
+class DuplicateEmailError(ConflictError):
+    detail = "このメールアドレスは既に登録されています"
 
 
-class SelfDeletionError(Exception):
-    """Cannot delete self"""
+class SelfDeletionError(BadRequestError):
+    detail = "自分自身は削除できません"

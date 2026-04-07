@@ -12,8 +12,68 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 logger = structlog.get_logger()
 
 
+# ── サービス例外基底クラス ──────────────────────────────
+class ServiceError(Exception):
+    """サービス層の基底例外。status_code を持ちグローバルハンドラで自動変換される。"""
+
+    status_code: int = 500
+    detail: str = "サービスエラーが発生しました"
+
+    def __init__(self, detail: str | None = None):
+        self.detail = detail or self.__class__.detail
+        super().__init__(self.detail)
+
+
+class NotFoundError(ServiceError):
+    """リソースが見つからない (404)"""
+
+    status_code = 404
+    detail = "リソースが見つかりません"
+
+
+class BadRequestError(ServiceError):
+    """不正なリクエスト (400)"""
+
+    status_code = 400
+    detail = "リクエストが不正です"
+
+
+class ConflictError(ServiceError):
+    """競合 (409)"""
+
+    status_code = 409
+    detail = "リソースが競合しています"
+
+
+class ForbiddenError(ServiceError):
+    """アクセス拒否 (403)"""
+
+    status_code = 403
+    detail = "アクセスが拒否されました"
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """例外ハンドラ登録"""
+
+    @app.exception_handler(ServiceError)
+    async def service_error_handler(request: Request, exc: ServiceError):
+        logger.warning(
+            "service_error",
+            error_type=type(exc).__name__,
+            status_code=exc.status_code,
+            detail=exc.detail,
+            path=request.url.path,
+        )
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "success": False,
+                "error": {
+                    "code": type(exc).__name__,
+                    "message": exc.detail,
+                },
+            },
+        )
 
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):

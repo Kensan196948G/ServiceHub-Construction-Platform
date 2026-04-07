@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -23,12 +23,7 @@ from app.schemas.itsm import (
     IncidentResponse,
     IncidentUpdate,
 )
-from app.services.itsm_service import (
-    ChangeRequestNotFoundError,
-    IncidentNotFoundError,
-    InvalidStatusError,
-    ITSMService,
-)
+from app.services.itsm_service import ITSMService
 
 router = APIRouter(prefix="/itsm", tags=["ITSM管理"])
 
@@ -93,12 +88,7 @@ async def get_incident(
     ),
 ):
     svc = ITSMService(db)
-    try:
-        incident = await svc.get_incident(incident_id)
-    except IncidentNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="インシデントが見つかりません"
-        ) from None
+    incident = await svc.get_incident(incident_id)
     return ApiResponse(data=incident)
 
 
@@ -113,14 +103,9 @@ async def update_incident(
 ):
     """インシデント更新・解決"""
     svc = ITSMService(db)
-    try:
-        incident = await svc.update_incident(
-            incident_id, payload, updated_by=current_user.id
-        )
-    except IncidentNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="インシデントが見つかりません"
-        ) from None
+    incident = await svc.update_incident(
+        incident_id, payload, updated_by=current_user.id
+    )
     return ApiResponse(
         data=incident,
         message="インシデントを更新しました",
@@ -186,12 +171,7 @@ async def update_change(
 ):
     """変更要求更新"""
     svc = ITSMService(db)
-    try:
-        change = await svc.update_change(change_id, payload, updated_by=current_user.id)
-    except ChangeRequestNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="変更要求が見つかりません"
-        ) from None
+    change = await svc.update_change(change_id, payload, updated_by=current_user.id)
     return ApiResponse(data=change)
 
 
@@ -205,14 +185,7 @@ async def approve_change(
 ):
     """変更承認（SoD: ADMINのみ承認可）"""
     svc = ITSMService(db)
-    try:
-        change = await svc.approve_change(change_id, approved_by=current_user.id)
-    except ChangeRequestNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="変更要求が見つかりません"
-        ) from None
-    except InvalidStatusError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
+    change = await svc.approve_change(change_id, approved_by=current_user.id)
     return ApiResponse(
         data=change,
         message="変更要求を承認しました",

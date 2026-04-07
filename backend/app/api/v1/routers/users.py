@@ -10,7 +10,7 @@ import math
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -19,12 +19,7 @@ from app.db.base import get_db
 from app.models.user import User
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.user import UserCreate, UserListResponse, UserUpdate
-from app.services.user_service import (
-    DuplicateEmailError,
-    SelfDeletionError,
-    UserNotFoundError,
-    UserService,
-)
+from app.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["ユーザー管理"])
 
@@ -61,12 +56,9 @@ async def create_user(
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
     svc = UserService(db)
-    try:
-        user = await svc.create_user(
-            payload, hashed_password=get_password_hash(payload.password)
-        )
-    except DuplicateEmailError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
+    user = await svc.create_user(
+        payload, hashed_password=get_password_hash(payload.password)
+    )
     return ApiResponse(data=user)
 
 
@@ -77,10 +69,7 @@ async def get_user(
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
     svc = UserService(db)
-    try:
-        user = await svc.get_user(user_id)
-    except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from None
+    user = await svc.get_user(user_id)
     return ApiResponse(data=user)
 
 
@@ -92,10 +81,7 @@ async def update_user(
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
     svc = UserService(db)
-    try:
-        user = await svc.update_user(user_id, payload)
-    except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from None
+    user = await svc.update_user(user_id, payload)
     return ApiResponse(data=user)
 
 
@@ -106,9 +92,4 @@ async def delete_user(
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
     svc = UserService(db)
-    try:
-        await svc.delete_user(user_id, current_user.id)
-    except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from None
-    except SelfDeletionError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from None
+    await svc.delete_user(user_id, current_user.id)
