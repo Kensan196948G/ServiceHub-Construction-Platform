@@ -7,16 +7,17 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ConflictError, NotFoundError
 from app.repositories.project import ProjectRepository
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 
 
-class ProjectNotFoundError(Exception):
-    """案件が見つからない"""
+class ProjectNotFoundError(NotFoundError):
+    detail = "案件が見つかりません"
 
 
-class DuplicateProjectCodeError(Exception):
-    """案件コードが重複している"""
+class DuplicateProjectCodeError(ConflictError):
+    detail = "案件コードが重複しています"
 
 
 class ProjectService:

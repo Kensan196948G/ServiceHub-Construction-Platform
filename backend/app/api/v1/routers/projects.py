@@ -11,7 +11,7 @@ import math
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -19,11 +19,7 @@ from app.db.base import get_db
 from app.models.user import User
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
-from app.services.project_service import (
-    DuplicateProjectCodeError,
-    ProjectNotFoundError,
-    ProjectService,
-)
+from app.services.project_service import ProjectService
 
 router = APIRouter(prefix="/projects", tags=["工事案件管理"])
 
@@ -71,12 +67,7 @@ async def create_project(
     ],
 ):
     svc = ProjectService(db)
-    try:
-        project = await svc.create_project(payload, created_by=current_user.id)
-    except DuplicateProjectCodeError:
-        raise HTTPException(
-            status_code=400, detail="案件コードが既に存在します"
-        ) from None
+    project = await svc.create_project(payload, created_by=current_user.id)
     return ApiResponse(data=project)
 
 
@@ -98,10 +89,7 @@ async def get_project(
     ],
 ):
     svc = ProjectService(db)
-    try:
-        project = await svc.get_project(project_id)
-    except ProjectNotFoundError:
-        raise HTTPException(status_code=404, detail="案件が見つかりません") from None
+    project = await svc.get_project(project_id)
     return ApiResponse(data=project)
 
 
@@ -115,12 +103,7 @@ async def update_project(
     ],
 ):
     svc = ProjectService(db)
-    try:
-        project = await svc.update_project(
-            project_id, payload, updated_by=current_user.id
-        )
-    except ProjectNotFoundError:
-        raise HTTPException(status_code=404, detail="案件が見つかりません") from None
+    project = await svc.update_project(project_id, payload, updated_by=current_user.id)
     return ApiResponse(data=project)
 
 
@@ -131,8 +114,5 @@ async def delete_project(
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
 ):
     svc = ProjectService(db)
-    try:
-        await svc.delete_project(project_id, deleted_by=current_user.id)
-    except ProjectNotFoundError:
-        raise HTTPException(status_code=404, detail="案件が見つかりません") from None
+    await svc.delete_project(project_id, deleted_by=current_user.id)
     return None

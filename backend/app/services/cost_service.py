@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotFoundError
 from app.repositories.cost import CostRecordRepository, WorkHourRepository
 from app.schemas.cost import (
     CostRecordCreate,
@@ -80,5 +81,5 @@ class CostService:
         await self.cost_repo.soft_delete(record)
 
 
-class CostNotFoundError(Exception):
-    """原価記録が見つからない"""
+class CostNotFoundError(NotFoundError):
+    detail = "原価記録が見つかりません"

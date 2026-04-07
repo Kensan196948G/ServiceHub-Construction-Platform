@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import BadRequestError, NotFoundError
 from app.repositories.itsm import ChangeRequestRepository, IncidentRepository
 from app.schemas.itsm import (
     ChangeRequestCreate,
@@ -19,16 +20,16 @@ from app.schemas.itsm import (
 )
 
 
-class IncidentNotFoundError(Exception):
-    """インシデントが見つからない"""
+class IncidentNotFoundError(NotFoundError):
+    detail = "インシデントが見つかりません"
 
 
-class ChangeRequestNotFoundError(Exception):
-    """変更要求が見つからない"""
+class ChangeRequestNotFoundError(NotFoundError):
+    detail = "変更要求が見つかりません"
 
 
-class InvalidStatusError(Exception):
-    """無効なステータス遷移"""
+class InvalidStatusError(BadRequestError):
+    detail = "無効なステータス変更です"
 
 
 class ITSMService:

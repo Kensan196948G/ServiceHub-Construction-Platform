@@ -4,7 +4,7 @@ import math
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -18,7 +18,7 @@ from app.schemas.cost import (
     WorkHourCreate,
     WorkHourResponse,
 )
-from app.services.cost_service import CostNotFoundError, CostService
+from app.services.cost_service import CostService
 
 router = APIRouter(tags=["原価・工数管理"])
 
@@ -140,7 +140,4 @@ async def delete_cost_record(
     ],
 ):
     svc = CostService(db)
-    try:
-        await svc.delete_record(project_id, record_id)
-    except CostNotFoundError as err:
-        raise HTTPException(status_code=404, detail="原価記録が見つかりません") from err
+    await svc.delete_record(project_id, record_id)

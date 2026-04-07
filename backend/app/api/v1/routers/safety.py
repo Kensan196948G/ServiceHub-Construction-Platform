@@ -4,7 +4,7 @@ import math
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -17,11 +17,7 @@ from app.schemas.safety import (
     SafetyCheckCreate,
     SafetyCheckResponse,
 )
-from app.services.safety_service import (
-    QualityInspectionNotFoundError,
-    SafetyCheckNotFoundError,
-    SafetyService,
-)
+from app.services.safety_service import SafetyService
 
 router = APIRouter(tags=["安全・品質管理"])
 
@@ -162,12 +158,7 @@ async def delete_safety_check(
     ],
 ):
     svc = SafetyService(db)
-    try:
-        await svc.delete_safety_check(project_id, check_id)
-    except SafetyCheckNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="安全チェックが見つかりません"
-        ) from None
+    await svc.delete_safety_check(project_id, check_id)
 
 
 @router.delete(
@@ -188,9 +179,4 @@ async def delete_quality_inspection(
     ],
 ):
     svc = SafetyService(db)
-    try:
-        await svc.delete_quality_inspection(project_id, inspection_id)
-    except QualityInspectionNotFoundError:
-        raise HTTPException(
-            status_code=404, detail="品質検査が見つかりません"
-        ) from None
+    await svc.delete_quality_inspection(project_id, inspection_id)
