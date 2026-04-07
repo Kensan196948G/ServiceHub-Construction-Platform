@@ -175,9 +175,7 @@ async def list_changes(
     )
 
 
-@router.patch(
-    "/changes/{change_id}", response_model=ApiResponse[ChangeRequestResponse]
-)
+@router.patch("/changes/{change_id}", response_model=ApiResponse[ChangeRequestResponse])
 async def update_change(
     change_id: uuid.UUID,
     payload: ChangeRequestUpdate,
@@ -189,9 +187,7 @@ async def update_change(
     """変更要求更新"""
     svc = ITSMService(db)
     try:
-        change = await svc.update_change(
-            change_id, payload, updated_by=current_user.id
-        )
+        change = await svc.update_change(change_id, payload, updated_by=current_user.id)
     except ChangeRequestNotFoundError:
         raise HTTPException(
             status_code=404, detail="変更要求が見つかりません"
