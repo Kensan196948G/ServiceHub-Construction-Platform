@@ -75,7 +75,7 @@ test.describe("Users CRUD", () => {
     ).toBeVisible({ timeout: 5_000 });
 
     // Submit button should be disabled initially (email and full_name empty, password too short)
-    const submitButton = page.getByRole("button", { name: "作成" });
+    const submitButton = page.getByRole("button", { name: "作成", exact: true });
     await expect(submitButton).toBeDisabled();
 
     // Fill email only — still disabled
@@ -133,7 +133,7 @@ test.describe("Users CRUD", () => {
     await page.locator("#create-name").fill("新規テストユーザー");
     await page.locator("#create-password").fill("password123");
 
-    await page.getByRole("button", { name: "作成" }).click();
+    await page.getByRole("button", { name: "作成", exact: true }).click();
 
     // Modal should close on success
     await expect(
@@ -153,8 +153,10 @@ test.describe("Users CRUD", () => {
       page.getByRole("heading", { name: /ユーザー編集/ })
     ).toBeVisible({ timeout: 5_000 });
 
-    // Edit modal shows the user's email
-    await expect(page.getByText("viewer@example.com")).toBeVisible();
+    // Edit modal shows the user's email (scoped to dialog to avoid table row match)
+    await expect(
+      page.getByRole("dialog").getByText("viewer@example.com")
+    ).toBeVisible();
   });
 
   test("saves role change and closes edit modal", async ({ page }) => {
@@ -253,8 +255,9 @@ test.describe("Users CRUD", () => {
   });
 
   test("shows role badges for users", async ({ page }) => {
-    await expect(page.getByText("ADMIN")).toBeVisible();
-    await expect(page.getByText("VIEWER")).toBeVisible();
+    // Use exact match to avoid matching navigation items or email strings containing role names
+    await expect(page.getByText("ADMIN", { exact: true })).toBeVisible();
+    await expect(page.getByText("VIEWER", { exact: true })).toBeVisible();
   });
 
   // ─── Access control ───────────────────────────────────
