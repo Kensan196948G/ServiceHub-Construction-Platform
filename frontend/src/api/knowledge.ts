@@ -1,48 +1,16 @@
 import api from "./client";
-import { PaginatedResponse } from "./projects";
+import type { PaginatedResponse } from "./projects";
+import type {
+  KnowledgeArticleResponse,
+  KnowledgeArticleCreate,
+  AiSearchRequest,
+  AiSearchResult,
+  AiSearchResponse,
+} from "@/generated";
 
-export interface KnowledgeArticleCreate {
-  title: string;
-  content: string;
-  category?: string;
-  tags?: string;
-  is_published?: boolean;
-}
-
-export interface KnowledgeArticle {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  tags: string | null;
-  is_published: boolean;
-  view_count: number;
-  rating: number | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface AiSearchRequest {
-  query: string;
-  category?: string;
-  max_results?: number;
-}
-
-export interface AiSearchResult {
-  article_id: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  score: number;
-  tags: string | null;
-}
-
-export interface AiSearchResponse {
-  query: string;
-  results: AiSearchResult[];
-  ai_answer: string | null;
-  total_results: number;
-}
+// Re-export with backward-compatible aliases
+export type KnowledgeArticle = KnowledgeArticleResponse;
+export type { KnowledgeArticleCreate, AiSearchRequest, AiSearchResult, AiSearchResponse };
 
 export const knowledgeApi = {
   create: async (data: KnowledgeArticleCreate) => {

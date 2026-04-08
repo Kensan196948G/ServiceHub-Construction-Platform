@@ -1,53 +1,16 @@
 import api from "./client";
-import { PaginatedResponse } from "./projects";
+import type { PaginatedResponse } from "./projects";
+import type {
+  SafetyCheckResponse,
+  SafetyCheckCreate,
+  QualityInspectionResponse,
+  QualityInspectionCreate,
+} from "@/generated";
 
-export interface SafetyCheckCreate {
-  project_id: string;
-  check_date: string;
-  check_type?: string;
-  items_total?: number;
-  items_ok?: number;
-  items_ng?: number;
-  overall_result?: string;
-  notes?: string;
-}
-
-export interface SafetyCheck {
-  id: string;
-  project_id: string;
-  check_date: string;
-  check_type: string;
-  items_total: number;
-  items_ok: number;
-  items_ng: number;
-  overall_result: string;
-  notes: string | null;
-  created_at: string;
-}
-
-export interface QualityInspectionCreate {
-  project_id: string;
-  inspection_date: string;
-  inspection_type: string;
-  target_item: string;
-  standard_value?: string;
-  measured_value?: string;
-  result?: string;
-  remarks?: string;
-}
-
-export interface QualityInspection {
-  id: string;
-  project_id: string;
-  inspection_date: string;
-  inspection_type: string;
-  target_item: string;
-  standard_value: string | null;
-  measured_value: string | null;
-  result: string;
-  remarks: string | null;
-  created_at: string;
-}
+// Re-export with backward-compatible aliases
+export type SafetyCheck = SafetyCheckResponse;
+export type QualityInspection = QualityInspectionResponse;
+export type { SafetyCheckCreate, QualityInspectionCreate };
 
 export const safetyApi = {
   createSafetyCheck: async (projectId: string, data: SafetyCheckCreate) => {

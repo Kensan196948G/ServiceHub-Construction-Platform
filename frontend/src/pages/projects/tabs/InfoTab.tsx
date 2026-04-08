@@ -7,7 +7,7 @@ import { STATUS_LABELS, STATUS_BADGE_VARIANT } from "../constants";
 
 export function InfoTab({ project, projectId }: { project: Project; projectId: string }) {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<Partial<ProjectCreate>>({});
+  const [form, setForm] = useState<Partial<ProjectCreate> & { status?: string }>({});
   const qc = useQueryClient();
   const mutation = useMutation({
     mutationFn: (data: Partial<ProjectCreate>) => projectsApi.update(projectId, data),

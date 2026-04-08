@@ -1,36 +1,14 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import api from './client'
+import type {
+  ProjectStats,
+  IncidentStats,
+  CostOverview,
+  DashboardKPI,
+} from '@/generated'
 
-export interface ProjectStats {
-  total: number
-  planning: number
-  in_progress: number
-  on_hold: number
-  completed: number
-}
-
-export interface IncidentStats {
-  total: number
-  open: number
-  in_progress: number
-  resolved: number
-}
-
-export interface CostOverview {
-  total_budgeted: number
-  total_actual: number
-  variance: number
-  variance_rate: number
-}
-
-export interface DashboardKPI {
-  projects: ProjectStats
-  incidents: IncidentStats
-  cost_overview: CostOverview
-  daily_reports_count: number
-  photos_count: number
-  users_count: number
-}
+// Re-export generated types for downstream consumers
+export type { ProjectStats, IncidentStats, CostOverview, DashboardKPI }
 
 export async function fetchDashboardKPI(): Promise<DashboardKPI> {
   const res = await api.get<{ data: DashboardKPI }>('/dashboard/kpi')
