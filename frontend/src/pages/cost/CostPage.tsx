@@ -189,6 +189,7 @@ export default function CostPage() {
             </Card>
           ) : (
             <Card padding="none" className="overflow-hidden">
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
@@ -235,6 +236,7 @@ export default function CostPage() {
                   })}
                 </tbody>
               </table>
+              </div>
             </Card>
           )}
         </>

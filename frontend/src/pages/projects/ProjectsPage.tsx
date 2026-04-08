@@ -85,6 +85,7 @@ export default function ProjectsPage() {
         </Card>
       ) : (
         <Card padding="none" className="overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -128,6 +129,7 @@ export default function ProjectsPage() {
               )}
             </tbody>
           </table>
+          </div>
 
           {/* Pagination */}
           {data && (
