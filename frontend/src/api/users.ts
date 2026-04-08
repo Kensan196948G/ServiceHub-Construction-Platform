@@ -1,27 +1,13 @@
 import api from "./client";
+import type {
+  UserListResponse,
+  UserCreate,
+  UserUpdate,
+} from "@/generated";
 
-export interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  role: string;
-  is_active: boolean;
-  last_login_at: string | null;
-  created_at: string;
-}
-
-export interface UserCreate {
-  email: string;
-  full_name: string;
-  password: string;
-  role: string;
-}
-
-export interface UserUpdate {
-  full_name?: string;
-  role?: string;
-  is_active?: boolean;
-}
+// Re-export with backward-compatible aliases
+export type User = UserListResponse;
+export type { UserCreate, UserUpdate };
 
 export const usersApi = {
   list: (page = 1, perPage = 20) =>
