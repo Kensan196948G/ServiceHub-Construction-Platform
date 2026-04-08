@@ -125,7 +125,7 @@ function EditUserModal({
         <FormField label="ロール" htmlFor="edit-role">
           <Select
             id="edit-role"
-            value={form.role}
+            value={form.role ?? ""}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
             options={ROLE_SELECT_OPTIONS}
           />
@@ -134,7 +134,7 @@ function EditUserModal({
           <input
             type="checkbox"
             id="is_active"
-            checked={form.is_active}
+            checked={form.is_active ?? false}
             onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
             className="w-4 h-4 text-primary-600 rounded border-gray-300"
           />

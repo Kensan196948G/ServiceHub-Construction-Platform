@@ -100,9 +100,9 @@ export default function CostPage() {
     createMutation.mutate(form);
   }
 
-  const isOver = (summary?.variance ?? 0) < 0;
-  const achieveRate = summary && summary.total_budgeted > 0
-    ? Math.round((summary.total_actual / summary.total_budgeted) * 100)
+  const isOver = Number(summary?.variance ?? 0) < 0;
+  const achieveRate = summary && Number(summary.total_budgeted) > 0
+    ? Math.round((Number(summary.total_actual) / Number(summary.total_budgeted)) * 100)
     : 0;
 
   return (
@@ -157,20 +157,20 @@ export default function CostPage() {
               <Card>
                 <p className="text-xs font-medium text-gray-500 mb-1">予算合計</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCurrency(summary.total_budgeted)}
+                  {formatCurrency(Number(summary.total_budgeted))}
                 </p>
               </Card>
               <Card>
                 <p className="text-xs font-medium text-gray-500 mb-1">実績合計</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCurrency(summary.total_actual)}
+                  {formatCurrency(Number(summary.total_actual))}
                 </p>
               </Card>
               <Card>
                 <p className="text-xs font-medium text-gray-500 mb-1">差異</p>
                 <p className={`text-xl font-bold flex items-center gap-1 ${isOver ? "text-red-600" : "text-green-600"}`}>
                   {isOver ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                  {formatCurrency(Math.abs(summary.variance))}
+                  {formatCurrency(Math.abs(Number(summary.variance)))}
                 </p>
               </Card>
               <Card>
@@ -200,7 +200,7 @@ export default function CostPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {records.map((r) => {
-                    const variance = (r.budgeted_amount ?? 0) - (r.actual_amount ?? 0);
+                    const variance = Number(r.budgeted_amount) - Number(r.actual_amount);
                     return (
                       <tr key={r.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">{r.record_date}</td>
@@ -208,8 +208,8 @@ export default function CostPage() {
                           <Badge variant="info" size="sm">{CATEGORY_LABEL[r.category] ?? r.category}</Badge>
                         </td>
                         <td className="px-4 py-3 max-w-xs truncate">{r.description}</td>
-                        <td className="px-4 py-3 text-right">{formatCurrency(r.budgeted_amount ?? 0)}</td>
-                        <td className="px-4 py-3 text-right">{formatCurrency(r.actual_amount ?? 0)}</td>
+                        <td className="px-4 py-3 text-right">{formatCurrency(Number(r.budgeted_amount))}</td>
+                        <td className="px-4 py-3 text-right">{formatCurrency(Number(r.actual_amount))}</td>
                         <td className={`px-4 py-3 text-right font-medium ${variance < 0 ? "text-red-600" : "text-green-600"}`}>
                           {variance < 0 ? "▲" : "▼"}{formatCurrency(Math.abs(variance))}
                         </td>

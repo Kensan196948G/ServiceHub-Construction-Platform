@@ -137,7 +137,7 @@ export default function ProjectsPage() {
               <span>全 {data.meta.total} 件</span>
               <Pagination
                 page={page}
-                totalPages={data.meta.total_pages ?? data.meta.pages ?? 1}
+                totalPages={data.meta.pages ?? 1}
                 onPageChange={setPage}
               />
             </div>
@@ -169,7 +169,7 @@ function CreateProjectForm({
   loading: boolean;
   statusOptions: { value: string; label: string }[];
 }) {
-  const [form, setForm] = useState<ProjectCreate & { location?: string }>({
+  const [form, setForm] = useState<ProjectCreate & { location?: string; status?: string }>({
     project_code: "",
     name: "",
     client_name: "",
@@ -206,7 +206,7 @@ function CreateProjectForm({
         <Input id="location" name="location" value={form.location} onChange={handleChange} />
       </FormField>
       <FormField label="説明" htmlFor="description">
-        <textarea id="description" name="description" rows={3} value={form.description} onChange={handleChange}
+        <textarea id="description" name="description" rows={3} value={form.description ?? ""} onChange={handleChange}
           className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
       </FormField>
       <div className="flex gap-3 justify-end pt-2">

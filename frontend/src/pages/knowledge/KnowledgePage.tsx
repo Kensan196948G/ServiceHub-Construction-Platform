@@ -50,7 +50,7 @@ export default function KnowledgePage() {
   });
 
   const aiSearchMutation = useMutation({
-    mutationFn: (query: string) => knowledgeApi.search({ query }),
+    mutationFn: (query: string) => knowledgeApi.search({ query, max_results: 10 }),
     onSuccess: (result) => {
       setAiAnswer(result.ai_answer ?? "回答が見つかりませんでした");
     },

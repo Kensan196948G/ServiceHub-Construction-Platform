@@ -1,44 +1,18 @@
 import api from "./client";
+import type {
+  ProjectResponse,
+  ProjectCreate,
+  PaginationMeta,
+} from "@/generated";
 
-export interface Project {
-  id: string;
-  project_code: string;
-  name: string;
-  description: string | null;
-  client_name: string;
-  site_address: string | null;
-  status: string;
-  budget: number | null;
-  start_date: string | null;
-  end_date: string | null;
-  manager_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ProjectCreate {
-  project_code: string;
-  name: string;
-  description?: string;
-  client_name: string;
-  site_address?: string;
-  status: string;
-  budget?: number;
-  start_date?: string;
-  end_date?: string;
-  manager_id?: string;
-}
+// Re-export with backward-compatible aliases
+export type Project = ProjectResponse;
+export type { ProjectCreate };
 
 export interface PaginatedResponse<T> {
   success: boolean;
   data: T[];
-  meta: {
-    page: number;
-    per_page: number;
-    total: number;
-    total_pages?: number;
-    pages?: number;
-  };
+  meta: PaginationMeta;
 }
 
 export const projectsApi = {
