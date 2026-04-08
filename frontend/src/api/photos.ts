@@ -38,9 +38,7 @@ export const uploadPhoto = (
   form.append("category", category);
   if (description) form.append("description", description);
   return api
-    .post(`/projects/${projectId}/photos`, form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    })
+    .postForm(`/projects/${projectId}/photos`, form)
     .then((r) => r.data);
 };
 
