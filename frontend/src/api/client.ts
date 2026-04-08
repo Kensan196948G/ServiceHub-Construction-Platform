@@ -75,6 +75,41 @@ async function request<T = unknown>(
   return { data, status: res.status, headers: res.headers };
 }
 
+// Separate request function for multipart/form-data uploads (no JSON stringify, no Content-Type override)
+async function requestForm<T = unknown>(
+  method: string,
+  path: string,
+  form: FormData
+): Promise<ApiResponse<T>> {
+  const url = `${BASE_URL}${path}`;
+  const headers: Record<string, string> = {};
+  const token = useAuthStore.getState().token;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, { method, headers, body: form });
+
+  if (res.status === 401) {
+    useAuthStore.getState().logout();
+    window.location.href = "/login";
+  }
+
+  let data: T;
+  const contentType = res.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json") && res.status !== 204) {
+    data = (await res.json()) as T;
+  } else {
+    data = null as unknown as T;
+  }
+
+  if (!res.ok) {
+    throw new ApiError(res.status, { data, status: res.status }, `HTTP ${res.status}`);
+  }
+
+  return { data, status: res.status, headers: res.headers };
+}
+
 // Axios-compatible API surface
 const api = {
   get: <T = unknown>(path: string, options?: { params?: Record<string, unknown> }) =>
@@ -82,6 +117,9 @@ const api = {
 
   post: <T = unknown>(path: string, body?: unknown) =>
     request<T>("POST", path, { body }),
+
+  postForm: <T = unknown>(path: string, form: FormData) =>
+    requestForm<T>("POST", path, form),
 
   put: <T = unknown>(path: string, body?: unknown) =>
     request<T>("PUT", path, { body }),
