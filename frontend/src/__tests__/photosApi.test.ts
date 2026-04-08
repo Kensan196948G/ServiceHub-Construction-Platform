@@ -6,6 +6,7 @@ vi.mock("@/api/client", () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
+    postForm: vi.fn(),
     delete: vi.fn(),
   },
 }));
@@ -45,14 +46,13 @@ describe("photosApi", () => {
 
   it("uploadPhoto は POST /projects/:id/photos を multipart で呼ぶ", async () => {
     const mockFile = new File(["dummy"], "photo.jpg", { type: "image/jpeg" });
-    vi.mocked(api.post).mockResolvedValue({ data: { id: "ph1" } });
+    vi.mocked(api.postForm).mockResolvedValue({ data: { id: "ph1" } });
 
     await uploadPhoto("p1", mockFile, "GENERAL", "説明文");
 
-    expect(api.post).toHaveBeenCalledWith(
+    expect(api.postForm).toHaveBeenCalledWith(
       "/projects/p1/photos",
       expect.any(FormData),
-      { headers: { "Content-Type": "multipart/form-data" } },
     );
   });
 
