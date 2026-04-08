@@ -109,8 +109,8 @@ export default function ItsmPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingIncident, setEditingIncident] = useState<Incident | null>(null);
   const [editingChange, setEditingChange] = useState<ChangeRequest | null>(null);
-  const [incidentEditForm, setIncidentEditForm] = useState<IncidentUpdate>({});
-  const [changeEditForm, setChangeEditForm] = useState<ChangeRequestUpdate>({});
+  const [incidentEditForm, setIncidentEditForm] = useState<IncidentUpdate & { category?: string }>({});
+  const [changeEditForm, setChangeEditForm] = useState<ChangeRequestUpdate & { change_type?: string }>({});
 
   const [incidentForm, setIncidentForm] = useState<IncidentCreate>({
     title: "",

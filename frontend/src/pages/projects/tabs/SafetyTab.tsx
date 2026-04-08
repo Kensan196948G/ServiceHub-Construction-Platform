@@ -6,7 +6,7 @@ import { safetyApi, type SafetyCheck, type SafetyCheckCreate } from "@/api/safet
 
 export function SafetyTab({ projectId }: { projectId: string }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<SafetyCheckCreate>({ project_id: projectId, check_date: "" });
+  const [form, setForm] = useState<SafetyCheckCreate>({ project_id: projectId, check_date: "", check_type: "DAILY", items_total: 0, items_ok: 0, items_ng: 0, overall_result: "PENDING" });
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -19,7 +19,7 @@ export function SafetyTab({ projectId }: { projectId: string }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["safety-checks", projectId] });
       setOpen(false);
-      setForm({ project_id: projectId, check_date: "" });
+      setForm({ project_id: projectId, check_date: "", check_type: "DAILY", items_total: 0, items_ok: 0, items_ng: 0, overall_result: "PENDING" });
     },
   });
 
@@ -109,7 +109,7 @@ export function SafetyTab({ projectId }: { projectId: string }) {
                 id="safety-type"
                 placeholder="例: 朝礼前点検"
                 value={form.check_type ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, check_type: e.target.value || undefined }))}
+                onChange={(e) => setForm((f) => ({ ...f, check_type: e.target.value || "DAILY" }))}
               />
             </FormField>
             <FormField label="総項目数" htmlFor="safety-total">
@@ -118,7 +118,7 @@ export function SafetyTab({ projectId }: { projectId: string }) {
                 type="number"
                 min={0}
                 value={form.items_total ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, items_total: e.target.value ? Number(e.target.value) : undefined }))}
+                onChange={(e) => setForm((f) => ({ ...f, items_total: e.target.value ? Number(e.target.value) : 0 }))}
               />
             </FormField>
             <FormField label="OK項目数" htmlFor="safety-ok">
@@ -127,7 +127,7 @@ export function SafetyTab({ projectId }: { projectId: string }) {
                 type="number"
                 min={0}
                 value={form.items_ok ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, items_ok: e.target.value ? Number(e.target.value) : undefined }))}
+                onChange={(e) => setForm((f) => ({ ...f, items_ok: e.target.value ? Number(e.target.value) : 0 }))}
               />
             </FormField>
             <FormField label="NG項目数" htmlFor="safety-ng">
@@ -136,14 +136,14 @@ export function SafetyTab({ projectId }: { projectId: string }) {
                 type="number"
                 min={0}
                 value={form.items_ng ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, items_ng: e.target.value ? Number(e.target.value) : undefined }))}
+                onChange={(e) => setForm((f) => ({ ...f, items_ng: e.target.value ? Number(e.target.value) : 0 }))}
               />
             </FormField>
             <FormField label="総合判定" htmlFor="safety-result">
               <Select
                 id="safety-result"
                 value={form.overall_result ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, overall_result: e.target.value || undefined }))}
+                onChange={(e) => setForm((f) => ({ ...f, overall_result: e.target.value || "PENDING" }))}
                 options={[
                   { value: "PASS", label: "合格 (PASS)" },
                   { value: "FAIL", label: "不合格 (FAIL)" },

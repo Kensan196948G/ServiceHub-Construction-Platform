@@ -8,7 +8,7 @@ import { COST_CATEGORY_LABELS } from "../constants";
 export function CostTab({ projectId }: { projectId: string }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<CostRecordCreate>({
-    project_id: projectId, record_date: "", category: "MATERIAL", description: "",
+    project_id: projectId, record_date: "", category: "MATERIAL", description: "", budgeted_amount: 0, actual_amount: 0,
   });
   const qc = useQueryClient();
 
@@ -27,7 +27,7 @@ export function CostTab({ projectId }: { projectId: string }) {
       qc.invalidateQueries({ queryKey: ["cost-records", projectId] });
       qc.invalidateQueries({ queryKey: ["cost-summary", projectId] });
       setOpen(false);
-      setForm({ project_id: projectId, record_date: "", category: "MATERIAL", description: "" });
+      setForm({ project_id: projectId, record_date: "", category: "MATERIAL", description: "", budgeted_amount: 0, actual_amount: 0 });
     },
   });
 
@@ -59,9 +59,9 @@ export function CostTab({ projectId }: { projectId: string }) {
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: "予算合計", value: `¥${summary.total_budgeted.toLocaleString()}`, color: "text-gray-900" },
-            { label: "実績合計", value: `¥${summary.total_actual.toLocaleString()}`, color: "text-gray-900" },
-            { label: "差異", value: `¥${summary.variance.toLocaleString()}`, color: summary.variance >= 0 ? "text-green-600" : "text-red-600" },
+            { label: "予算合計", value: `¥${Number(summary.total_budgeted).toLocaleString()}`, color: "text-gray-900" },
+            { label: "実績合計", value: `¥${Number(summary.total_actual).toLocaleString()}`, color: "text-gray-900" },
+            { label: "差異", value: `¥${Number(summary.variance).toLocaleString()}`, color: Number(summary.variance) >= 0 ? "text-green-600" : "text-red-600" },
             { label: "差異率", value: `${summary.variance_rate.toFixed(1)}%`, color: summary.variance_rate >= 0 ? "text-green-600" : "text-red-600" },
           ].map(({ label, value, color }) => (
             <Card key={label} className="text-center py-3">
@@ -101,7 +101,7 @@ export function CostTab({ projectId }: { projectId: string }) {
               </thead>
               <tbody>
                 {records.map((r) => {
-                  const diff = r.budgeted_amount - r.actual_amount;
+                  const diff = Number(r.budgeted_amount) - Number(r.actual_amount);
                   return (
                     <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                       <td className="py-2 px-3 text-gray-600">{r.record_date}</td>
@@ -111,8 +111,8 @@ export function CostTab({ projectId }: { projectId: string }) {
                         </Badge>
                       </td>
                       <td className="py-2 px-3 text-gray-800 max-w-xs truncate">{r.description}</td>
-                      <td className="py-2 px-3 text-right text-gray-600">¥{r.budgeted_amount.toLocaleString()}</td>
-                      <td className="py-2 px-3 text-right text-gray-600">¥{r.actual_amount.toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right text-gray-600">¥{Number(r.budgeted_amount).toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right text-gray-600">¥{Number(r.actual_amount).toLocaleString()}</td>
                       <td className={`py-2 px-3 text-right font-medium ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
                         {diff >= 0 ? "+" : ""}¥{diff.toLocaleString()}
                       </td>
@@ -167,7 +167,7 @@ export function CostTab({ projectId }: { projectId: string }) {
                 type="number"
                 min={0}
                 value={form.budgeted_amount ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, budgeted_amount: e.target.value ? Number(e.target.value) : undefined }))}
+                onChange={(e) => setForm((f) => ({ ...f, budgeted_amount: e.target.value ? Number(e.target.value) : 0 }))}
               />
             </FormField>
             <FormField label="実績額 (円)" htmlFor="cost-actual">
@@ -176,7 +176,7 @@ export function CostTab({ projectId }: { projectId: string }) {
                 type="number"
                 min={0}
                 value={form.actual_amount ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, actual_amount: e.target.value ? Number(e.target.value) : undefined }))}
+                onChange={(e) => setForm((f) => ({ ...f, actual_amount: e.target.value ? Number(e.target.value) : 0 }))}
               />
             </FormField>
             <FormField label="仕入先" htmlFor="cost-vendor" className="col-span-2">
