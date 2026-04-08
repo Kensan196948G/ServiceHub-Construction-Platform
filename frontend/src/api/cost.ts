@@ -1,60 +1,17 @@
 import api from "./client";
-import { PaginatedResponse } from "./projects";
+import type { PaginatedResponse } from "./projects";
+import type {
+  CostRecordResponse,
+  CostRecordCreate,
+  CostSummary,
+  WorkHourResponse,
+  WorkHourCreate,
+} from "@/generated";
 
-export interface CostRecordCreate {
-  project_id: string;
-  record_date: string;
-  category: string;
-  description: string;
-  budgeted_amount?: number;
-  actual_amount?: number;
-  vendor_name?: string;
-  invoice_number?: string;
-  notes?: string;
-}
-
-export interface CostRecord {
-  id: string;
-  project_id: string;
-  record_date: string;
-  category: string;
-  description: string;
-  budgeted_amount: number;
-  actual_amount: number;
-  vendor_name: string | null;
-  invoice_number: string | null;
-  notes: string | null;
-  created_at: string;
-}
-
-export interface CostSummary {
-  project_id: string;
-  total_budgeted: number;
-  total_actual: number;
-  variance: number;
-  variance_rate: number;
-  by_category: Record<string, unknown>;
-}
-
-export interface WorkHourCreate {
-  project_id: string;
-  work_date: string;
-  hours: number;
-  work_type?: string;
-  description?: string;
-  worker_id?: string;
-}
-
-export interface WorkHour {
-  id: string;
-  project_id: string;
-  work_date: string;
-  hours: number;
-  work_type: string | null;
-  description: string | null;
-  worker_id: string | null;
-  created_at: string;
-}
+// Re-export with backward-compatible aliases
+export type CostRecord = CostRecordResponse;
+export type WorkHour = WorkHourResponse;
+export type { CostRecordCreate, CostSummary, WorkHourCreate };
 
 export const costApi = {
   createCostRecord: async (projectId: string, data: CostRecordCreate) => {

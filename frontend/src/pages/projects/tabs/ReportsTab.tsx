@@ -7,7 +7,7 @@ import { WEATHER_LABELS } from "../constants";
 
 export function ReportsTab({ projectId }: { projectId: string }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<DailyReportCreate>({ project_id: projectId, report_date: "", worker_count: 1 });
+  const [form, setForm] = useState<DailyReportCreate>({ project_id: projectId, report_date: "", worker_count: 1, safety_check: false });
   const [editReport, setEditReport] = useState<DailyReport | null>(null);
   const [editForm, setEditForm] = useState<Partial<DailyReportCreate>>({});
   const qc = useQueryClient();
@@ -22,7 +22,7 @@ export function ReportsTab({ projectId }: { projectId: string }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["daily-reports", projectId] });
       setOpen(false);
-      setForm({ project_id: projectId, report_date: "", worker_count: 1 });
+      setForm({ project_id: projectId, report_date: "", worker_count: 1, safety_check: false });
     },
   });
 

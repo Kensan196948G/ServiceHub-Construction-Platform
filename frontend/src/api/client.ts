@@ -2,7 +2,6 @@ import { useAuthStore } from "@/stores/authStore";
 
 const BASE_URL = "/api/v1";
 
-// Axios-compatible response shape so existing api/*.ts modules need no changes
 interface ApiResponse<T = unknown> {
   data: T;
   status: number;
@@ -13,122 +12,90 @@ class ApiError extends Error {
   constructor(
     public status: number,
     public response: { data: unknown; status: number },
-    message: string
+    message: string,
   ) {
     super(message);
     this.name = "ApiError";
   }
 }
 
-async function request<T = unknown>(
+interface RequestOptions {
+  params?: Record<string, string | number | boolean | undefined>;
+  headers?: Record<string, string>;
+}
+
+async function request<T>(
   method: string,
   path: string,
-  options: { params?: Record<string, unknown>; body?: unknown } = {}
+  body?: unknown,
+  options: RequestOptions = {},
 ): Promise<ApiResponse<T>> {
-  const { params, body } = options;
-
-  // Build URL with query params
-  let url = `${BASE_URL}${path}`;
-  if (params) {
-    const search = new URLSearchParams(
-      Object.entries(params)
-        .filter(([, v]) => v !== undefined && v !== null)
-        .map(([k, v]) => [k, String(v)])
-    );
-    if (search.toString()) url += `?${search}`;
+  const token = useAuthStore.getState().token;
+  const headers: Record<string, string> = {
+    ...options.headers,
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  // Build headers
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  const token = useAuthStore.getState().token;
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  // Only set Content-Type for JSON bodies (not FormData)
+  if (body !== undefined && !(body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  let url = `${BASE_URL}${path}`;
+  if (options.params) {
+    const search = new URLSearchParams();
+    for (const [k, v] of Object.entries(options.params)) {
+      if (v !== undefined) search.set(k, String(v));
+    }
+    const qs = search.toString();
+    if (qs) url += `?${qs}`;
   }
 
   const res = await fetch(url, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body:
+      body instanceof FormData ? body
+      : body !== undefined ? JSON.stringify(body)
+      : undefined,
   });
 
-  // 401 → logout and redirect (mirrors axios interceptor)
   if (res.status === 401) {
     useAuthStore.getState().logout();
     window.location.href = "/login";
   }
 
-  // Parse JSON body (empty responses like DELETE 204 return null)
-  let data: T;
-  const contentType = res.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json") && res.status !== 204) {
-    data = (await res.json()) as T;
-  } else {
-    data = null as unknown as T;
+  let data: unknown = null;
+  const ct = res.headers.get("content-type") ?? "";
+  if (res.status !== 204 && ct.includes("application/json")) {
+    data = await res.json();
   }
 
   if (!res.ok) {
     throw new ApiError(res.status, { data, status: res.status }, `HTTP ${res.status}`);
   }
 
-  return { data, status: res.status, headers: res.headers };
+  return { data: data as T, status: res.status, headers: res.headers };
 }
 
-// Separate request function for multipart/form-data uploads (no JSON stringify, no Content-Type override)
-async function requestForm<T = unknown>(
-  method: string,
-  path: string,
-  form: FormData
-): Promise<ApiResponse<T>> {
-  const url = `${BASE_URL}${path}`;
-  const headers: Record<string, string> = {};
-  const token = useAuthStore.getState().token;
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const res = await fetch(url, { method, headers, body: form });
-
-  if (res.status === 401) {
-    useAuthStore.getState().logout();
-    window.location.href = "/login";
-  }
-
-  let data: T;
-  const contentType = res.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json") && res.status !== 204) {
-    data = (await res.json()) as T;
-  } else {
-    data = null as unknown as T;
-  }
-
-  if (!res.ok) {
-    throw new ApiError(res.status, { data, status: res.status }, `HTTP ${res.status}`);
-  }
-
-  return { data, status: res.status, headers: res.headers };
-}
-
-// Axios-compatible API surface
 const api = {
-  get: <T = unknown>(path: string, options?: { params?: Record<string, unknown> }) =>
-    request<T>("GET", path, { params: options?.params }),
-
-  post: <T = unknown>(path: string, body?: unknown) =>
-    request<T>("POST", path, { body }),
-
-  postForm: <T = unknown>(path: string, form: FormData) =>
-    requestForm<T>("POST", path, form),
-
-  put: <T = unknown>(path: string, body?: unknown) =>
-    request<T>("PUT", path, { body }),
-
-  patch: <T = unknown>(path: string, body?: unknown) =>
-    request<T>("PATCH", path, { body }),
-
-  delete: <T = unknown>(path: string) =>
-    request<T>("DELETE", path),
+  get<T = unknown>(path: string, options?: RequestOptions) {
+    return request<T>("GET", path, undefined, options);
+  },
+  post<T = unknown>(path: string, body?: unknown, options?: RequestOptions) {
+    return request<T>("POST", path, body, options);
+  },
+  put<T = unknown>(path: string, body?: unknown, options?: RequestOptions) {
+    return request<T>("PUT", path, body, options);
+  },
+  patch<T = unknown>(path: string, body?: unknown, options?: RequestOptions) {
+    return request<T>("PATCH", path, body, options);
+  },
+  delete<T = unknown>(path: string, options?: RequestOptions) {
+    return request<T>("DELETE", path, undefined, options);
+  },
 };
 
 export default api;

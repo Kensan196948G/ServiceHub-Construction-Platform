@@ -1,69 +1,18 @@
 import api from "./client";
-import { PaginatedResponse } from "./projects";
+import type { PaginatedResponse } from "./projects";
+import type {
+  IncidentResponse,
+  IncidentCreate,
+  IncidentUpdate,
+  ChangeRequestResponse,
+  ChangeRequestCreate,
+  ChangeRequestUpdate,
+} from "@/generated";
 
-export interface IncidentCreate {
-  title: string;
-  description: string;
-  category?: string;
-  priority?: string;
-  severity?: string;
-  assigned_to?: string;
-  project_id?: string;
-}
-
-export interface Incident {
-  id: string;
-  incident_number: string;
-  title: string;
-  description: string;
-  category: string;
-  priority: string;
-  severity: string;
-  status: string;
-  assigned_to: string | null;
-  project_id: string | null;
-  resolution: string | null;
-  resolved_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface IncidentUpdate extends Partial<IncidentCreate> {
-  status?: string;
-  resolution?: string;
-}
-
-export interface ChangeRequestCreate {
-  title: string;
-  description: string;
-  change_type?: string;
-  risk_level?: string;
-  impact?: string;
-  rollback_plan?: string;
-  scheduled_start?: string;
-  scheduled_end?: string;
-}
-
-export interface ChangeRequestUpdate extends Partial<ChangeRequestCreate> {
-  status?: string;
-}
-
-export interface ChangeRequest {
-  id: string;
-  change_number: string;
-  title: string;
-  description: string;
-  change_type: string;
-  risk_level: string;
-  status: string;
-  impact: string | null;
-  rollback_plan: string | null;
-  scheduled_start: string | null;
-  scheduled_end: string | null;
-  approved_by: string | null;
-  created_at: string;
-  updated_at: string;
-}
+// Re-export with backward-compatible aliases
+export type Incident = IncidentResponse;
+export type ChangeRequest = ChangeRequestResponse;
+export type { IncidentCreate, IncidentUpdate, ChangeRequestCreate, ChangeRequestUpdate };
 
 export const itsmApi = {
   createIncident: async (data: IncidentCreate) => {

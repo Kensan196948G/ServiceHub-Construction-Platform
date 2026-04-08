@@ -1,24 +1,12 @@
 import api from "./client";
+import type {
+  LoginRequest,
+  TokenResponse,
+  UserResponse,
+} from "@/generated";
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface TokenResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  expires_in: number;
-}
-
-export interface UserResponse {
-  id: string;
-  email: string;
-  full_name: string;
-  role: string;
-  is_active: boolean;
-}
+// Re-export generated types for downstream consumers
+export type { LoginRequest, TokenResponse, UserResponse };
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<TokenResponse> => {
