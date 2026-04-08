@@ -42,8 +42,8 @@
   },
   "priorities": {
     "high": [
-      "Docker Compose ローカル開発環境の安定化",
-      "E2Eテスト拡充（認証・CRUD操作フロー）"
+      "E2Eテスト拡充（usersページ・詳細ページCRUDフロー）",
+      "認証フロー強化（refresh token / logout E2E）"
     ],
     "medium": [
       "通知機能検討（メール/Slack）",
@@ -64,8 +64,8 @@
   "metrics": {
     "test_count_backend": 185,
     "test_count_frontend": 263,
-    "test_count_e2e": 51,
-    "test_total": 499,
+    "test_count_e2e": 58,
+    "test_total": 506,
     "coverage_backend": "97%",
     "coverage_frontend": "88%",
     "ci_status": "green",
@@ -133,30 +133,33 @@
     "day5_2026_04_09": {
       "date": "2026-04-09",
       "status": "completed",
-      "hours": 1,
-      "loops_completed": 3,
-      "prs_merged": ["#67", "#69", "#71"],
+      "hours": 2,
+      "loops_completed": 6,
+      "prs_merged": ["#67", "#69", "#71", "#73", "#75"],
       "prs_pending": [],
-      "issues_closed": [],
+      "issues_closed": ["#72", "#74"],
       "issues_pending": [],
-      "commits_to_main": 3,
+      "commits_to_main": 5,
       "highlights": [
         "PR#67: OpenAPI型を既存APIモジュールに適用（users.ts / projects.ts / cost.ts / itsm.ts等）",
         "PR#69: axios → native fetch API 移行完了（postForm廃止・unified request関数）",
         "PR#71: レスポンシブ対応 + 上記fetch移行を同ブランチに統合",
-        "TypeScript CI エラー修正: photos.ts api.postForm→api.post, users.ts型パラメータ追加",
-        "テストモック同期: photosApi.test.ts を fetch-based api に合わせて更新",
-        "マージコンフリクト解決: main の統合fetch client を採用し両PRを収束"
+        "PR#73: Docker Compose 安定化 — フロントエンド EACCES 権限エラー修正 + ポート競合解消",
+        "PR#75: E2Eテスト拡充 — projects-crud 3→10テスト (検索・フィルタ・作成フロー追加)",
+        "全サービス正常稼働: api(8080) / db(5435) / redis(6380) / frontend(3001)"
       ],
       "metrics_delta": {
         "axios_removed": true,
         "openapi_types_applied": "全APIモジュール",
-        "ci_errors_fixed": 3
+        "ci_errors_fixed": 3,
+        "docker_services_stable": 4,
+        "e2e_tests_added": 7,
+        "e2e_total": "58 (51+7)"
       },
       "resume_point": {
-        "immediate": "完了（PR#67,#69,#71マージ済み）",
-        "next_task": "Docker Compose安定化 / E2Eテスト拡充",
-        "backlog": ["通知機能", "パフォーマンス計測"]
+        "immediate": "完了（PR#73,#75マージ済み）",
+        "next_task": "E2Eテスト拡充（usersページ・詳細ページCRUDフロー）",
+        "backlog": ["認証フロー強化（refresh token / logout E2E）", "通知機能", "パフォーマンス計測"]
       }
     }
   }
