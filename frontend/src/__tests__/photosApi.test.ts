@@ -52,7 +52,6 @@ describe("photosApi", () => {
     expect(api.post).toHaveBeenCalledWith(
       "/projects/p1/photos",
       expect.any(FormData),
-      { headers: { "Content-Type": "multipart/form-data" } },
     );
   });
 
