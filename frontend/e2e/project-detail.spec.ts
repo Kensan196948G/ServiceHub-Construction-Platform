@@ -66,7 +66,7 @@ test.describe("Project Detail Page", () => {
   });
 
   test("shows back link to projects list", async ({ page }) => {
-    const backLink = page.locator('a[href="/projects"]');
+    const backLink = page.locator('a[href="/projects"].text-gray-400');
     await expect(backLink).toBeVisible();
   });
 
