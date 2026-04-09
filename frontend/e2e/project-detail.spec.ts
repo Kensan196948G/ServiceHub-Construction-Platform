@@ -20,6 +20,36 @@ test.describe("Project Detail Page", () => {
       }
     });
 
+    // Mock cost-records endpoint for CostTab
+    await page.route("**/api/v1/projects/1/cost-records**", (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: [],
+          meta: { page: 1, per_page: 20, total: 0 },
+        }),
+      });
+    });
+
+    // Mock cost-summary endpoint for CostTab
+    await page.route("**/api/v1/projects/1/cost-summary**", (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: {
+            total_budgeted: 0,
+            total_actual: 0,
+            variance: 0,
+            variance_rate: 0,
+          },
+        }),
+      });
+    });
+
     await page.goto("/projects/1");
     await page.waitForURL("**/projects/1");
     // Wait for project name to appear in heading
@@ -32,12 +62,12 @@ test.describe("Project Detail Page", () => {
 
   test("shows project name and code in header", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "渋谷オフィスビル新築工事" })).toBeVisible();
-    await expect(page.getByText("PRJ-001")).toBeVisible();
+    await expect(page.getByRole("paragraph").filter({ hasText: "PRJ-001" })).toBeVisible();
   });
 
   test("shows back link to projects list", async ({ page }) => {
-    const backLink = page.getByRole("link").filter({ has: page.locator("svg") }).first();
-    await expect(backLink).toHaveAttribute("href", "/projects");
+    const backLink = page.locator('a[href="/projects"]');
+    await expect(backLink).toBeVisible();
   });
 
   test("InfoTab is active by default", async ({ page }) => {
@@ -50,7 +80,7 @@ test.describe("Project Detail Page", () => {
   test("shows project fields in view mode", async ({ page }) => {
     // InfoTab shows project data
     await expect(page.getByText("株式会社テスト")).toBeVisible();
-    await expect(page.getByText("PRJ-001")).toBeVisible();
+    await expect(page.getByText("PRJ-001").first()).toBeVisible();
   });
 
   // ─── InfoTab Edit ─────────────────────────────────
