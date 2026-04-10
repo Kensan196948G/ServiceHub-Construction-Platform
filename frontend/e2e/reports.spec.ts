@@ -178,7 +178,7 @@ test.describe("Daily Reports Page", () => {
     await page.locator("select").first().selectOption("1");
 
     await page.getByRole("button", { name: "新規日報作成" }).click();
-    await expect(page.getByText("新規日報作成")).toBeVisible({
+    await expect(page.getByRole("dialog").getByText("新規日報作成")).toBeVisible({
       timeout: 10_000,
     });
   });
