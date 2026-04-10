@@ -5,6 +5,7 @@ from app.models.cost import CostRecord, WorkHour
 from app.models.daily_report import DailyReport
 from app.models.itsm import ChangeRequest, Incident
 from app.models.knowledge import AiSearchLog, KnowledgeArticle
+from app.models.notification_preference import NotificationPreference
 from app.models.photo import Photo
 from app.models.project import Project
 from app.models.safety import QualityInspection, SafetyCheck
@@ -24,4 +25,5 @@ __all__ = [
     "ChangeRequest",
     "KnowledgeArticle",
     "AiSearchLog",
+    "NotificationPreference",
 ]

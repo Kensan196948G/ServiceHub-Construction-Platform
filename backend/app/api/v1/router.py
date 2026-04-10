@@ -9,6 +9,7 @@ from app.api.v1.routers import (
     dashboard,
     itsm,
     knowledge,
+    notification_preferences,
     photos,
     projects,
     safety,
@@ -27,3 +28,4 @@ api_router.include_router(itsm.router)
 api_router.include_router(knowledge.router)
 api_router.include_router(users.router)
 api_router.include_router(dashboard.router)
+api_router.include_router(notification_preferences.router)
