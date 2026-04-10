@@ -79,6 +79,7 @@ graph TB
 | 🤖       | AI ナレッジ管理     | 記事 CRUD / AI 検索 (OpenAI)  | 5      | ✅ 完了     |
 | 📡       | システム            | ヘルスチェック / ステータス確認 | 2     | ✅ 完了     |
 | 📊       | Dashboard KPI API   | 集計 KPI 取得 / React Query hook | 1   | ✅ 完了     |
+| 🔔       | 通知設定            | 通知購読 preferences 管理 (Phase 1) | 2   | ✅ 完了     |
 
 ### 🧩 共通 UI コンポーネント（`src/components/ui/`）
 
@@ -101,14 +102,14 @@ graph TB
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
+| 🧪 Backend テスト | **199 件**（pytest / coverage **96%**） |
 | 🧪 Frontend テスト | **263 件**（vitest / 41 テストファイル / coverage **88%**） |
 | 🎭 E2E テスト | **159 件**（Playwright / 23 テストファイル） |
-| 📊 総テスト数 | **607 件**（Backend + Frontend + E2E） |
+| 📊 総テスト数 | **621 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **12 ページ**（全ページテスト済み・設定ページ追加） |
 | 🧩 共通 UI コンポーネント | **12 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
-| 🔗 API エンドポイント | **48 エンドポイント**（ITSM 変更要求更新追加） |
+| 🔗 API エンドポイント | **50 エンドポイント**（通知設定 GET/PATCH 追加） |
 | 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
 | 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
 | 🔀 Router | **9 本**（Dashboard Router 追加） |
@@ -271,6 +272,7 @@ gantt
     E2E拡充 (CRUD/users/photos)        :done, s2h, 2026-04-10, 1d
     refresh token + 認証E2E            :done, s2i, 2026-04-10, 1d
     設定ページ + ErrorBoundary          :done, s2j, 2026-04-10, 1d
+    通知設定Phase1 preferences API      :done, s2k, 2026-04-10, 1d
     section Phase 3: UX改善
     レスポンシブ・アクセシビリティ    :s3, 2026-04-19, 14d
     section Phase 4: 高度機能
