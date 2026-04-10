@@ -3,20 +3,20 @@ import {
   setupAuthMocks,
   setupAllApiMocks,
   MOCK_TOKEN,
-  MOCK_REFRESH_TOKEN,
   MOCK_NEW_TOKEN,
-  MOCK_NEW_REFRESH_TOKEN,
   MOCK_USER,
 } from "./fixtures/api-mocks";
 
-/** Helper: read Zustand persisted auth state from localStorage */
+/** Helper: read Zustand persisted auth state from localStorage.
+ *  NOTE: refreshToken is intentionally excluded from localStorage (memory-only)
+ *  to reduce XSS attack surface. Only token and user are persisted.
+ */
 async function getAuthState(page: import("@playwright/test").Page) {
   return page.evaluate(() => {
     const raw = localStorage.getItem("servicehub-auth");
     if (!raw) return null;
     return JSON.parse(raw).state as {
       token: string | null;
-      refreshToken: string | null;
       user: unknown;
     };
   });
@@ -24,7 +24,7 @@ async function getAuthState(page: import("@playwright/test").Page) {
 
 test.describe("Authentication Flow", () => {
   test.describe("Login — token persistence", () => {
-    test("stores both access_token and refresh_token after login", async ({
+    test("stores access_token in localStorage after login (refreshToken is memory-only)", async ({
       page,
     }) => {
       await setupAuthMocks(page);
@@ -39,7 +39,7 @@ test.describe("Authentication Flow", () => {
       const state = await getAuthState(page);
       expect(state).not.toBeNull();
       expect(state!.token).toBe(MOCK_TOKEN);
-      expect(state!.refreshToken).toBe(MOCK_REFRESH_TOKEN);
+      // refreshToken is NOT persisted to localStorage (security design: XSS exposure reduction)
     });
 
     test("persists auth state across page reload", async ({ page }) => {
@@ -51,13 +51,13 @@ test.describe("Authentication Flow", () => {
       await page.getByRole("button", { name: "ログイン" }).click();
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
-      // Reload and verify session persists
+      // Reload and verify session persists (access_token survives reload via localStorage)
       await page.reload();
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
       const state = await getAuthState(page);
       expect(state!.token).toBe(MOCK_TOKEN);
-      expect(state!.refreshToken).toBe(MOCK_REFRESH_TOKEN);
+      // refreshToken is memory-only — not in localStorage after reload (by design)
     });
   });
 
@@ -67,21 +67,20 @@ test.describe("Authentication Flow", () => {
     }) => {
       await setupAllApiMocks(page);
 
-      // Pre-set auth state with tokens
+      // Pre-set auth state with access token only (refreshToken is not persisted to localStorage)
       await page.goto("/login");
       await page.evaluate(
-        ({ token, refreshToken, user }) => {
+        ({ token, user }) => {
           localStorage.setItem(
             "servicehub-auth",
             JSON.stringify({
-              state: { token, refreshToken, user },
+              state: { token, user },
               version: 0,
             })
           );
         },
         {
           token: "expired-token",
-          refreshToken: MOCK_REFRESH_TOKEN,
           user: MOCK_USER,
         }
       );
@@ -114,16 +113,16 @@ test.describe("Authentication Flow", () => {
       // Should stay on dashboard (not redirected to login) after auto-refresh
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
-      // Verify tokens were updated by the refresh
+      // Verify access token was updated by the refresh
       const state = await getAuthState(page);
       expect(state!.token).toBe(MOCK_NEW_TOKEN);
-      expect(state!.refreshToken).toBe(MOCK_NEW_REFRESH_TOKEN);
+      // refreshToken stays in memory only — not verifiable from localStorage
     });
 
     test("redirects to login when refresh token is invalid", async ({
       page,
     }) => {
-      // Set up auth state with expired tokens
+      // Set up auth state with expired access token only
       await page.goto("/login");
       await page.evaluate(
         ({ user }) => {
@@ -132,7 +131,6 @@ test.describe("Authentication Flow", () => {
             JSON.stringify({
               state: {
                 token: "expired-token",
-                refreshToken: "invalid-refresh-token",
                 user,
               },
               version: 0,
@@ -159,7 +157,6 @@ test.describe("Authentication Flow", () => {
       // Auth state should be cleared
       const state = await getAuthState(page);
       expect(state!.token).toBeNull();
-      expect(state!.refreshToken).toBeNull();
     });
   });
 
@@ -167,21 +164,20 @@ test.describe("Authentication Flow", () => {
     test("clears auth state and redirects to login", async ({ page }) => {
       await setupAllApiMocks(page);
 
-      // Login first
+      // Set auth state (access token only in localStorage; refreshToken is memory-only)
       await page.goto("/login");
       await page.evaluate(
-        ({ token, refreshToken, user }) => {
+        ({ token, user }) => {
           localStorage.setItem(
             "servicehub-auth",
             JSON.stringify({
-              state: { token, refreshToken, user },
+              state: { token, user },
               version: 0,
             })
           );
         },
         {
           token: MOCK_TOKEN,
-          refreshToken: MOCK_REFRESH_TOKEN,
           user: MOCK_USER,
         }
       );
@@ -200,7 +196,6 @@ test.describe("Authentication Flow", () => {
         // Auth state should be cleared
         const state = await getAuthState(page);
         expect(state!.token).toBeNull();
-        expect(state!.refreshToken).toBeNull();
       }
     });
   });
@@ -219,7 +214,7 @@ test.describe("Authentication Flow", () => {
         localStorage.setItem(
           "servicehub-auth",
           JSON.stringify({
-            state: { token: "expired-token", refreshToken: null, user: null },
+            state: { token: "expired-token", user: null },
             version: 0,
           })
         );

@@ -27,6 +27,11 @@ export const useAuthStore = create<AuthState>()(
       setTokens: (token, refreshToken) => set({ token, refreshToken }),
       logout: () => set({ token: null, refreshToken: null, user: null }),
     }),
-    { name: "servicehub-auth" },
+    {
+      name: "servicehub-auth",
+      // refreshToken is kept in memory only — excluded from localStorage to reduce XSS exposure.
+      // access_token (15 min TTL) and user info are persisted for UX continuity.
+      partialize: (state) => ({ token: state.token, user: state.user }),
+    },
   ),
 );

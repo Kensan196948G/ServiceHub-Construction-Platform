@@ -35,13 +35,17 @@ export const authApi = {
     }
     return res.json();
   },
-  /** Logout: notify server (best-effort), then clear client state. */
+  /** Logout: revoke refresh token server-side (best-effort), then clear client state. */
   logout: async (): Promise<void> => {
-    const token = useAuthStore.getState().token;
+    const { token, refreshToken } = useAuthStore.getState();
     try {
       await fetch(`${BASE_URL}/auth/logout`, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ refresh_token: refreshToken ?? null }),
       });
     } catch {
       // Server logout is best-effort; client cleanup always proceeds
