@@ -102,7 +102,7 @@ test.describe("Users Page", () => {
     await expect(page.getByText("無効ユーザー花子")).toBeVisible({
       timeout: 10_000,
     });
-    await expect(page.getByText("無効")).toBeVisible();
+    await expect(page.getByText("無効", { exact: true })).toBeVisible();
   });
 
   test("shows 編集 button for each user row", async ({ page }) => {
