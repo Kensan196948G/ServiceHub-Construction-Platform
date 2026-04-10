@@ -144,3 +144,25 @@ def it_headers() -> dict:
 @pytest_asyncio.fixture
 def viewer_headers() -> dict:
     return {"Authorization": f"Bearer {make_token(UserRole.VIEWER, VIEWER_USER_ID)}"}
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reset_redis_singleton():
+    """Reset the Redis singleton between tests.
+
+    redis_client.py uses a module-level _redis variable that is bound to the
+    event loop at creation time. With asyncio_default_fixture_loop_scope=function,
+    each test gets a new event loop, so the cached connection from a previous test
+    would be bound to a closed loop and raise RuntimeError: Event loop is closed.
+    Resetting _redis=None forces a fresh connection on the current event loop.
+    """
+    yield
+    import app.core.redis_client as rc
+
+    if rc._redis is not None:
+        try:
+            await rc._redis.aclose()
+        except Exception as exc:  # noqa: BLE001
+            # Ignore cleanup errors (e.g. already closed connection)
+            _ = exc
+        rc._redis = None

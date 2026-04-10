@@ -14,7 +14,10 @@ test.describe('Dashboard', () => {
   })
 
   test('shows correct project total from KPI', async ({ page }) => {
-    await expect(page.getByText(String(MOCK_KPI.projects.total))).toBeVisible({ timeout: 10_000 })
+    // Scope search to the stat card container to avoid collision with the date header
+    // (e.g. "2026年4月10日" also contains "10" which would cause a strict mode violation)
+    const projectStatCard = page.getByText('工事案件数 (合計)').locator('..')
+    await expect(projectStatCard.getByText(String(MOCK_KPI.projects.total))).toBeVisible({ timeout: 10_000 })
   })
 
   test('shows error banner when KPI API fails', async ({ page }) => {

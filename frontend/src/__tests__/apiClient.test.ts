@@ -23,7 +23,7 @@ vi.mock("axios", () => {
 
 describe("API Client", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: null, user: null });
+    useAuthStore.setState({ token: null, refreshToken: null, user: null });
   });
 
   it("トークンがストアに設定されていればリクエストヘッダーに含まれる", () => {
@@ -65,7 +65,7 @@ describe("API Client", () => {
       full_name: "Test",
       role: "ADMIN",
     };
-    useAuthStore.getState().setAuth("token", mockUser);
+    useAuthStore.getState().setAuth("token", "refresh-token", mockUser);
     expect(useAuthStore.getState().token).toBe("token");
 
     // 401 をシミュレート

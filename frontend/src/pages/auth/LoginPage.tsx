@@ -22,7 +22,7 @@ export default function LoginPage() {
       // Store token temporarily to fetch user info
       useAuthStore.setState({ token: token.access_token });
       const user = await authApi.me();
-      setAuth(token.access_token, user);
+      setAuth(token.access_token, token.refresh_token, user);
       navigate("/dashboard");
     } catch {
       setError("メールアドレスまたはパスワードが正しくありません");

@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores/authStore";
 describe("useAuthStore", () => {
   beforeEach(() => {
     // ストアをリセット
-    useAuthStore.setState({ token: null, user: null });
+    useAuthStore.setState({ token: null, refreshToken: null, user: null });
   });
 
   it("初期状態は token と user が null", () => {
@@ -21,10 +21,11 @@ describe("useAuthStore", () => {
       role: "ADMIN",
     };
 
-    useAuthStore.getState().setAuth("test-token-123", mockUser);
+    useAuthStore.getState().setAuth("test-token-123", "test-refresh-token", mockUser);
 
     const state = useAuthStore.getState();
     expect(state.token).toBe("test-token-123");
+    expect(state.refreshToken).toBe("test-refresh-token");
     expect(state.user).toEqual(mockUser);
     expect(state.user?.email).toBe("test@example.com");
   });
@@ -37,13 +38,15 @@ describe("useAuthStore", () => {
       role: "VIEWER",
     };
 
-    useAuthStore.getState().setAuth("token", mockUser);
+    useAuthStore.getState().setAuth("token", "refresh-token", mockUser);
     expect(useAuthStore.getState().token).toBe("token");
+    expect(useAuthStore.getState().refreshToken).toBe("refresh-token");
 
     useAuthStore.getState().logout();
 
     const state = useAuthStore.getState();
     expect(state.token).toBeNull();
+    expect(state.refreshToken).toBeNull();
     expect(state.user).toBeNull();
   });
 
@@ -61,8 +64,8 @@ describe("useAuthStore", () => {
       role: "VIEWER",
     };
 
-    useAuthStore.getState().setAuth("token-1", user1);
-    useAuthStore.getState().setAuth("token-2", user2);
+    useAuthStore.getState().setAuth("token-1", "refresh-1", user1);
+    useAuthStore.getState().setAuth("token-2", "refresh-2", user2);
 
     const state = useAuthStore.getState();
     expect(state.token).toBe("token-2");
