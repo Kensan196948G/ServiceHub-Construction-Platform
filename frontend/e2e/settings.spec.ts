@@ -42,11 +42,12 @@ test.describe("Settings Page", () => {
     // Profile section heading
     await expect(page.getByRole("heading", { name: "プロフィール" })).toBeVisible();
 
-    // User details from MOCK_USER
-    await expect(page.getByText(MOCK_USER.full_name)).toBeVisible();
-    await expect(page.getByText(MOCK_USER.email)).toBeVisible();
+    // Scope to the profile section to avoid matching sidebar user display (which also shows full_name)
+    const profileSection = page.locator("section").filter({ hasText: "プロフィール" });
+    await expect(profileSection.getByText(MOCK_USER.full_name, { exact: true })).toBeVisible();
+    await expect(profileSection.getByText(MOCK_USER.email)).toBeVisible();
     // Role is displayed as Japanese label "管理者" for ADMIN
-    await expect(page.getByText("管理者")).toBeVisible();
+    await expect(profileSection.getByText("管理者")).toBeVisible();
   });
 
   test("shows password change form with required fields", async ({ page }) => {
@@ -54,7 +55,8 @@ test.describe("Settings Page", () => {
 
     await expect(page.getByRole("heading", { name: "パスワード変更" })).toBeVisible();
     await expect(page.getByLabel("現在のパスワード")).toBeVisible();
-    await expect(page.getByLabel("新しいパスワード")).toBeVisible();
+    // Use exact:true because "新しいパスワード" is a prefix of "新しいパスワード（確認）"
+    await expect(page.getByLabel("新しいパスワード", { exact: true })).toBeVisible();
     await expect(page.getByLabel("新しいパスワード（確認）")).toBeVisible();
     await expect(page.getByRole("button", { name: "パスワードを変更" })).toBeVisible();
     await expect(page.getByRole("button", { name: "キャンセル" })).toBeVisible();
@@ -64,7 +66,7 @@ test.describe("Settings Page", () => {
     await goToSettings(page);
 
     await page.getByLabel("現在のパスワード").fill("current123");
-    await page.getByLabel("新しいパスワード").fill("newpass123");
+    await page.getByLabel("新しいパスワード", { exact: true }).fill("newpass123");
     await page.getByLabel("新しいパスワード（確認）").fill("different456");
 
     await page.getByRole("button", { name: "パスワードを変更" }).click();
@@ -78,7 +80,7 @@ test.describe("Settings Page", () => {
     await goToSettings(page);
 
     await page.getByLabel("現在のパスワード").fill("current123");
-    await page.getByLabel("新しいパスワード").fill("short");
+    await page.getByLabel("新しいパスワード", { exact: true }).fill("short");
     await page.getByLabel("新しいパスワード（確認）").fill("short");
 
     await page.getByRole("button", { name: "パスワードを変更" }).click();
@@ -90,7 +92,7 @@ test.describe("Settings Page", () => {
     await goToSettings(page);
 
     await page.getByLabel("現在のパスワード").fill("oldpassword123");
-    await page.getByLabel("新しいパスワード").fill("newpassword456");
+    await page.getByLabel("新しいパスワード", { exact: true }).fill("newpassword456");
     await page.getByLabel("新しいパスワード（確認）").fill("newpassword456");
 
     await page.getByRole("button", { name: "パスワードを変更" }).click();
@@ -101,21 +103,21 @@ test.describe("Settings Page", () => {
 
     // Form should reset after success
     await expect(page.getByLabel("現在のパスワード")).toHaveValue("");
-    await expect(page.getByLabel("新しいパスワード")).toHaveValue("");
+    await expect(page.getByLabel("新しいパスワード", { exact: true })).toHaveValue("");
   });
 
   test("cancels password change and clears form", async ({ page }) => {
     await goToSettings(page);
 
     await page.getByLabel("現在のパスワード").fill("mypassword");
-    await page.getByLabel("新しいパスワード").fill("newpassword123");
+    await page.getByLabel("新しいパスワード", { exact: true }).fill("newpassword123");
     await page.getByLabel("新しいパスワード（確認）").fill("newpassword123");
 
     await page.getByRole("button", { name: "キャンセル" }).click();
 
     // All fields should be cleared
     await expect(page.getByLabel("現在のパスワード")).toHaveValue("");
-    await expect(page.getByLabel("新しいパスワード")).toHaveValue("");
+    await expect(page.getByLabel("新しいパスワード", { exact: true })).toHaveValue("");
     await expect(page.getByLabel("新しいパスワード（確認）")).toHaveValue("");
   });
 
@@ -135,7 +137,7 @@ test.describe("Settings Page", () => {
     await page.waitForURL("**/settings");
 
     await page.getByLabel("現在のパスワード").fill("wrongpassword");
-    await page.getByLabel("新しいパスワード").fill("newpassword456");
+    await page.getByLabel("新しいパスワード", { exact: true }).fill("newpassword456");
     await page.getByLabel("新しいパスワード（確認）").fill("newpassword456");
 
     await page.getByRole("button", { name: "パスワードを変更" }).click();
