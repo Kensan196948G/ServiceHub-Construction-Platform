@@ -206,7 +206,7 @@ test.describe("Safety Page", () => {
 
     await page.getByRole("button", { name: "新規作成" }).click();
     await expect(
-      page.getByRole("dialog").getByText("安全チェック新規作成")
+      page.getByRole("heading", { name: "安全チェック新規作成" })
     ).toBeVisible({ timeout: 10_000 });
   });
 });
