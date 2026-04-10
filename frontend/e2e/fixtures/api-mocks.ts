@@ -1,6 +1,9 @@
 import { type Page } from '@playwright/test'
 
 export const MOCK_TOKEN = 'mock-jwt-token-for-testing'
+export const MOCK_REFRESH_TOKEN = 'mock-refresh-token-for-testing'
+export const MOCK_NEW_TOKEN = 'mock-jwt-token-refreshed'
+export const MOCK_NEW_REFRESH_TOKEN = 'mock-refresh-token-refreshed'
 
 export const MOCK_USER = {
   id: 1,
@@ -99,17 +102,16 @@ export const MOCK_COST_RECORDS = [
   },
 ]
 
-// Mock auth APIs (login + me)
+// Mock auth APIs (login + me + refresh + logout)
 export async function setupAuthMocks(page: Page): Promise<void> {
   await page.route('**/api/v1/auth/login', (route) => {
-    // authApi.login returns res.data directly (axios), so return token fields at top level
     route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
         access_token: MOCK_TOKEN,
         token_type: 'bearer',
-        refresh_token: 'mock-refresh-token',
+        refresh_token: MOCK_REFRESH_TOKEN,
         expires_in: 3600,
       }),
     })
@@ -121,6 +123,23 @@ export async function setupAuthMocks(page: Page): Promise<void> {
       contentType: 'application/json',
       body: JSON.stringify({ data: MOCK_USER }),
     })
+  })
+
+  await page.route('**/api/v1/auth/refresh', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        access_token: MOCK_NEW_TOKEN,
+        token_type: 'bearer',
+        refresh_token: MOCK_NEW_REFRESH_TOKEN,
+        expires_in: 3600,
+      }),
+    })
+  })
+
+  await page.route('**/api/v1/auth/logout', (route) => {
+    route.fulfill({ status: 204 })
   })
 }
 
@@ -216,16 +235,16 @@ export async function setupAllApiMocks(page: Page): Promise<void> {
 export async function loginAndNavigate(page: Page): Promise<void> {
   await setupAllApiMocks(page)
 
-  // Set auth token in localStorage before navigation
+  // Set auth token + refresh token in localStorage before navigation
   await page.goto('/login')
   await page.evaluate(
-    ({ token, user }) => {
+    ({ token, refreshToken, user }) => {
       localStorage.setItem('servicehub-auth', JSON.stringify({
-        state: { token, user },
+        state: { token, refreshToken, user },
         version: 0,
       }))
     },
-    { token: MOCK_TOKEN, user: MOCK_USER }
+    { token: MOCK_TOKEN, refreshToken: MOCK_REFRESH_TOKEN, user: MOCK_USER }
   )
   await page.goto('/dashboard')
   await page.waitForURL('**/dashboard')

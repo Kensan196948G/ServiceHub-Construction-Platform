@@ -24,6 +24,29 @@ interface RequestOptions {
   headers?: Record<string, string>;
 }
 
+// Shared promise to prevent concurrent refresh attempts
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefreshToken(): Promise<boolean> {
+  const { refreshToken } = useAuthStore.getState();
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return false;
+
+    const tokens = await res.json();
+    useAuthStore.getState().setTokens(tokens.access_token, tokens.refresh_token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -53,18 +76,38 @@ async function request<T>(
     if (qs) url += `?${qs}`;
   }
 
-  const res = await fetch(url, {
+  const fetchOptions: RequestInit = {
     method,
     headers,
     body:
       body instanceof FormData ? body
       : body !== undefined ? JSON.stringify(body)
       : undefined,
-  });
+  };
 
+  let res = await fetch(url, fetchOptions);
+
+  // On 401, attempt token refresh once, then retry
   if (res.status === 401) {
-    useAuthStore.getState().logout();
-    window.location.href = "/login";
+    if (!refreshPromise) {
+      refreshPromise = tryRefreshToken().finally(() => { refreshPromise = null; });
+    }
+    const refreshed = await refreshPromise;
+
+    if (refreshed) {
+      // Retry with new token
+      const newToken = useAuthStore.getState().token;
+      if (newToken) {
+        (fetchOptions.headers as Record<string, string>)["Authorization"] = `Bearer ${newToken}`;
+      }
+      res = await fetch(url, fetchOptions);
+    }
+
+    // If still 401 after refresh attempt, logout
+    if (res.status === 401) {
+      useAuthStore.getState().logout();
+      window.location.href = "/login";
+    }
   }
 
   let data: unknown = null;
