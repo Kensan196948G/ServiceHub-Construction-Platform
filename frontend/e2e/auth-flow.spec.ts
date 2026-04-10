@@ -173,18 +173,27 @@ test.describe("Authentication Flow", () => {
 
       // Attempt login: populates in-memory refreshToken, navigates to /dashboard,
       // kpi returns 401 → interceptor calls /auth/refresh → server returns 401 →
-      // interceptor logs out and redirects to /login via window.location.href
+      // interceptor calls logout() (clears localStorage) then window.location.href="/login"
       await page.goto("/login");
       await page.locator("#email").fill("test@example.com");
       await page.locator("#password").fill("password123");
       await page.getByRole("button", { name: "ログイン" }).click();
 
-      // Should redirect to login after failed refresh (server rejected the refresh token)
+      // Two-step URL assertion: login succeeds → /dashboard, then refresh fails → /login.
+      // We MUST wait for /dashboard first; otherwise /login matches immediately (we start there)
+      // and getAuthState() is called before the login flow has touched localStorage.
+      await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+      // kpi→401→tryRefreshToken→/auth/refresh→401→store.logout()→window.location.href="/login"
       await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
 
-      // Auth state should be cleared after failed refresh
+      // Auth state should be cleared after failed refresh.
+      // store.logout() sets token=null in Zustand; persist middleware writes it to localStorage.
+      // If the key was removed entirely, state will be null — either way token is cleared.
       const state = await getAuthState(page);
-      expect(state!.token).toBeNull();
+      if (state !== null) {
+        expect(state.token).toBeNull();
+      }
+      // state === null also means auth was cleared (entire key removed) — both are acceptable
     });
   });
 
