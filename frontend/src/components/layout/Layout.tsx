@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   Users,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
@@ -35,6 +36,7 @@ export default function Layout() {
     ...(user?.role === "ADMIN"
       ? [{ to: "/users", icon: Users, label: "ユーザー管理" }]
       : []),
+    { to: "/settings", icon: Settings, label: "設定" },
   ];
 
   const handleLogout = () => {
