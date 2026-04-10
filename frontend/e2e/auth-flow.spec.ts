@@ -4,6 +4,8 @@ import {
   setupAllApiMocks,
   MOCK_TOKEN,
   MOCK_NEW_TOKEN,
+  MOCK_REFRESH_TOKEN,
+  MOCK_USER,
 } from "./fixtures/api-mocks";
 
 /** Helper: read Zustand persisted auth state from localStorage.
@@ -132,36 +134,57 @@ test.describe("Authentication Flow", () => {
     test("redirects to login when refresh token is invalid", async ({
       page,
     }) => {
-      await setupAllApiMocks(page);
+      // Set up login mock so in-memory refreshToken gets populated
+      await setupAuthMocks(page);
 
-      // Login via UI so in-memory store is populated
-      await loginViaUI(page);
-
-      // Override refresh endpoint to fail
+      // Override refresh endpoint to fail BEFORE login so the interceptor
+      // uses the real in-memory refreshToken (not null) and server rejects it.
+      // NOTE: page.reload() would clear in-memory refreshToken (memory-only by design),
+      // so we must trigger the 401 → refresh → 401 path during the initial navigation.
       await page.route("**/api/v1/auth/refresh", (route) => {
         route.fulfill({ status: 401, body: "Invalid refresh token" });
       });
 
-      // Simulate expired access token in localStorage
-      await page.evaluate(() => {
-        const raw = localStorage.getItem("servicehub-auth");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          parsed.state.token = "expired-token";
-          localStorage.setItem("servicehub-auth", JSON.stringify(parsed));
-        }
-      });
-
-      // Override dashboard API to return 401 so refresh is triggered
+      // KPI always returns 401 — triggers the refresh flow immediately on dashboard load
       await page.route("**/api/v1/dashboard/kpi", (route) => {
         route.fulfill({ status: 401, body: "Unauthorized" });
       });
 
-      await page.reload();
-      // Should redirect to login after failed refresh
+      // Mock other dashboard APIs to avoid unrelated failures
+      await page.route("**/api/v1/projects**", (route) => {
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true, data: [], meta: { page: 1, per_page: 20, total: 0 } }),
+        });
+      });
+      await page.route("**/api/v1/itsm/incidents**", (route) => {
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true, data: [], meta: { page: 1, per_page: 20, total: 0 } }),
+        });
+      });
+      await page.route("**/api/v1/itsm/changes**", (route) => {
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true, data: [], meta: { page: 1, per_page: 20, total: 0 } }),
+        });
+      });
+
+      // Attempt login: populates in-memory refreshToken, navigates to /dashboard,
+      // kpi returns 401 → interceptor calls /auth/refresh → server returns 401 →
+      // interceptor logs out and redirects to /login via window.location.href
+      await page.goto("/login");
+      await page.locator("#email").fill("test@example.com");
+      await page.locator("#password").fill("password123");
+      await page.getByRole("button", { name: "ログイン" }).click();
+
+      // Should redirect to login after failed refresh (server rejected the refresh token)
       await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
 
-      // Auth state should be cleared
+      // Auth state should be cleared after failed refresh
       const state = await getAuthState(page);
       expect(state!.token).toBeNull();
     });
@@ -175,18 +198,17 @@ test.describe("Authentication Flow", () => {
       await loginViaUI(page);
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
-      // Find and click logout button
+      // Logout button must be visible — fail the test if it is not found
       const logoutButton = page.getByRole("button", { name: /ログアウト/ });
-      if (await logoutButton.isVisible()) {
-        await logoutButton.click();
+      await expect(logoutButton).toBeVisible({ timeout: 10_000 });
+      await logoutButton.click();
 
-        // Should redirect to login
-        await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
+      // Should redirect to login
+      await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
 
-        // Auth state should be cleared
-        const state = await getAuthState(page);
-        expect(state!.token).toBeNull();
-      }
+      // Auth state should be cleared
+      const state = await getAuthState(page);
+      expect(state!.token).toBeNull();
     });
 
     test("logout succeeds even when access token is expired", async ({ page }) => {
@@ -194,8 +216,9 @@ test.describe("Authentication Flow", () => {
 
       // Login via UI to get refreshToken in memory
       await loginViaUI(page);
+      await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
-      // Simulate expired access token
+      // Simulate expired access token in localStorage (in-memory store still has refreshToken)
       await page.evaluate(() => {
         const raw = localStorage.getItem("servicehub-auth");
         if (raw) {
@@ -205,15 +228,17 @@ test.describe("Authentication Flow", () => {
         }
       });
 
-      // Reload to pick up expired token state
-      await page.reload();
-
-      // logout endpoint is auth-free — should succeed regardless of access token validity
+      // logout endpoint is auth-free — should succeed regardless of access token validity.
+      // NOTE: We do NOT reload here; page.reload() would clear the in-memory refreshToken
+      // (memory-only by security design) and the logout call would have no token to revoke.
       const logoutButton = page.getByRole("button", { name: /ログアウト/ });
-      if (await logoutButton.isVisible()) {
-        await logoutButton.click();
-        await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
-      }
+      await expect(logoutButton).toBeVisible({ timeout: 10_000 });
+      await logoutButton.click();
+      await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
+
+      // Auth state should be cleared
+      const state = await getAuthState(page);
+      expect(state!.token).toBeNull();
     });
   });
 
