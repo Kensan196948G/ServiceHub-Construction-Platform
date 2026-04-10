@@ -142,7 +142,18 @@ async def test_me_authenticated(auth_client, admin_headers):
 
 
 @pytest.mark.asyncio
-async def test_logout_success(auth_client, admin_headers):
-    """ログアウト - 正常"""
-    response = await auth_client.post("/api/v1/auth/logout", headers=admin_headers)
+async def test_logout_success(auth_client):
+    """ログアウト - 正常 (refresh_token を body に含めて送信)"""
+    # Login to obtain a refresh_token first
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": "admin@test.example.com", "password": "TestPass1!"},
+    )
+    assert login_resp.status_code == 200
+    refresh_token = login_resp.json()["refresh_token"]
+
+    response = await auth_client.post(
+        "/api/v1/auth/logout",
+        json={"refresh_token": refresh_token},
+    )
     assert response.status_code == 204
