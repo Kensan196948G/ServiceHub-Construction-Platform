@@ -10,7 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import ForbiddenError, ServiceError
-from app.core.redis_client import consume_refresh_jti, revoke_refresh_jti, store_refresh_jti
+from app.core.redis_client import (
+    consume_refresh_jti,
+    revoke_refresh_jti,
+    store_refresh_jti,
+)
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -83,7 +87,7 @@ class AuthService:
             logger.info("refresh_token_revoked", jti=token_data.jti)
 
     async def _generate_tokens(self, user: User) -> TokenResponse:
-        """アクセストークン＋リフレッシュトークンを生成し、refresh jti を Redis に登録"""
+        """アクセス + リフレッシュトークンを生成し refresh jti を Redis に登録"""
         access_token = create_access_token(str(user.id), user.role)
         refresh_token = create_refresh_token(str(user.id), user.role)
 
