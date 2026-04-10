@@ -6,31 +6,41 @@ import { loginAndNavigate } from "./fixtures/api-mocks";
  * calling setState on its React class instance via the internal __reactFiber
  * property. This avoids adding test-only code to production components.
  *
- * Note: This relies on React 18 internals (stable across patch versions).
+ * Note: ErrorBoundary is a CHILD of <main> in the DOM tree, so we walk DOWN
+ * via .child/.sibling rather than UP via .return.
+ * This relies on React 18 internals (stable across patch versions).
  */
 async function triggerErrorBoundary(page: import("@playwright/test").Page, message = "テストエラー") {
   await page.evaluate((msg) => {
-    // Walk the React fiber tree from <main> upwards to find ErrorBoundary
     const main = document.querySelector("main");
     if (!main) throw new Error("main element not found");
 
     const fiberKey = Object.keys(main).find((k) => k.startsWith("__reactFiber"));
     if (!fiberKey) throw new Error("React fiber not found on main");
 
-    let fiber = (main as Record<string, unknown>)[fiberKey] as {
+    // ErrorBoundary is a descendant of <main>, so walk DOWN through the fiber tree
+    type Fiber = {
       type?: { name?: string };
-      stateNode?: { setState?: (s: unknown) => void };
-      return?: unknown;
-    } | null;
+      stateNode?: { setState?: (s: unknown) => void; state?: { hasError?: boolean } };
+      child?: Fiber | null;
+      sibling?: Fiber | null;
+    };
 
-    while (fiber) {
+    function findAndTrigger(fiber: Fiber | null): boolean {
+      if (!fiber) return false;
+      // Match by component name (preserved in Vite dev mode)
       if (fiber.type?.name === "ErrorBoundary" && fiber.stateNode?.setState) {
         fiber.stateNode.setState({ hasError: true, error: new Error(msg) });
-        return;
+        return true;
       }
-      fiber = (fiber as { return?: typeof fiber }).return ?? null;
+      return findAndTrigger(fiber.child ?? null) || findAndTrigger(fiber.sibling ?? null);
     }
-    throw new Error("ErrorBoundary not found in fiber tree");
+
+    const mainFiber = (main as Record<string, unknown>)[fiberKey] as Fiber;
+    // Start from the first child of <main> (which should be ErrorBoundary or contain it)
+    if (!findAndTrigger(mainFiber.child ?? null)) {
+      throw new Error("ErrorBoundary not found in fiber tree");
+    }
   }, message);
 }
 
