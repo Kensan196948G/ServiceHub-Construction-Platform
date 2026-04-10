@@ -64,7 +64,7 @@ async function setupReportsPage(page: import("@playwright/test").Page) {
     });
   });
 
-  await page.getByRole("link", { name: "日報" }).click();
+  await page.getByRole("link", { name: "日報", exact: true }).click();
   await page.waitForURL("**/reports");
 }
 
@@ -146,7 +146,7 @@ test.describe("Daily Reports Page", () => {
       });
     });
 
-    await page.getByRole("link", { name: "日報" }).click();
+    await page.getByRole("link", { name: "日報", exact: true }).click();
     await page.waitForURL("**/reports");
     await page.locator("select").first().selectOption("1");
 
