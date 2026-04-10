@@ -62,22 +62,14 @@ test.describe("Authentication Flow", () => {
     test("automatically refreshes token on 401 response", async ({
       page,
     }) => {
-      await setupAllApiMocks(page);
+      // Set up auth mocks (login + me + refresh + logout)
+      await setupAuthMocks(page);
 
-      // Login via UI so refreshToken is set in the in-memory Zustand store
-      await loginViaUI(page);
-
-      // Overwrite access token in localStorage to simulate expiry
-      await page.evaluate((expiredToken) => {
-        const raw = localStorage.getItem("servicehub-auth");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          parsed.state.token = expiredToken;
-          localStorage.setItem("servicehub-auth", JSON.stringify(parsed));
-        }
-      }, "expired-token");
-
-      // Override KPI endpoint: first call returns 401, subsequent calls succeed
+      // Set up KPI mock: first call returns 401 (simulates expired access token),
+      // subsequent calls succeed after the interceptor refreshes the token.
+      // NOTE: We configure this BEFORE loginViaUI so the first dashboard kpi call
+      // hits the 401 path while refreshToken is still alive in the in-memory store.
+      // Using page.reload() would clear the in-memory refreshToken (memory-only by design).
       let kpiCallCount = 0;
       await page.route("**/api/v1/dashboard/kpi", (route) => {
         kpiCallCount++;
@@ -101,11 +93,38 @@ test.describe("Authentication Flow", () => {
         }
       });
 
-      // Reload to trigger the 401 → refresh → retry flow
-      await page.reload();
+      // Mock other APIs needed by dashboard (projects, incidents lists)
+      await page.route("**/api/v1/projects**", (route) => {
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true, data: [], meta: { page: 1, per_page: 20, total: 0 } }),
+        });
+      });
+      await page.route("**/api/v1/itsm/incidents**", (route) => {
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true, data: [], meta: { page: 1, per_page: 20, total: 0 } }),
+        });
+      });
+      await page.route("**/api/v1/itsm/changes**", (route) => {
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true, data: [], meta: { page: 1, per_page: 20, total: 0 } }),
+        });
+      });
+
+      // Login via UI so refreshToken is in the in-memory Zustand store.
+      // The first kpi call during dashboard navigation returns 401 →
+      // interceptor calls /auth/refresh (gets MOCK_NEW_TOKEN) → retries kpi → 200.
+      await loginViaUI(page);
+
+      // Dashboard should still be shown after the transparent refresh+retry
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
-      // Verify access token was updated by the refresh
+      // Verify access token was updated by the refresh flow
       const state = await getAuthState(page);
       expect(state!.token).toBe(MOCK_NEW_TOKEN);
     });
