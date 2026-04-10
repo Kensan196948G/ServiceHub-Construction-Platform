@@ -11,6 +11,7 @@ import KnowledgePage from "@/pages/knowledge/KnowledgePage";
 import CostPage from "@/pages/cost/CostPage";
 import PhotosPage from "@/pages/photos/PhotosPage";
 import UsersPage from "@/pages/users/UsersPage";
+import SettingsPage from "@/pages/settings/SettingsPage";
 import { useAuthStore } from "@/stores/authStore";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="cost" element={<CostPage />} />
         <Route path="photos" element={<PhotosPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );
