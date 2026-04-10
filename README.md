@@ -95,17 +95,18 @@ graph TB
 | 📊 `Table` | データテーブル | ジェネリック型 / カスタムレンダー / クリック対応 |
 | 🚨 `ErrorBanner` | APIエラー表示 | `role="alert"` / デフォルトメッセージ / children 対応 |
 | 📝 `ErrorText` | フォーム内エラー | インラインテキスト / `role="alert"` |
+| 🛡️ `ErrorBoundary` | レンダーエラー捕捉 | React class component / カスタム fallback 対応 / 再試行ボタン |
 
 ### 📊 品質メトリクス
 
 | 指標 | 値 |
 | :--- | :--- |
 | 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
-| 🧪 Frontend テスト | **263 件**（vitest / 40 テストファイル / coverage **88%**） |
-| 🎭 E2E テスト | **146 件**（Playwright / 21 テストファイル） |
-| 📊 総テスト数 | **594 件**（Backend + Frontend + E2E） |
-| 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
-| 🧩 共通 UI コンポーネント | **11 種**（Badge / Button / Card / ErrorBanner / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
+| 🧪 Frontend テスト | **263 件**（vitest / 41 テストファイル / coverage **88%**） |
+| 🎭 E2E テスト | **159 件**（Playwright / 23 テストファイル） |
+| 📊 総テスト数 | **607 件**（Backend + Frontend + E2E） |
+| 🖥️ フロントエンドページ | **12 ページ**（全ページテスト済み・設定ページ追加） |
+| 🧩 共通 UI コンポーネント | **12 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
 | 🔗 API エンドポイント | **48 エンドポイント**（ITSM 変更要求更新追加） |
 | 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
@@ -145,7 +146,7 @@ graph LR
 
 ```mermaid
 graph TD
-    subgraph Pages["📄 ページ (11)"]
+    subgraph Pages["📄 ページ (12)"]
         LP["🔐 LoginPage"]
         DP["📊 DashboardPage"]
         PP["🗂️ ProjectsPage"]
@@ -157,15 +158,17 @@ graph TD
         KP["🤖 KnowledgePage"]
         PhP["🖼️ PhotosPage"]
         UP["👤 UsersPage"]
+        SeP["⚙️ SettingsPage"]
     end
 
-    subgraph UI["🧩 共通 UI (11 種)"]
+    subgraph UI["🧩 共通 UI (12 種)"]
         Badge["🏷️ Badge"]
         Button["🔘 Button"]
         Card["📦 Card"]
         Modal["🪟 Modal"]
         FormField["📝 FormField\n+ Input/Textarea/Select"]
         ErrorBanner["🚨 ErrorBanner\n+ ErrorText"]
+        ErrBnd["🛡️ ErrorBoundary"]
         Skeleton["⏳ Skeleton"]
         StatCard["📈 StatCard"]
         Table["📊 Table"]
@@ -179,7 +182,7 @@ graph TD
 
     Pages --> UI
     Pages --> State
-    State --> API["🔗 Axios API Client\n(/api/v1)"]
+    State --> API["🔗 Fetch API Client\n(/api/v1)"]
 ```
 
 ---
@@ -241,7 +244,9 @@ graph LR
 | `cost-crud.spec.ts` | 5 | プロジェクト選択・原価一覧・サマリー・作成モーダル・カテゴリバッジ |
 | `knowledge-crud.spec.ts` | 7 | 記事一覧・カテゴリバッジ・非公開バッジ・作成・詳細・AI検索・フィルタ |
 | `users-crud.spec.ts` | 11 | ユーザー 作成・編集・削除・ロール変更 CRUD |
-| **合計** | **146** | **全11ページ E2E + CRUD + 認証フロー + AI検索** |
+| `settings.spec.ts` | 8 | 設定ページ プロフィール表示・パスワード変更・エラー |
+| `error-boundary.spec.ts` | 5 | ErrorBoundary フォールバックUI・再試行・ナビゲーション |
+| **合計** | **159** | **全12ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界** |
 
 ---
 
@@ -262,6 +267,10 @@ gantt
     DBシード+CORS+Node24              :done, s2d, 2026-04-05, 1d
     テストカバレッジ 88% + API型統一    :done, s2e, 2026-04-07, 1d
     OpenAPI codegen + エラーハンドリング :done, s2f, 2026-04-07, 1d
+    axios→fetch + レスポンシブ         :done, s2g, 2026-04-09, 1d
+    E2E拡充 (CRUD/users/photos)        :done, s2h, 2026-04-10, 1d
+    refresh token + 認証E2E            :done, s2i, 2026-04-10, 1d
+    設定ページ + ErrorBoundary          :done, s2j, 2026-04-10, 1d
     section Phase 3: UX改善
     レスポンシブ・アクセシビリティ    :s3, 2026-04-19, 14d
     section Phase 4: 高度機能
