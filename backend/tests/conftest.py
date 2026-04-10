@@ -162,6 +162,7 @@ async def reset_redis_singleton():
     if rc._redis is not None:
         try:
             await rc._redis.aclose()
-        except Exception:
-            pass
+        except Exception as exc:  # noqa: BLE001
+            # Ignore cleanup errors (e.g. already closed connection)
+            _ = exc
         rc._redis = None
