@@ -76,9 +76,10 @@ test.describe("Photos Page", () => {
     await setupPhotosPage(page);
     await page.locator("select").first().selectOption("1");
 
-    // PROGRESS and SAFETY category badges should appear
-    await expect(page.getByText("工程")).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText("安全")).toBeVisible();
+    // PROGRESS and SAFETY filter buttons appear (each shows category name + count)
+    // Use getByRole to avoid strict mode violation with hidden <option> elements
+    await expect(page.getByRole("button", { name: /^工程/ })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("button", { name: /^安全/ })).toBeVisible();
   });
 
   test("filters photos by category", async ({ page }) => {
@@ -193,9 +194,7 @@ test.describe("Photos Page", () => {
     await expect(page.getByText("📤 写真アップロード")).toBeVisible({
       timeout: 10_000,
     });
-    // File select button
-    await expect(
-      page.getByRole("button", { name: "ファイル選択" })
-    ).toBeVisible();
+    // File select button (wrapped in <label> with pointer-events-none, use text selector)
+    await expect(page.getByText("ファイル選択")).toBeVisible();
   });
 });
