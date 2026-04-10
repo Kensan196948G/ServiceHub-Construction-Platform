@@ -4,7 +4,6 @@ import {
   setupAllApiMocks,
   MOCK_TOKEN,
   MOCK_NEW_TOKEN,
-  MOCK_USER,
 } from "./fixtures/api-mocks";
 
 /** Helper: read Zustand persisted auth state from localStorage.
@@ -22,19 +21,22 @@ async function getAuthState(page: import("@playwright/test").Page) {
   });
 }
 
+/** Helper: login via the actual UI flow so refreshToken is set in the in-memory Zustand store. */
+async function loginViaUI(page: import("@playwright/test").Page) {
+  await page.goto("/login");
+  await page.locator("#email").fill("test@example.com");
+  await page.locator("#password").fill("password123");
+  await page.getByRole("button", { name: "ログイン" }).click();
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+}
+
 test.describe("Authentication Flow", () => {
   test.describe("Login — token persistence", () => {
     test("stores access_token in localStorage after login (refreshToken is memory-only)", async ({
       page,
     }) => {
       await setupAuthMocks(page);
-      await page.goto("/login");
-
-      await page.locator("#email").fill("test@example.com");
-      await page.locator("#password").fill("password123");
-      await page.getByRole("button", { name: "ログイン" }).click();
-
-      await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+      await loginViaUI(page);
 
       const state = await getAuthState(page);
       expect(state).not.toBeNull();
@@ -44,12 +46,7 @@ test.describe("Authentication Flow", () => {
 
     test("persists auth state across page reload", async ({ page }) => {
       await setupAllApiMocks(page);
-      await page.goto("/login");
-
-      await page.locator("#email").fill("test@example.com");
-      await page.locator("#password").fill("password123");
-      await page.getByRole("button", { name: "ログイン" }).click();
-      await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+      await loginViaUI(page);
 
       // Reload and verify session persists (access_token survives reload via localStorage)
       await page.reload();
@@ -67,23 +64,18 @@ test.describe("Authentication Flow", () => {
     }) => {
       await setupAllApiMocks(page);
 
-      // Pre-set auth state with access token only (refreshToken is not persisted to localStorage)
-      await page.goto("/login");
-      await page.evaluate(
-        ({ token, user }) => {
-          localStorage.setItem(
-            "servicehub-auth",
-            JSON.stringify({
-              state: { token, user },
-              version: 0,
-            })
-          );
-        },
-        {
-          token: "expired-token",
-          user: MOCK_USER,
+      // Login via UI so refreshToken is set in the in-memory Zustand store
+      await loginViaUI(page);
+
+      // Overwrite access token in localStorage to simulate expiry
+      await page.evaluate((expiredToken) => {
+        const raw = localStorage.getItem("servicehub-auth");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          parsed.state.token = expiredToken;
+          localStorage.setItem("servicehub-auth", JSON.stringify(parsed));
         }
-      );
+      }, "expired-token");
 
       // Override KPI endpoint: first call returns 401, subsequent calls succeed
       let kpiCallCount = 0;
@@ -109,48 +101,44 @@ test.describe("Authentication Flow", () => {
         }
       });
 
-      await page.goto("/dashboard");
-      // Should stay on dashboard (not redirected to login) after auto-refresh
+      // Reload to trigger the 401 → refresh → retry flow
+      await page.reload();
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
       // Verify access token was updated by the refresh
       const state = await getAuthState(page);
       expect(state!.token).toBe(MOCK_NEW_TOKEN);
-      // refreshToken stays in memory only — not verifiable from localStorage
     });
 
     test("redirects to login when refresh token is invalid", async ({
       page,
     }) => {
-      // Set up auth state with expired access token only
-      await page.goto("/login");
-      await page.evaluate(
-        ({ user }) => {
-          localStorage.setItem(
-            "servicehub-auth",
-            JSON.stringify({
-              state: {
-                token: "expired-token",
-                user,
-              },
-              version: 0,
-            })
-          );
-        },
-        { user: MOCK_USER }
-      );
+      await setupAllApiMocks(page);
 
-      // Mock refresh to fail
+      // Login via UI so in-memory store is populated
+      await loginViaUI(page);
+
+      // Override refresh endpoint to fail
       await page.route("**/api/v1/auth/refresh", (route) => {
         route.fulfill({ status: 401, body: "Invalid refresh token" });
       });
 
-      // Mock dashboard API to return 401
+      // Simulate expired access token in localStorage
+      await page.evaluate(() => {
+        const raw = localStorage.getItem("servicehub-auth");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          parsed.state.token = "expired-token";
+          localStorage.setItem("servicehub-auth", JSON.stringify(parsed));
+        }
+      });
+
+      // Override dashboard API to return 401 so refresh is triggered
       await page.route("**/api/v1/dashboard/kpi", (route) => {
         route.fulfill({ status: 401, body: "Unauthorized" });
       });
 
-      await page.goto("/dashboard");
+      await page.reload();
       // Should redirect to login after failed refresh
       await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
 
@@ -164,25 +152,8 @@ test.describe("Authentication Flow", () => {
     test("clears auth state and redirects to login", async ({ page }) => {
       await setupAllApiMocks(page);
 
-      // Set auth state (access token only in localStorage; refreshToken is memory-only)
-      await page.goto("/login");
-      await page.evaluate(
-        ({ token, user }) => {
-          localStorage.setItem(
-            "servicehub-auth",
-            JSON.stringify({
-              state: { token, user },
-              version: 0,
-            })
-          );
-        },
-        {
-          token: MOCK_TOKEN,
-          user: MOCK_USER,
-        }
-      );
-
-      await page.goto("/dashboard");
+      // Login via UI so refreshToken is set in the in-memory store (enables server-side revocation)
+      await loginViaUI(page);
       await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
       // Find and click logout button
@@ -196,6 +167,33 @@ test.describe("Authentication Flow", () => {
         // Auth state should be cleared
         const state = await getAuthState(page);
         expect(state!.token).toBeNull();
+      }
+    });
+
+    test("logout succeeds even when access token is expired", async ({ page }) => {
+      await setupAllApiMocks(page);
+
+      // Login via UI to get refreshToken in memory
+      await loginViaUI(page);
+
+      // Simulate expired access token
+      await page.evaluate(() => {
+        const raw = localStorage.getItem("servicehub-auth");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          parsed.state.token = "expired-token";
+          localStorage.setItem("servicehub-auth", JSON.stringify(parsed));
+        }
+      });
+
+      // Reload to pick up expired token state
+      await page.reload();
+
+      // logout endpoint is auth-free — should succeed regardless of access token validity
+      const logoutButton = page.getByRole("button", { name: /ログアウト/ });
+      if (await logoutButton.isVisible()) {
+        await logoutButton.click();
+        await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
       }
     });
   });
@@ -222,11 +220,7 @@ test.describe("Authentication Flow", () => {
 
       // Mock all API calls to return 401
       await page.route("**/api/v1/**", (route) => {
-        if (route.request().url().includes("/auth/")) {
-          route.fulfill({ status: 401, body: "Unauthorized" });
-        } else {
-          route.fulfill({ status: 401, body: "Unauthorized" });
-        }
+        route.fulfill({ status: 401, body: "Unauthorized" });
       });
 
       await page.goto("/dashboard");
@@ -234,3 +228,4 @@ test.describe("Authentication Flow", () => {
     });
   });
 });
+

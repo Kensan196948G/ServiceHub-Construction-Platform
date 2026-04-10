@@ -78,11 +78,12 @@ async def get_me(current_user: Annotated[User, Depends(get_current_user)]):
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
     payload: LogoutRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """ログアウト — refresh token の jti を Redis から削除して無効化"""
+    """ログアウト — refresh token の jti を Redis から削除して無効化。
+    認証不要: access token 期限切れ時でも logout できるよう意図的に認証を外している。
+    refresh token の所持自体を認証根拠とし、service 層で jti を検証する。
+    """
     service = AuthService(db)
     await service.logout(payload.refresh_token)
-    logger.info("logout", user_id=str(current_user.id))
     return None
