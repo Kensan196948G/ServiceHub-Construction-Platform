@@ -171,22 +171,27 @@ test.describe("Authentication Flow", () => {
         });
       });
 
-      // Watch for the login API response BEFORE clicking so we don't miss it.
-      // This confirms that credentials were accepted (200) and in-memory refreshToken was set,
-      // which is the precondition for the refresh→401→logout path we are testing.
+      // Set up response watchers BEFORE clicking to avoid missing fast mock responses.
+      // We wait for both the login (200) and the refresh (401) responses to confirm
+      // the full cycle ran: login→kpi(401)→refresh(401)→logout()→redirect.
+      // The interceptor calls logout() synchronously when refresh returns 401, so by the time
+      // refreshResponsePromise resolves, localStorage is already updated (token=null).
       const loginResponsePromise = page.waitForResponse("**/api/v1/auth/login");
+      const refreshResponsePromise = page.waitForResponse("**/api/v1/auth/refresh");
 
       await page.goto("/login");
       await page.locator("#email").fill("test@example.com");
       await page.locator("#password").fill("password123");
       await page.getByRole("button", { name: "ログイン" }).click();
 
-      // Verify login returned 200 — confirms in-memory refreshToken is now set.
-      // Note: the mocked kpi→401 + refresh→401 cycle may complete synchronously before
-      // React Router finishes navigating to /dashboard, so we skip the /dashboard assertion
-      // and only verify the final state (redirected to /login, auth cleared).
+      // Verify login returned 200 — confirms in-memory refreshToken was set.
       const loginResp = await loginResponsePromise;
       expect(loginResp.status()).toBe(200);
+
+      // Wait for the refresh request to return 401 — confirms interceptor ran logout().
+      // After this, localStorage token is null and redirect to /login is in progress.
+      const refreshResp = await refreshResponsePromise;
+      expect(refreshResp.status()).toBe(401);
 
       // kpi→401→tryRefreshToken→/auth/refresh→401→store.logout()→window.location.href="/login"
       await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
