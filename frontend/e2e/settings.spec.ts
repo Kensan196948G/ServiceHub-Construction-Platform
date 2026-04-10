@@ -46,8 +46,9 @@ test.describe("Settings Page", () => {
     const profileSection = page.locator("section").filter({ hasText: "プロフィール" });
     await expect(profileSection.getByText(MOCK_USER.full_name, { exact: true })).toBeVisible();
     await expect(profileSection.getByText(MOCK_USER.email)).toBeVisible();
-    // Role is displayed as Japanese label "管理者" for ADMIN
-    await expect(profileSection.getByText("管理者")).toBeVisible();
+    // Role is displayed as Japanese label "管理者" for ADMIN — exact:true to avoid
+    // matching "テスト管理者" (full_name) which contains "管理者" as a substring
+    await expect(profileSection.getByText("管理者", { exact: true })).toBeVisible();
   });
 
   test("shows password change form with required fields", async ({ page }) => {
