@@ -102,8 +102,8 @@ graph TB
 | :--- | :--- |
 | 🧪 Backend テスト | **185 件**（pytest / coverage **97%**） |
 | 🧪 Frontend テスト | **263 件**（vitest / 40 テストファイル / coverage **88%**） |
-| 🎭 E2E テスト | **51 件**（Playwright / 14 テストファイル） |
-| 📊 総テスト数 | **499 件**（Backend + Frontend + E2E） |
+| 🎭 E2E テスト | **146 件**（Playwright / 21 テストファイル） |
+| 📊 総テスト数 | **594 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **11 ページ**（全ページテスト済み） |
 | 🧩 共通 UI コンポーネント | **11 種**（Badge / Button / Card / ErrorBanner / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
@@ -112,7 +112,7 @@ graph TB
 | 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
 | 🔀 Router | **9 本**（Dashboard Router 追加） |
 | 📐 OpenAPI codegen | **31 エンドポイント / 68 スキーマ**（TypeScript 型自動生成） |
-| ✅ CI チェック数 | **8 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency） |
+| ✅ CI チェック数 | **14 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2） |
 | 🔒 STABLE 判定 | **達成**（main CI 全 success / Node.js 24 対応済み） |
 
 ### 🏗️ Backend アーキテクチャ
@@ -224,17 +224,24 @@ graph LR
 | `navigation.spec.ts` | 4 | 認証済みページナビゲーション |
 | `dashboard.spec.ts` | 4 | KPI StatCard 表示・エラーバナー・クイックアクション |
 | `projects.spec.ts` | 3 | 案件一覧・新規ボタン・ステータスバッジ |
-| `reports.spec.ts` | 2 | 日報ページ表示 |
-| `safety.spec.ts` | 2 | 安全点検ページ表示 |
+| `reports.spec.ts` | 10 | 日報一覧・フィルタ・ページネーション・空状態 |
+| `safety.spec.ts` | 11 | 安全チェック・品質検査タブ・一覧・統計 |
 | `cost.spec.ts` | 2 | 原価管理ページ表示 |
 | `itsm.spec.ts` | 3 | ITSM 見出し・インシデント管理・変更要求管理 |
 | `knowledge.spec.ts` | 2 | ナレッジ見出し・記事一覧 |
-| `users.spec.ts` | 3 | ユーザー見出し・一覧・ロール |
-| `projects-crud.spec.ts` | 3 | モーダル開閉・フォーム入力・詳細リンク・一覧表示 |
+| `users.spec.ts` | 12 | ユーザー見出し・一覧・ロール・検索・削除確認 |
+| `photos.spec.ts` | 10 | 写真グリッド・カテゴリフィルタ・アップロードUI・空状態 |
+| `project-detail.spec.ts` | 13 | 案件詳細・コスト・日報・写真・安全・ITSM各タブ |
+| `auth-flow.spec.ts` | 8 | refresh token / logout / セッション永続化 |
+| `projects-crud.spec.ts` | 10 | 作成・編集・削除・検索・フィルタ CRUD |
+| `reports-crud.spec.ts` | 6 | 日報 作成・編集・削除・キャンセル CRUD |
+| `safety-crud.spec.ts` | 8 | 安全チェック・品質検査 作成・削除 CRUD |
+| `photos-crud.spec.ts` | 6 | 写真アップロード・削除・キャンセル CRUD |
 | `itsm-crud.spec.ts` | 5 | インシデント一覧・バッジ・作成モーダル・編集モーダル・タブ切替 |
 | `cost-crud.spec.ts` | 5 | プロジェクト選択・原価一覧・サマリー・作成モーダル・カテゴリバッジ |
 | `knowledge-crud.spec.ts` | 7 | 記事一覧・カテゴリバッジ・非公開バッジ・作成・詳細・AI検索・フィルタ |
-| **合計** | **51** | **全11ページ E2E + CRUD + AI検索** |
+| `users-crud.spec.ts` | 11 | ユーザー 作成・編集・削除・ロール変更 CRUD |
+| **合計** | **146** | **全11ページ E2E + CRUD + 認証フロー + AI検索** |
 
 ---
 
