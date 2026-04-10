@@ -110,12 +110,13 @@ graph TB
 | 🧩 共通 UI コンポーネント | **12 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
 | 🔗 API エンドポイント | **50 エンドポイント**（通知設定 GET/PATCH 追加） |
-| 🏗️ Repository クラス | **8 クラス**（全 Router 統一済み） |
-| 🔧 Service クラス | **11 クラス**（全モジュール対応 + Dashboard） |
-| 🔀 Router | **9 本**（Dashboard Router 追加） |
+| 🏗️ Repository クラス | **9 クラス**（全 Router 統一済み / NotificationPreference 追加） |
+| 🔧 Service クラス | **12 クラス**（全モジュール対応 + Dashboard + NotificationPreference） |
+| 🔀 Router | **10 本**（Dashboard / Notification Preferences 追加） |
 | 📐 OpenAPI codegen | **31 エンドポイント / 68 スキーマ**（TypeScript 型自動生成） |
+| 📚 設計ドキュメント | **7 種**（アーキテクチャ / DB / API / UI・UX / セキュリティ / モジュール / 通知機能 Phase1+2） |
 | ✅ CI チェック数 | **14 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2） |
-| 🔒 STABLE 判定 | **達成**（main CI 全 success / Node.js 24 対応済み） |
+| 🔒 STABLE 判定 | **達成**（main CI 全 success / Node.js 24 対応済み / 連続成功 18+ 回） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -140,8 +141,9 @@ graph LR
 | 👤 UserService | ユーザー管理・重複検出・自己削除防止 |
 | 🖼️ PhotoService | 写真アップロード・バリデーション・プリサインドURL |
 | 📊 DashboardService | KPI 集約・統計ダッシュボード |
+| 🔔 NotificationPreferenceService | 通知購読設定 CRUD (upsert-on-read 方式) |
 
-> **全 9 Router が Router → Service → Repository の3層構造に統一（Service 11クラス / Repository 8クラス）。**
+> **全 10 Router が Router → Service → Repository の3層構造に統一（Service 12クラス / Repository 9クラス）。**
 
 ### 🖥️ Frontend アーキテクチャ
 
