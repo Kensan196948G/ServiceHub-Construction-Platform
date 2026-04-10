@@ -257,6 +257,33 @@ export async function setupAllApiMocks(page: Page): Promise<void> {
       }),
     })
   })
+
+  // Mock notification preferences (default values)
+  await page.route('**/api/v1/users/me/notification-preferences', (route) => {
+    const method = route.request().method()
+    if (method === 'GET' || method === 'PATCH') {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: MOCK_NOTIFICATION_PREFERENCES }),
+      })
+    } else {
+      route.fulfill({ status: 405 })
+    }
+  })
+}
+
+export const MOCK_NOTIFICATION_PREFERENCES = {
+  email_enabled: true,
+  slack_enabled: false,
+  slack_webhook_url: null,
+  events: {
+    daily_report_submitted: { email: true, slack: false },
+    safety_incident_created: { email: true, slack: true },
+    change_request_pending_approval: { email: true, slack: false },
+    incident_assigned: { email: true, slack: false },
+    project_status_changed: { email: false, slack: false },
+  },
 }
 
 // Login and navigate to dashboard
