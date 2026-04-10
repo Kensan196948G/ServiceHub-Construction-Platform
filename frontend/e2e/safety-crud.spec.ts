@@ -199,10 +199,11 @@ test.describe("Safety Checks CRUD", () => {
 
     await page.getByRole("button", { name: "削除" }).first().click();
 
-    // After deletion, the list re-fetches; deleted row should eventually vanish
+    // After deletion, sc-1 (DAILY/2026-04-10) is gone; sc-2 (WEEKLY/2026-04-09) remains.
+    // Expect exactly one delete button remaining, not zero.
     await expect(
-      page.getByRole("button", { name: "削除" }).first()
-    ).not.toBeVisible({ timeout: 10_000 });
+      page.getByRole("button", { name: "削除" })
+    ).toHaveCount(1, { timeout: 10_000 });
   });
 
   test("shows create form with correct fields for safety check tab", async ({

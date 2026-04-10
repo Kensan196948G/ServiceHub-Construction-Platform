@@ -72,26 +72,40 @@ async function setupCrudPage(page: import("@playwright/test").Page) {
   // Mutable list to simulate server-side state changes
   let reportsList = [...BASE_REPORTS];
 
-  await page.route("**/api/v1/projects/1/daily-reports**", (route) => {
+  // Resource-level endpoints: PUT /daily-reports/{id} and DELETE /daily-reports/{id}
+  // (no project prefix — see frontend/src/api/daily_reports.ts)
+  await page.route("**/api/v1/daily-reports/**", (route) => {
     const method = route.request().method();
-
-    if (method === "POST") {
-      reportsList = [CREATED_REPORT, ...reportsList];
-      route.fulfill({
-        status: 201,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, data: CREATED_REPORT }),
-      });
-    } else if (method === "DELETE") {
-      reportsList = reportsList.filter((r) => !route.request().url().includes(r.id));
-      route.fulfill({ status: 204 });
-    } else if (method === "PUT" || method === "PATCH") {
+    if (method === "PUT" || method === "PATCH") {
       const updated = { ...BASE_REPORTS[0], work_content: "更新済み作業内容" };
       reportsList = reportsList.map((r) => (r.id === "rep-1" ? updated : r));
       route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ success: true, data: updated }),
+      });
+    } else if (method === "DELETE") {
+      const url = route.request().url();
+      reportsList = reportsList.filter((r) => !url.includes(r.id));
+      route.fulfill({ status: 204 });
+    } else {
+      // GET single report
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, data: reportsList[0] }),
+      });
+    }
+  });
+
+  await page.route("**/api/v1/projects/1/daily-reports**", (route) => {
+    const method = route.request().method();
+    if (method === "POST") {
+      reportsList = [CREATED_REPORT, ...reportsList];
+      route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, data: CREATED_REPORT }),
       });
     } else {
       route.fulfill({
