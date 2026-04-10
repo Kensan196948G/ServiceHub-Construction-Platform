@@ -3,7 +3,7 @@
   "loop": "Day7-Build",
   "loop_count": 58,
   "status": "stable",
-  "last_updated": "2026-04-10T15:31:00+09:00",
+  "last_updated": "2026-04-10T17:15:00+09:00",
   "execution": {
     "start_time": "2026-04-10T01:00:00+09:00",
     "max_duration_minutes": 300,
@@ -42,7 +42,6 @@
   },
   "priorities": {
     "high": [
-      "E2Eテスト拡充（設定ページ・エラー境界）",
       "通知機能検討（メール/Slack）"
     ],
     "medium": [
@@ -64,8 +63,8 @@
   "metrics": {
     "test_count_backend": 185,
     "test_count_frontend": 263,
-    "test_count_e2e": 146,
-    "test_total": 594,
+    "test_count_e2e": 159,
+    "test_total": 607,
     "coverage_backend": "97%",
     "coverage_frontend": "88%",
     "ci_status": "green",
