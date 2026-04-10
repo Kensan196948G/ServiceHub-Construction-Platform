@@ -4,8 +4,6 @@ import {
   setupAllApiMocks,
   MOCK_TOKEN,
   MOCK_NEW_TOKEN,
-  MOCK_REFRESH_TOKEN,
-  MOCK_USER,
 } from "./fixtures/api-mocks";
 
 /** Helper: read Zustand persisted auth state from localStorage.
