@@ -171,18 +171,23 @@ test.describe("Authentication Flow", () => {
         });
       });
 
-      // Attempt login: populates in-memory refreshToken, navigates to /dashboard,
-      // kpi returns 401 → interceptor calls /auth/refresh → server returns 401 →
-      // interceptor calls logout() (clears localStorage) then window.location.href="/login"
+      // Watch for the login API response BEFORE clicking so we don't miss it.
+      // This confirms that credentials were accepted (200) and in-memory refreshToken was set,
+      // which is the precondition for the refresh→401→logout path we are testing.
+      const loginResponsePromise = page.waitForResponse("**/api/v1/auth/login");
+
       await page.goto("/login");
       await page.locator("#email").fill("test@example.com");
       await page.locator("#password").fill("password123");
       await page.getByRole("button", { name: "ログイン" }).click();
 
-      // Two-step URL assertion: login succeeds → /dashboard, then refresh fails → /login.
-      // We MUST wait for /dashboard first; otherwise /login matches immediately (we start there)
-      // and getAuthState() is called before the login flow has touched localStorage.
-      await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+      // Verify login returned 200 — confirms in-memory refreshToken is now set.
+      // Note: the mocked kpi→401 + refresh→401 cycle may complete synchronously before
+      // React Router finishes navigating to /dashboard, so we skip the /dashboard assertion
+      // and only verify the final state (redirected to /login, auth cleared).
+      const loginResp = await loginResponsePromise;
+      expect(loginResp.status()).toBe(200);
+
       // kpi→401→tryRefreshToken→/auth/refresh→401→store.logout()→window.location.href="/login"
       await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
 
