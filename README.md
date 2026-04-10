@@ -79,7 +79,7 @@ graph TB
 | 🤖       | AI ナレッジ管理     | 記事 CRUD / AI 検索 (OpenAI)  | 5      | ✅ 完了     |
 | 📡       | システム            | ヘルスチェック / ステータス確認 | 2     | ✅ 完了     |
 | 📊       | Dashboard KPI API   | 集計 KPI 取得 / React Query hook | 1   | ✅ 完了     |
-| 🔔       | 通知設定            | 通知購読 preferences 管理 (Phase 1) | 2   | ✅ 完了     |
+| 🔔       | 通知設定            | 通知購読 preferences 管理 (Phase 1 / UI 統合済) | 2   | ✅ 完了     |
 
 ### 🧩 共通 UI コンポーネント（`src/components/ui/`）
 
@@ -104,8 +104,8 @@ graph TB
 | :--- | :--- |
 | 🧪 Backend テスト | **199 件**（pytest / coverage **96%**） |
 | 🧪 Frontend テスト | **263 件**（vitest / 41 テストファイル / coverage **88%**） |
-| 🎭 E2E テスト | **159 件**（Playwright / 23 テストファイル） |
-| 📊 総テスト数 | **621 件**（Backend + Frontend + E2E） |
+| 🎭 E2E テスト | **165 件**（Playwright / 24 テストファイル） |
+| 📊 総テスト数 | **627 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **12 ページ**（全ページテスト済み・設定ページ追加） |
 | 🧩 共通 UI コンポーネント | **12 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
@@ -247,7 +247,8 @@ graph LR
 | `users-crud.spec.ts` | 11 | ユーザー 作成・編集・削除・ロール変更 CRUD |
 | `settings.spec.ts` | 8 | 設定ページ プロフィール表示・パスワード変更・エラー |
 | `error-boundary.spec.ts` | 5 | ErrorBoundary フォールバックUI・再試行・ナビゲーション |
-| **合計** | **159** | **全12ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界** |
+| `notification-settings.spec.ts` | 6 | 通知設定 UI (マスタースイッチ・イベント別・保存) |
+| **合計** | **165** | **全12ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定** |
 
 ---
 
@@ -273,6 +274,7 @@ gantt
     refresh token + 認証E2E            :done, s2i, 2026-04-10, 1d
     設定ページ + ErrorBoundary          :done, s2j, 2026-04-10, 1d
     通知設定Phase1 preferences API      :done, s2k, 2026-04-10, 1d
+    通知設定 UI (frontend 統合)         :done, s2l, 2026-04-10, 1d
     section Phase 3: UX改善
     レスポンシブ・アクセシビリティ    :s3, 2026-04-19, 14d
     section Phase 4: 高度機能
