@@ -88,6 +88,35 @@ export const MOCK_SAFETY_INSPECTIONS = [
   },
 ]
 
+export const MOCK_PHOTOS = [
+  {
+    id: 'photo-1',
+    project_id: '1',
+    filename: 'site-progress-001.jpg',
+    original_filename: '現場進捗写真.jpg',
+    file_size: 204800,
+    mime_type: 'image/jpeg',
+    category: 'PROGRESS',
+    description: '2階部分の鉄骨組み立て完了',
+    taken_at: '2026-04-10T09:00:00Z',
+    url: null,
+    created_at: '2026-04-10T09:00:00Z',
+  },
+  {
+    id: 'photo-2',
+    project_id: '1',
+    filename: 'safety-check-001.jpg',
+    original_filename: '安全点検写真.jpg',
+    file_size: 153600,
+    mime_type: 'image/jpeg',
+    category: 'SAFETY',
+    description: '安全帯着用確認',
+    taken_at: '2026-04-10T10:00:00Z',
+    url: null,
+    created_at: '2026-04-10T10:00:00Z',
+  },
+]
+
 export const MOCK_COST_RECORDS = [
   {
     id: '1',
