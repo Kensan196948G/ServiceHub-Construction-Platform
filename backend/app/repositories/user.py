@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
 from datetime import datetime, timezone
 
 from sqlalchemy import func, select
@@ -88,7 +89,7 @@ class UserRepository:
         user.last_login_at = datetime.now(timezone.utc)
         await self.db.flush()
 
-    async def get_ids_by_roles(self, roles: list[str]) -> list[uuid.UUID]:
+    async def get_ids_by_roles(self, roles: Sequence[str]) -> Sequence[uuid.UUID]:
         """Return IDs of active users whose role is in the given list."""
         result = await self.db.execute(
             select(User.id).where(

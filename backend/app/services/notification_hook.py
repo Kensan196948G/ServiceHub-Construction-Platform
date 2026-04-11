@@ -53,7 +53,7 @@ async def resolve_recipients(
     roles = _EVENT_ROLES.get(event_key, ["ADMIN"])
     if not roles:
         return []
-    return await UserRepository(db).get_ids_by_roles(roles)
+    return list(await UserRepository(db).get_ids_by_roles(roles))
 
 
 async def fire_notification_hook(
