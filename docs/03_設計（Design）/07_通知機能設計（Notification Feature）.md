@@ -1,7 +1,7 @@
 # 通知機能設計（Notification Feature）
 
 **作成日**: 2026-04-10
-**ステータス**: Phase 1 実装中
+**ステータス**: Phase 2 完了（2026-04-11）
 **関連 Issue**: (TBD — 本ドキュメント作成後に起票)
 
 ## 1. 背景と目的
@@ -165,7 +165,15 @@ ServiceHub Construction Platform は工事案件 / 日報 / 安全品質 / ITSM 
 
 ## 9. Phase 2 設計（実送信基盤）
 
-**ステータス**: **Phase 2a 完了（PR #95 merged）** / **Phase 2b 完了（PR #96 merged）** / **Phase 2c 実装済（PR #98 review中）** / Phase 2d 未着手
+**ステータス**: ✅ **Phase 2 全サブフェーズ完了**（2026-04-11）
+- Phase 2a ✅ PR #95 — NotificationDispatcher + EmailSender
+- Phase 2b ✅ PR #96 — SlackSender + POST /notifications/test
+- Phase 2c ✅ PR #98 — ドメインイベントフック統合 (5イベント)
+- Phase 2d ✅ PR #100 — failure_kind リトライ + ADMIN 配信履歴 API
+- Phase 2e ✅ PR #102 — audit_logs 統合 (ISO27001 §9.8)
+- Phase 2f ✅ PR #104 — lifespan バックグラウンドリトライ + POST /retry
+- Phase 2g ✅ PR #106 — フロントエンド管理画面 + E2E 5件
+- config  ✅ PR #107 — NOTIFICATION_RETRY_INTERVAL_SECONDS 環境変数化
 
 ### 9.1 目的と受入れ条件
 
@@ -323,10 +331,14 @@ Phase 2 はさらに以下に細分化:
 
 | サブフェーズ | 内容 | ステータス | 見積 |
 |---|---|---|---|
-| **2a** | `NotificationDispatcher` + `notification_deliveries` + Email 送信 (同期 MVP) | 🟡 **PR #95 レビュー中** | 1 セッション |
-| **2b** | Slack 送信 + `POST /notifications/test` + **BackgroundTasks 統合 (self-commit 解消)** | ⏳ 未着手 | 1 セッション |
-| **2c** | ドメインイベントフック統合 (5 イベント種別) + E2E テスト | ⏳ 未着手 | 1 セッション |
-| **2d** | リトライ機構 (`failure_kind=transient` スキャン) + 監査ログ統合 | ⏳ 未着手 | 0.5 セッション |
+| **2a** | `NotificationDispatcher` + `notification_deliveries` + Email 送信 (同期 MVP) | ✅ PR #95 merged | 1 セッション |
+| **2b** | Slack 送信 + `POST /notifications/test` + BackgroundTasks 統合 | ✅ PR #96 merged | 1 セッション |
+| **2c** | ドメインイベントフック統合 (5 イベント種別) + E2E テスト | ✅ PR #98 merged | 1 セッション |
+| **2d** | failure_kind リトライ機構 + ADMIN 配信履歴 API | ✅ PR #100 merged | 0.5 セッション |
+| **2e** | audit_logs 統合 (ISO27001 §9.8) | ✅ PR #102 merged | 0.5 セッション |
+| **2f** | lifespan バックグラウンドリトライ (60秒間隔) + POST /retry | ✅ PR #104 merged | 0.5 セッション |
+| **2g** | フロントエンド管理画面 + E2E 5件 | ✅ PR #106 merged | 0.5 セッション |
+| **config** | NOTIFICATION_RETRY_INTERVAL_SECONDS 環境変数化 | ✅ PR #107 merged | 0.1 セッション |
 
 **2a, 2b はバックエンド中心で独立してマージ可**。2c 以降で既存業務サービスを触るため慎重に進める。
 

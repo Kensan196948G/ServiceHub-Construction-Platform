@@ -80,7 +80,7 @@ graph TB
 | 📡       | システム            | ヘルスチェック / ステータス確認 | 2     | ✅ 完了     |
 | 📊       | Dashboard KPI API   | 集計 KPI 取得 / React Query hook | 1   | ✅ 完了     |
 | 🔔       | 通知設定            | 通知購読 preferences 管理 (Phase 1 / UI 統合済) | 2   | ✅ 完了     |
-| 📧       | 通知配信基盤        | Dispatcher + EmailSender + Jinja2 テンプレ (Phase 2a / PR#95) | 0   | 🟡 進行中 |
+| 📧       | 通知配信基盤        | Email/Slack 送信・リトライ・ADMIN 管理画面 (Phase 2 完了 PR#95〜#107) | 3   | ✅ 完了     |
 
 ### 🧩 共通 UI コンポーネント（`src/components/ui/`）
 
@@ -103,21 +103,21 @@ graph TB
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 Backend テスト | **239 件**（pytest / coverage **96%** / 通知 Phase 2a +40 [初回 15 + Codex fix 25]） |
+| 🧪 Backend テスト | **162 件**（pytest / coverage **85%** / 通知 Phase 2 全完了） |
 | 🧪 Frontend テスト | **263 件**（vitest / 41 テストファイル / coverage **88%**） |
-| 🎭 E2E テスト | **165 件**（Playwright / 24 テストファイル） |
-| 📊 総テスト数 | **667 件**（Backend + Frontend + E2E） |
-| 🖥️ フロントエンドページ | **12 ページ**（全ページテスト済み・設定ページ追加） |
+| 🎭 E2E テスト | **170 件**（Playwright / 25 テストファイル / 通知管理画面 +5） |
+| 📊 総テスト数 | **595 件**（Backend + Frontend + E2E） |
+| 🖥️ フロントエンドページ | **13 ページ**（通知管理 ADMIN ページ追加） |
 | 🧩 共通 UI コンポーネント | **12 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
-| 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
-| 🔗 API エンドポイント | **50 エンドポイント**（通知設定 GET/PATCH 追加） |
-| 🏗️ Repository クラス | **9 クラス**（全 Router 統一済み / NotificationPreference 追加） |
-| 🔧 Service クラス | **12 クラス**（全モジュール対応 + Dashboard + NotificationPreference） |
-| 🔀 Router | **10 本**（Dashboard / Notification Preferences 追加） |
+| 🎨 共通 UI 適用率 | **12/12 ページ**（全ページ統一完了） |
+| 🔗 API エンドポイント | **52 エンドポイント**（通知配信 GET + POST /retry 追加） |
+| 🏗️ Repository クラス | **10 クラス**（NotificationDelivery / AuditLog 追加） |
+| 🔧 Service クラス | **13 クラス**（NotificationDispatcher + 関連 Sender 追加） |
+| 🔀 Router | **11 本**（notifications Router 追加） |
 | 📐 OpenAPI codegen | **31 エンドポイント / 68 スキーマ**（TypeScript 型自動生成） |
-| 📚 設計ドキュメント | **7 種**（アーキテクチャ / DB / API / UI・UX / セキュリティ / モジュール / 通知機能 Phase1+2） |
+| 📚 設計ドキュメント | **7 種**（アーキテクチャ / DB / API / UI・UX / セキュリティ / モジュール / 通知機能 Phase2 完了） |
 | ✅ CI チェック数 | **14 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2） |
-| 🔒 STABLE 判定 | **達成**（main CI 全 success / Node.js 24 対応済み / 連続成功 18+ 回） |
+| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 2 通知機能 全 PR merge 済み） |
 
 ### 🏗️ Backend アーキテクチャ
 
