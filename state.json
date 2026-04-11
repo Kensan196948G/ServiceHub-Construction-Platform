@@ -1,15 +1,15 @@
 {
-  "phase": "Phase 2 - 機能強化（Day 7 完了間近 — 通知Phase1 完全消化）",
-  "loop": "Day7-Improve-Final",
-  "loop_count": 68,
+  "phase": "Phase 2 - 機能強化（Day 8 開始 — 通知Phase2a Dispatcher+Email 実装中）",
+  "loop": "Day8-Verify-PR95",
+  "loop_count": 69,
   "status": "stable",
-  "last_updated": "2026-04-10T17:10:00+09:00",
+  "last_updated": "2026-04-11T17:56:00+09:00",
   "execution": {
-    "start_time": "2026-04-10T14:19:00+09:00",
+    "start_time": "2026-04-11T17:41:00+09:00",
     "max_duration_minutes": 300,
-    "elapsed_minutes": 171,
-    "remaining_minutes": 129,
-    "phase": "Improve",
+    "elapsed_minutes": 15,
+    "remaining_minutes": 285,
+    "phase": "Verify",
     "auto_stop_threshold": 5,
     "graceful_shutdown": false
   },
@@ -58,10 +58,10 @@
     "stability": "stable"
   },
   "metrics": {
-    "test_count_backend": 199,
+    "test_count_backend": 239,
     "test_count_frontend": 263,
     "test_count_e2e": 165,
-    "test_total": 627,
+    "test_total": 667,
     "coverage_backend": "96%",
     "coverage_frontend": "88%",
     "ci_status": "green",
@@ -185,6 +185,60 @@
         "immediate": "完了（PR#81マージ済み）",
         "next_task": "通知機能検討 or E2Eテスト拡充（usersページ・設定ページ）",
         "backlog": ["通知機能（メール/Slack）", "パフォーマンス計測基盤", "ダークモード対応", "i18n基盤検討"]
+      }
+    },
+    "day8_2026_04_11": {
+      "date": "2026-04-11",
+      "status": "in_progress",
+      "hours_so_far": 1.5,
+      "loops_completed": 2,
+      "prs_opened": ["#95"],
+      "prs_merged": [],
+      "issues_progress": {"#94": "Phase 2a 実装 + Codex review fix + 設計ドキュメント更新 (PR#95 CI green 待ち)"},
+      "commits_to_branch": 3,
+      "highlights": [
+        "PR#95 c641886: 通知機能 Phase 2a — NotificationDispatcher + EmailSender + Jinja2 テンプレ基盤 (16 files, +1082 lines)",
+        "PR#95 Codex adversarial review: 4 件の major 指摘 (durable tracking / fire-and-forget / PII / 冪等性)",
+        "PR#95 7516d75 fix: Codex 指摘 4 件に対応 — Option A (同期 MVP + 必須安全性) で最小修正",
+        "  - Repository: mark_sent/mark_failed に PENDING guard で冪等化",
+        "  - Repository: _sanitize_error_detail() で email / SMTP response を redact",
+        "  - EmailSender: SendResult に failure_kind: Literal['transient','permanent'] 追加、_classify() で分類",
+        "  - Dispatcher: _dispatch_email で明示 commit() を 2 回呼び durable tracking を確保 (自己 transaction 境界)",
+        "  - 新規 25 tests (test_notification_delivery_repo 10 + test_email_sender_classification 15)",
+        "PR#95 5401dd1 docs: 07_通知機能設計.md §9 を Phase 2a 実装後の学びで更新",
+        "  - §9.3.1 実装判断事項 (failure_kind 型固定 / サニタイザ方針 / send_ping 購読バイパス根拠)",
+        "  - §9.3.2 自己 transaction 境界の設計意図と Phase 2b で BackgroundTasks 統合で解消する計画",
+        "  - §9.3.3 冪等な状態遷移",
+        "  - §9.9 サブフェーズ表にステータス列追加、Phase 2b 必須作業を明文化",
+        "backend 全 unit tests 121/121 pass (+25)、regression 0、ruff clean (130 files)"
+      ],
+      "metrics_delta": {
+        "tests_backend": "+40 (199 → 239)",
+        "tests_total": "+40 (627 → 667)",
+        "new_files": 15,
+        "lines_added_total": 1575,
+        "new_tables": 1,
+        "new_dependencies": 2,
+        "codex_review_cycles": 1,
+        "commits_on_branch": 3
+      },
+      "design_decisions": {
+        "1_dispatcher_return_contract": "A (原 B) — Phase 2a は同期 MVP、fire-and-forget は Phase 2b で BackgroundTasks 統合",
+        "2_sender_error_handling": "B+ — SendResult(ok, error, failure_kind) で transient/permanent 分類",
+        "3_delivery_write_timing": "A+ — 事前書き込み + 自己 commit で durable tracking 確保 (Phase 2a 暫定)",
+        "4_idempotency": "PENDING guard による silent no-op",
+        "5_pii_sanitization": "regex redact (email + SMTP response) — §9.8 準拠",
+        "6_failure_classification": "SMTP 階層例外 + OSError ファミリ + 4xx/5xx + unknown→permanent safe default"
+      },
+      "codex_review": {
+        "first_review": "REQUEST_CHANGES - 4 major (durable/fire-forget/PII/idempotency)",
+        "fix_commit": "7516d75",
+        "re_review": "in progress"
+      },
+      "resume_point": {
+        "immediate": "Codex re-review 待ち、LGTM で PR#95 merge → Phase 2b 着手",
+        "next_task": "Phase 2b: SlackSender + POST /notifications/test + BackgroundTasks 統合 (self-commit 解消)",
+        "backlog": ["Phase 2c: ドメインイベントフック統合", "Phase 2d: リトライ + 監査ログ", "パフォーマンス計測基盤"]
       }
     },
     "day7_2026_04_10": {

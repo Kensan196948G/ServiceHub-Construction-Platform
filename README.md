@@ -80,6 +80,7 @@ graph TB
 | 📡       | システム            | ヘルスチェック / ステータス確認 | 2     | ✅ 完了     |
 | 📊       | Dashboard KPI API   | 集計 KPI 取得 / React Query hook | 1   | ✅ 完了     |
 | 🔔       | 通知設定            | 通知購読 preferences 管理 (Phase 1 / UI 統合済) | 2   | ✅ 完了     |
+| 📧       | 通知配信基盤        | Dispatcher + EmailSender + Jinja2 テンプレ (Phase 2a / PR#95) | 0   | 🟡 進行中 |
 
 ### 🧩 共通 UI コンポーネント（`src/components/ui/`）
 
@@ -102,10 +103,10 @@ graph TB
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 Backend テスト | **199 件**（pytest / coverage **96%**） |
+| 🧪 Backend テスト | **239 件**（pytest / coverage **96%** / 通知 Phase 2a +40 [初回 15 + Codex fix 25]） |
 | 🧪 Frontend テスト | **263 件**（vitest / 41 テストファイル / coverage **88%**） |
 | 🎭 E2E テスト | **165 件**（Playwright / 24 テストファイル） |
-| 📊 総テスト数 | **627 件**（Backend + Frontend + E2E） |
+| 📊 総テスト数 | **667 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **12 ページ**（全ページテスト済み・設定ページ追加） |
 | 🧩 共通 UI コンポーネント | **12 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **11/11 ページ**（全ページ統一完了） |
@@ -142,6 +143,7 @@ graph LR
 | 🖼️ PhotoService | 写真アップロード・バリデーション・プリサインドURL |
 | 📊 DashboardService | KPI 集約・統計ダッシュボード |
 | 🔔 NotificationPreferenceService | 通知購読設定 CRUD (upsert-on-read 方式) |
+| 📧 NotificationDispatcher | 通知配信オーケストレータ — 購読判定 → 事前書き込み → EmailSender 呼出 → status 更新 (Phase 2a) |
 
 > **全 10 Router が Router → Service → Repository の3層構造に統一（Service 12クラス / Repository 9クラス）。**
 
