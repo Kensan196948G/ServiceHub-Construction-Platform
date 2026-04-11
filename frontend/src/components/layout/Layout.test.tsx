@@ -89,4 +89,22 @@ describe("Layout", () => {
     const menuBtn = buttons.find((b) => b.className.includes("lg:hidden"));
     expect(menuBtn).toBeDefined();
   });
+
+  it("テーマトグルボタンが表示される", () => {
+    renderLayout();
+    const toggle = screen.getByTestId("theme-toggle");
+    expect(toggle).toBeInTheDocument();
+    const label = toggle.getAttribute("aria-label");
+    expect(["ダークモードに切り替え", "ライトモードに切り替え"]).toContain(label);
+  });
+
+  it("テーマトグルをクリックすると aria-label が切り替わる", () => {
+    // Start in light mode
+    localStorage.setItem("theme", "light");
+    renderLayout();
+    const toggle = screen.getByTestId("theme-toggle");
+    expect(toggle).toHaveAttribute("aria-label", "ダークモードに切り替え");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-label", "ライトモードに切り替え");
+  });
 });
