@@ -271,6 +271,29 @@ export async function setupAllApiMocks(page: Page): Promise<void> {
       route.fulfill({ status: 405 })
     }
   })
+
+  // Mock notification deliveries (ADMIN: empty list by default)
+  await page.route('**/api/v1/notifications/deliveries**', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: [],
+        meta: { total: 0, page: 1, per_page: 20, pages: 0 },
+      }),
+    })
+  })
+
+  // Mock notification retry (default: no-op)
+  await page.route('**/api/v1/notifications/retry', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: { retried_count: 0, message: 'リトライ対象の通知がありません。' },
+      }),
+    })
+  })
 }
 
 export const MOCK_NOTIFICATION_PREFERENCES = {
