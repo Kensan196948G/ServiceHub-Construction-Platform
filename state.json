@@ -1,9 +1,9 @@
 {
-  "phase": "Phase 2 - 機能強化（Day 8 — 通知Phase2g フロントエンド管理画面 + E2Eテスト）",
-  "loop": "Day8-Build-Phase2g",
-  "loop_count": 76,
+  "phase": "Phase 2 - 機能強化（Day 8 — 通知Phase2g マージ完了 → Phase 2h or lifespan設定化）",
+  "loop": "Day8-Verify-Phase2g-merged",
+  "loop_count": 77,
   "status": "stable",
-  "last_updated": "2026-04-11T21:45:00+09:00",
+  "last_updated": "2026-04-11T20:36:00Z",
   "execution": {
     "start_time": "2026-04-11T17:41:00+09:00",
     "max_duration_minutes": 300,
@@ -46,7 +46,7 @@
   },
   "priorities": {
     "high": [
-      "PR#105 (Phase 2g) merge"
+      "lifespan retry interval 環境変数化 (app/core/config.py に NOTIFICATION_RETRY_INTERVAL_SECONDS 追加)"
     ],
     "medium": [
       "lifespan retry interval 環境変数化",
@@ -93,7 +93,7 @@
       "pr": "#102"
     },
     "phase_2f": {
-      "status": "pr_review",
+      "status": "merged",
       "pr": "#104",
       "features": [
         "FastAPI lifespan + asyncio.create_task() — 60秒ごとバックグラウンドリトライ",
@@ -102,8 +102,8 @@
       ]
     },
     "phase_2g": {
-      "status": "pr_review",
-      "pr": "#105",
+      "status": "merged",
+      "pr": "#106",
       "features": [
         "NotificationDeliveriesPage (ADMIN専用管理画面)",
         "POST /retry ボタン → retried_count 表示",
@@ -121,11 +121,10 @@
       "PR#98",
       "PR#100",
       "PR#102",
-      "PR#104"
+      "PR#104",
+      "PR#106"
     ],
-    "in_review": [
-      "PR#105 (Phase 2g: 通知管理画面 + E2Eテスト)"
-    ],
-    "next": "PR#105 merge後 → Phase 3 or lifespan retry interval 環境変数化"
+    "in_review": [],
+    "next": "lifespan retry interval 環境変数化 → config.py NOTIFICATION_RETRY_INTERVAL_SECONDS"
   }
 }

@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     SMTP_FROM_ADDRESS: str = "noreply@servicehub.local"
     SMTP_FROM_NAME: str = "ServiceHub"
 
+    # 通知リトライループ設定（Phase 2f）
+    # 本番環境では環境変数 NOTIFICATION_RETRY_INTERVAL_SECONDS で上書き可能。
+    NOTIFICATION_RETRY_INTERVAL_SECONDS: int = 60
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

@@ -17,7 +17,8 @@ from app.middleware.logging import RequestLoggingMiddleware
 logger = structlog.get_logger()
 
 # ── 通知リトライループ (Phase 2f) ──────────────────────
-_RETRY_INTERVAL_SECONDS = 60
+# Configurable via NOTIFICATION_RETRY_INTERVAL_SECONDS env var (default: 60s)
+_RETRY_INTERVAL_SECONDS = settings.NOTIFICATION_RETRY_INTERVAL_SECONDS
 
 
 async def _notification_retry_loop() -> None:  # pragma: no cover
