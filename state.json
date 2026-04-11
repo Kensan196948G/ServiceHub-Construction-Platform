@@ -1,22 +1,22 @@
 {
-  "phase": "Phase 3 - UX改善（Day 9 — Phase 3c dark mode PR#113 in review）",
-  "loop": "Day9-Phase3c-pr-created",
-  "loop_count": 81,
-  "status": "in_review",
-  "last_updated": "2026-04-11T22:30:00Z",
+  "phase": "Phase 3 - UX改善（Day 9 — Phase 3c dark mode PR#113 CI通過待ち → 安全終了）",
+  "loop": "Day9-Phase3c-safe-shutdown",
+  "loop_count": 82,
+  "status": "safe_shutdown",
+  "last_updated": "2026-04-11T23:10:00Z",
   "execution": {
     "start_time": "2026-04-11T20:50:00+09:00",
     "max_duration_minutes": 300,
-    "elapsed_minutes": 10,
-    "remaining_minutes": 290,
-    "phase": "Build",
+    "elapsed_minutes": 140,
+    "remaining_minutes": 160,
+    "phase": "Shutdown",
     "auto_stop_threshold": 5,
-    "graceful_shutdown": false
+    "graceful_shutdown": true
   },
   "token": {
     "total_budget": 100,
-    "used": 55,
-    "remaining": 45,
+    "used": 70,
+    "remaining": 30,
     "allocation": {
       "monitor": 10,
       "development": 35,
@@ -28,29 +28,33 @@
     },
     "dynamic_mode": true,
     "current_phase_budget": 35,
-    "current_phase_used": 10,
+    "current_phase_used": 20,
     "phase_history": [
       "Monitor:5",
       "Development:35",
-      "Verify:15"
+      "Verify:15",
+      "Monitor:10",
+      "Debug:5"
     ]
   },
   "development_plan": {
     "start_date": "2026-04-03",
     "release_date": "2026-10-03",
-    "current_phase": "Phase 3 UX改善 — Phase 3a パフォーマンス計測基盤",
+    "current_phase": "Phase 3 UX改善 — Phase 3c ダークモード CI修正中",
     "current_sprint": "Sprint 4",
     "total_hours": 416,
-    "hours_used": 50,
+    "hours_used": 52,
     "schedule": "土日 × 8時間"
   },
   "priorities": {
     "high": [
-      "PR#113 CI通過後 merge — Phase 3c ダークモード完了"
+      "PR#113 残りCI (E2E/Lighthouse/Test&Coverage) 通過確認 → merge",
+      "merge後 Issue#112 クローズ、state.json phase_3c: merged に更新"
     ],
     "medium": [
+      "Phase 3d 計画: 他ページ dark: 拡張 (ITSM/Safety/Reports/Knowledge/Users)",
       "他ページ ARIA 属性レビュー (reports, safety, itsm, knowledge 等)",
-      "README.md Phase 3b 完了反映"
+      "README.md Phase 3c 完了反映"
     ],
     "low": [
       "k8s複数レプリカ重複リトライ抑制 (Phase 4+: Redis分散ロック)",
@@ -91,15 +95,49 @@
         "ハンバーガーメニュー aria-expanded/aria-controls/aria-current",
         "モバイルビューポート E2E テスト (375x667) — 13 テスト追加"
       ]
+    },
+    "phase_3c": {
+      "status": "in_review",
+      "pr": "#113",
+      "issue": "#112",
+      "features": [
+        "ThemeContext (localStorage 永続化 / prefers-color-scheme フォールバック)",
+        "Tailwind darkMode: class 設定",
+        "Layout/Card/Button/Badge/Modal/Skeleton/FormField/Dashboard/Projects dark: クラス",
+        "ThemeContext Vitest 7件 / dark-mode E2E 5件",
+        "setup.ts window.matchMedia グローバルスタブ追加"
+      ],
+      "ci_status": {
+        "lint_build": "pass",
+        "test_vitest": "pass",
+        "lint_ruff": "pass",
+        "python_security": "pass",
+        "type_check_mypy": "pass",
+        "dependency_review": "pass",
+        "e2e_playwright": "pending",
+        "lighthouse_audit": "pending",
+        "test_coverage": "pending"
+      }
     }
+  },
+  "resume_point": {
+    "action": "PR#113 CI完了確認 → gh pr merge 113 --squash --delete-branch",
+    "branch": "feat/phase3c-dark-mode",
+    "ci_run_ids": {
+      "frontend": "24282651614",
+      "backend": "24282651606",
+      "security": "24282651601",
+      "lighthouse": "24282651607"
+    },
+    "next_phase": "Phase 3d — 残ページ dark: 拡張 (ITSM/Safety/Reports/Knowledge/Users) or ARIA 拡充"
   },
   "current_sprint": {
     "phase": "Sprint 4 Phase 3",
     "completed_prs": [
       "PR#92", "PR#93", "PR#95", "PR#96", "PR#98",
-      "PR#100", "PR#102", "PR#104", "PR#106", "PR#107", "PR#110", "PR#111", "PR#113"
+      "PR#100", "PR#102", "PR#104", "PR#106", "PR#107", "PR#110", "PR#111"
     ],
     "in_review": ["PR#113"],
-    "next": "PR#113 CI通過待ち → merge → Phase 3d (他ページ dark: 拡張 or ARIA 拡充)"
+    "next": "PR#113 残CI通過 → merge → Phase 3d"
   }
 }
