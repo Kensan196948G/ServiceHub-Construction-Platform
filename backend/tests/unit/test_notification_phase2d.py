@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
 
 from app.models.notification_delivery import NotificationDelivery
@@ -13,7 +10,6 @@ from app.repositories.notification_delivery import (
     NotificationDeliveryRepository,
 )
 from tests.conftest import ADMIN_USER_ID
-
 
 # ── ヘルパ ────────────────────────────────────────────────────────
 
