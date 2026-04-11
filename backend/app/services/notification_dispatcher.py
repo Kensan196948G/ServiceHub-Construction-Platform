@@ -102,15 +102,13 @@ class NotificationDispatcher:
                 deliveries.append(delivery)
 
             if self._should_send(pref, event_key, "slack"):
-                webhook_url = pref.slack_webhook_url
-                if webhook_url:
-                    delivery = await self._dispatch_slack(
-                        event_key=event_key,
-                        user=user,
-                        context=context,
-                        webhook_url=webhook_url,
-                    )
-                    deliveries.append(delivery)
+                delivery = await self._dispatch_slack(
+                    event_key=event_key,
+                    user=user,
+                    context=context,
+                    webhook_url=pref.slack_webhook_url,  # type: ignore[arg-type]
+                )
+                deliveries.append(delivery)
 
         return deliveries
 
@@ -210,16 +208,29 @@ class NotificationDispatcher:
         return delivery
 
     @staticmethod
-    def _should_send(pref: Any, event_key: str, channel: str) -> bool:
+    def _should_send(
+        pref: Any, event_key: str, channel: str, webhook_url: str | None = None
+    ) -> bool:
         """preferences オブジェクトに対してチャンネル別購読判定を行う。
 
-        グローバル enable + イベント別購読の両方を満たす場合のみ True。
+        グローバル enable + イベント別購読 + チャンネル固有必須設定の
+        すべてを満たす場合のみ True。このメソッドが唯一の判定ゲートウェイ
+        として機能するため、呼び出し側が追加チェックをする必要はない。
+
+        - email: email_enabled + events[event_key]["email"]
+        - slack: slack_enabled + slack_webhook_url 設定済み + events[event_key]["slack"]
+
         Phase 2a の _is_subscribed からリファクタ (pref 取得と判定の責務分離)。
         """
         if channel == "email" and not pref.email_enabled:
             return False
-        if channel == "slack" and not pref.slack_enabled:
-            return False
+        if channel == "slack":
+            if not pref.slack_enabled:
+                return False
+            # webhook_url が渡されていない場合は pref から取得して確認する
+            url = webhook_url if webhook_url is not None else pref.slack_webhook_url
+            if not url:
+                return False
         event_prefs = pref.events.get(event_key)
         if not isinstance(event_prefs, dict):
             return False
@@ -247,21 +258,25 @@ async def _run_dispatch_in_fresh_session(
     user_ids: list[uuid.UUID],
     context: dict[str, Any],
 ) -> None:
-    """BackgroundTask 本体: 独立 session を開いて dispatch を実行する。"""
-    try:
-        async with notification_session() as session:
-            dispatcher = NotificationDispatcher(session)
-            await dispatcher.dispatch(
-                event_key=event_key, user_ids=user_ids, context=context
+    """BackgroundTask 本体: ユーザーごとに独立 session を開いて dispatch する。
+
+    ユーザー単位でトランザクションを分離することで、ユーザー N の DB エラーが
+    ユーザー 1..N-1 の delivery 行をロールバックする問題を防ぐ。
+    各ユーザーの失敗は独立してログに残り、残りユーザーの配信は継続される。
+    """
+    for user_id in user_ids:
+        try:
+            async with notification_session() as session:
+                dispatcher = NotificationDispatcher(session)
+                await dispatcher.dispatch(
+                    event_key=event_key, user_ids=[user_id], context=context
+                )
+        except Exception:
+            logger.exception(
+                "notification dispatch failed for user event=%s user_id=%s",
+                event_key,
+                user_id,
             )
-    except Exception:
-        # BackgroundTasks では例外が上位に伝播しないが、運用で見失わないよう
-        # ここでログに残す。business logic は絶対にブロックさせない契約。
-        logger.exception(
-            "notification dispatch failed in background task " "event=%s user_count=%d",
-            event_key,
-            len(user_ids),
-        )
 
 
 async def _run_ping_in_fresh_session(
