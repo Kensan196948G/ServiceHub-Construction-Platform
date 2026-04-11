@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.v1.router import api_router
 from app.core.config import settings
@@ -96,6 +97,12 @@ register_exception_handlers(app)
 
 # ── ルーター登録 ──────────────────────────────────────
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+
+# ── Prometheus メトリクス (Phase 3a) ─────────────────
+# Exposes /metrics endpoint for Prometheus scraping.
+# Instruments all routes automatically: request count, latency histogram, in-flight.
+Instrumentator().instrument(app).expose(app)
 
 
 # ── ヘルスチェック ────────────────────────────────────
