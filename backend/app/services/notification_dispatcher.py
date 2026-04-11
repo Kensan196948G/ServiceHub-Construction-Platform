@@ -4,14 +4,32 @@
 
     dispatch(event_key, user_ids, context)
       ├─ 購読ユーザー解決 (notification_preferences 参照)
-      ├─ 事前書き込み (delivery 行を PENDING で作成)
-      ├─ EmailSender 呼び出し
-      └─ mark_sent / mark_failed で status 更新
+      ├─ 事前書き込み (PENDING) → commit
+      ├─ EmailSender 呼び出し (外部 I/O)
+      └─ mark_sent / mark_failed で status 更新 → commit
+
+=== Transaction boundary — 例外的責務に注意 ===
+通常 Service/Repository は commit を行わず、呼び出し側 (`get_db()`) が
+トランザクション境界を持つ慣用 (Phase 1 の NotificationPreferenceService 等)。
+しかし通知配信は「外部 I/O の前後で durable な記録を残す」必要があるため、
+NotificationDispatcher は自己トランザクション境界を持つ:
+
+    1. PENDING 行を書いて commit
+       (これで「送信を試みた」痕跡が DB に残る)
+    2. SMTP 送信 (外部 I/O — ここでクラッシュしても PENDING 行は残る)
+    3. 結果に応じて SENT/FAILED へ update → commit
+
+この規約からの逸脱は Codex review で指摘された durable tracking 要件
+(§9.1 / §9.4) を満たすための意図的な設計。呼び出し側は「自分の transaction
+が dispatch 内部で一度 commit される」ことを把握して呼び出す必要がある。
+Phase 2b 以降で BackgroundTasks 統合を入れ、独立 session で実行するように
+改修することで、この注意書きは不要になる予定。
 
 Phase 2a スコープ:
 - Email チャンネルのみ (Slack は Phase 2b)
 - ドメインイベントフック接続なし (Phase 2c)
-- リトライなし (Phase 2d)
+- リトライ機構なし (Phase 2d で failure_kind=transient を回収予定)
+- 同期実行 (BackgroundTasks 統合は Phase 2b)
 """
 
 import uuid
@@ -94,6 +112,14 @@ class NotificationDispatcher:
         user: User,
         context: dict[str, Any],
     ) -> NotificationDelivery:
+        """Email 1 通の送信。自己トランザクション境界を持つ (class docstring 参照)。
+
+        順序:
+            1. render
+            2. PENDING 行作成 + commit (durable tracking)
+            3. SMTP 送信 (外部 I/O)
+            4. 結果に応じて SENT/FAILED へ update + commit
+        """
         rendered = self.renderer.render_email(event_key, context)
         delivery = await self.delivery_repo.create_pending(
             user_id=user.id,
@@ -102,17 +128,26 @@ class NotificationDispatcher:
             subject=rendered.subject,
             body_preview=rendered.body_text[:500],
         )
+        # Commit #1: PENDING 行を durable に残す。ここでクラッシュしても
+        # 「送信を試みた」記録が残るため Phase 2d で回収可能。
+        await self.db.commit()
+
         result = await self.email_sender.send(
             to=user.email,
             subject=rendered.subject,
             body_text=rendered.body_text,
             body_html=rendered.body_html,
         )
+
         if result.ok:
-            return await self.delivery_repo.mark_sent(delivery)
-        return await self.delivery_repo.mark_failed(
-            delivery, result.error or "unknown error"
-        )
+            await self.delivery_repo.mark_sent(delivery)
+        else:
+            await self.delivery_repo.mark_failed(
+                delivery, result.error or "unknown error"
+            )
+        # Commit #2: 終了状態 (SENT/FAILED) を durable に残す。
+        await self.db.commit()
+        return delivery
 
     async def _is_subscribed(
         self, user_id: uuid.UUID, event_key: str, channel: str
