@@ -16,7 +16,7 @@ const paddingMap = {
 export function Card({ padding = 'md', className, children, ...rest }: CardProps) {
   return (
     <div
-      className={cn('bg-white rounded-lg shadow', paddingMap[padding], className)}
+      className={cn('bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900', paddingMap[padding], className)}
       {...rest}
     >
       {children}

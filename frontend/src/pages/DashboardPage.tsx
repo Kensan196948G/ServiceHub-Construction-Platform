@@ -97,7 +97,7 @@ function QuickActionCard({
       <div className={`p-3 rounded-full ${color}`}>
         <Icon className="w-6 h-6 text-white" />
       </div>
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
     </Card>
     </Link>
   );
@@ -134,12 +134,12 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             こんにちは、{user?.full_name ?? "ユーザー"}さん
           </h2>
-          <p className="text-gray-500 text-sm mt-1">ServiceHub 工事管理プラットフォーム</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">ServiceHub 工事管理プラットフォーム</p>
         </div>
-        <p className="text-sm text-gray-400 mt-1 hidden sm:block">{today}</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 hidden sm:block">{today}</p>
       </div>
 
       {/* Stats Grid */}
@@ -198,7 +198,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">クイックアクション</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">クイックアクション</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <QuickActionCard to="/projects" icon={PlusCircle} label="新規案件作成" color="bg-blue-500" />
           <QuickActionCard to="/reports" icon={ClipboardList} label="日報入力" color="bg-purple-500" />
@@ -213,8 +213,8 @@ export default function DashboardPage() {
         {/* Recent Projects Table */}
         <Card className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">最近の工事案件</h3>
-            <Link to="/projects" className="text-sm text-primary-600 hover:text-primary-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">最近の工事案件</h3>
+            <Link to="/projects" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400">
               すべて表示 →
             </Link>
           </div>
@@ -229,35 +229,35 @@ export default function DashboardPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-gray-400 border-b border-gray-100">
+                  <tr className="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
                     <th className="pb-2 font-medium">案件名</th>
                     <th className="pb-2 font-medium hidden sm:table-cell">施主名</th>
                     <th className="pb-2 font-medium">ステータス</th>
                     <th className="pb-2 font-medium hidden md:table-cell">開始日</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
                   {recentProjects.data.map((p) => (
                     <tr
                       key={p.id}
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
                       <td className="py-3 pr-2">
                         <Link
                           to={`/projects/${p.id}`}
-                          className="font-medium text-gray-900 hover:text-primary-600 block truncate max-w-[160px]"
+                          className="font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 block truncate max-w-[160px]"
                         >
                           {p.name}
                         </Link>
-                        <span className="text-xs text-gray-400">{p.project_code}</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">{p.project_code}</span>
                       </td>
-                      <td className="py-3 pr-2 hidden sm:table-cell text-gray-600 truncate max-w-[120px]">
+                      <td className="py-3 pr-2 hidden sm:table-cell text-gray-600 dark:text-gray-400 truncate max-w-[120px]">
                         {p.client_name}
                       </td>
                       <td className="py-3 pr-2">
                         <StatusBadge status={p.status} />
                       </td>
-                      <td className="py-3 hidden md:table-cell text-gray-500 whitespace-nowrap">
+                      <td className="py-3 hidden md:table-cell text-gray-500 dark:text-gray-400 whitespace-nowrap">
                         {p.start_date
                           ? new Date(p.start_date).toLocaleDateString("ja-JP")
                           : "—"}
@@ -278,8 +278,8 @@ export default function DashboardPage() {
         {/* Recent Incidents */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">最近のインシデント</h3>
-            <Link to="/itsm" className="text-sm text-primary-600 hover:text-primary-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">最近のインシデント</h3>
+            <Link to="/itsm" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400">
               すべて表示 →
             </Link>
           </div>
@@ -296,10 +296,10 @@ export default function DashboardPage() {
                 <Link
                   key={inc.id}
                   to={`/itsm`}
-                  className="block p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="block p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <span className="text-xs text-gray-400 font-mono shrink-0">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 font-mono shrink-0">
                       {inc.incident_number}
                     </span>
                     <span
@@ -310,12 +310,12 @@ export default function DashboardPage() {
                       {PRIORITY_LABELS[inc.priority] ?? inc.priority}
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-gray-800 leading-snug line-clamp-2">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-snug line-clamp-2">
                     {inc.title}
                   </p>
                   <div className="flex items-center justify-between mt-2">
                     <IncidentStatusBadge status={inc.status} />
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
                       {new Date(inc.created_at).toLocaleDateString("ja-JP")}
                     </span>
                   </div>

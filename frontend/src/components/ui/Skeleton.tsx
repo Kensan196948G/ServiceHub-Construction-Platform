@@ -9,7 +9,7 @@ export function Skeleton({ className }: SkeletonProps) {
     <div
       role="status"
       aria-label="読み込み中"
-      className={cn('animate-pulse bg-gray-200 rounded', className)}
+      className={cn('animate-pulse bg-gray-200 dark:bg-gray-700 rounded', className)}
     />
   )
 }

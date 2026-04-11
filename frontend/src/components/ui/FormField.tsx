@@ -19,7 +19,7 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className={cn("space-y-1", className)}>
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
       </label>
@@ -42,11 +42,12 @@ export function Input({ error, className, ...props }: InputProps) {
     <input
       className={cn(
         "block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors",
+        "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
         "focus:outline-none focus:ring-2 focus:ring-offset-0",
         error
           ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-          : "border-gray-300 focus:border-primary-500 focus:ring-primary-200",
-        "disabled:bg-gray-50 disabled:text-gray-500",
+          : "border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-200",
+        "disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400",
         className,
       )}
       {...props}
@@ -63,11 +64,12 @@ export function Textarea({ error, className, ...props }: TextareaProps) {
     <textarea
       className={cn(
         "block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors",
+        "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
         "focus:outline-none focus:ring-2 focus:ring-offset-0",
         error
           ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-          : "border-gray-300 focus:border-primary-500 focus:ring-primary-200",
-        "disabled:bg-gray-50 disabled:text-gray-500",
+          : "border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-200",
+        "disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400",
         className,
       )}
       {...props}
@@ -86,11 +88,12 @@ export function Select({ error, options, placeholder, className, ...props }: Sel
     <select
       className={cn(
         "block w-full rounded-md border px-3 py-2 text-sm shadow-sm transition-colors",
+        "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
         "focus:outline-none focus:ring-2 focus:ring-offset-0",
         error
           ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-          : "border-gray-300 focus:border-primary-500 focus:ring-primary-200",
-        "disabled:bg-gray-50 disabled:text-gray-500",
+          : "border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-200",
+        "disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400",
         className,
       )}
       {...props}
