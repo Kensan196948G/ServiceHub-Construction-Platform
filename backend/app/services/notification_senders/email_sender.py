@@ -5,8 +5,9 @@
   Dispatcher が事前書き込みした delivery 行を mark_sent / mark_failed へ
   一貫して遷移させ、Phase 2d のリトライ機構も同じ戻り値契約を再利用する。
 - 失敗は transient / permanent に分類する (Codex review fix)。
-  * transient: 接続失敗、タイムアウト、DNS 解決失敗 → リトライ候補
-  * permanent: 認証失敗、無効アドレス、4xx/5xx 応答 → リトライ不可
+  * transient: 接続失敗、タイムアウト、DNS 解決失敗、SMTP 4xx 応答 → リトライ候補
+  * permanent: 認証失敗、無効アドレス、SMTP 5xx 応答 → リトライ不可
+  * 未知例外は安全側で permanent (optimistic retry を防ぐ)
 - aiosmtplib はコンストラクタで `smtp_send` callable を差し替えてテスト可能。
 """
 
