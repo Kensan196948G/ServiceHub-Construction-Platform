@@ -104,12 +104,13 @@ graph TB
 | 指標 | 値 |
 | :--- | :--- |
 | 🧪 Backend テスト | **162 件**（pytest / coverage **85%** / 通知 Phase 2 全完了） |
-| 🧪 Frontend テスト | **263 件**（vitest / 41 テストファイル / coverage **88%**） |
-| 🎭 E2E テスト | **170 件**（Playwright / 25 テストファイル / 通知管理画面 +5） |
-| 📊 総テスト数 | **595 件**（Backend + Frontend + E2E） |
+| 🧪 Frontend テスト | **270 件**（vitest / 42 テストファイル / coverage **88%** / Phase 3c ThemeContext +7） |
+| 🎭 E2E テスト | **188 件**（Playwright / 26 テストファイル / Phase 3c dark-mode +5） |
+| 📊 総テスト数 | **620 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **13 ページ**（通知管理 ADMIN ページ追加） |
 | 🧩 共通 UI コンポーネント | **12 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **12/12 ページ**（全ページ統一完了） |
+| 🌙 ダークモード | **対応済み**（ThemeContext / localStorage 永続化 / prefers-color-scheme フォールバック / Phase 3c PR#113） |
 | 🔗 API エンドポイント | **53 エンドポイント**（Phase 3a: `/metrics` Prometheus エンドポイント追加） |
 | 🏗️ Repository クラス | **10 クラス**（NotificationDelivery / AuditLog 追加） |
 | 🔧 Service クラス | **13 クラス**（NotificationDispatcher + 関連 Sender 追加） |
@@ -119,7 +120,7 @@ graph TB
 | ✅ CI チェック数 | **15 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 2 通知機能 全 PR merge 済み / Phase 3a PR#110 in review） |
+| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / Phase 3b PR#111 merge済み / Phase 3c PR#113 in review） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -295,7 +296,7 @@ gantt
 | :--- | :--- | :--- | :---: |
 | 🔵 Phase 1 基盤安定化 | 4月 Week 1 | 3層アーキテクチャ100%・E2E基盤・CI安定 | ✅ 完了 |
 | 🟡 Phase 2 機能強化 | 4月〜5月 | UI統一・フォーム改善・E2E拡充・通知機能 Phase2a〜Phase2g 完了 | ✅ 完了 |
-| 🟠 Phase 3 UX改善 | 5月〜6月 | レスポンシブ・アクセシビリティ・パフォーマンス | 🔄 進行中（Phase 3a PR#110） |
+| 🟠 Phase 3 UX改善 | 5月〜6月 | レスポンシブ・アクセシビリティ・パフォーマンス・ダークモード | 🔄 進行中（3a✅ 3b✅ 3c PR#113 in review） |
 | 🔴 Phase 4 高度機能 | 6月〜7月 | リアルタイム通知・AI強化 | ⏳ 予定 |
 | 🟣 Phase 5 リリース準備 | 7月〜9月 | 本番環境・セキュリティ監査・ドキュメント整備 | ⏳ 予定 |
 | 🟢 Phase 6 リリース | 2026-10-03 | **社内公開** 🎉 | ⏳ 予定 |
