@@ -334,10 +334,14 @@ async def test_send_ping_bypasses_subscription(db_session_with_users):
         )
     ).scalar_one()
 
-    delivery = await dispatcher.send_ping(user=user)
+    # Phase 2b: send_ping はデフォルト email チャンネルのみ送信し
+    # list[NotificationDelivery] を返す。
+    deliveries = await dispatcher.send_ping(user=user)
 
-    assert delivery.status == "SENT"
-    assert delivery.event_key == "ping"
+    assert len(deliveries) == 1
+    assert deliveries[0].status == "SENT"
+    assert deliveries[0].event_key == "ping"
+    assert deliveries[0].channel == "EMAIL"
     assert len(fake_sender.sent) == 1
     assert fake_sender.sent[0]["to"] == "admin@test.example.com"
 

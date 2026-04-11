@@ -29,3 +29,16 @@ class NotificationPreferenceUpdate(BaseModel):
         default=None,
         description="イベント種別ごとの購読設定（完全置換）",
     )
+
+
+class NotificationTestResponse(BaseModel):
+    """通知疎通テストレスポンス (Phase 2b)
+
+    channels にはスケジューリングされたチャンネル (例: ['email', 'slack'])
+    が返る。実際の配信は BackgroundTasks で非同期実行されるため、本レスポンス
+    は「受理」ステータスに過ぎない。配信結果は notification_deliveries を
+    見るか、実際のメール/Slack を確認する。
+    """
+
+    scheduled_channels: list[str]
+    message: str
