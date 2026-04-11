@@ -10,19 +10,32 @@ Phase 2d:
     GET /api/v1/notifications/deliveries
         ADMIN のみ利用可能な配信履歴 API。
         status, channel, event_key, user_id でフィルタリング可能。
+
+Phase 2e:
+    GET /api/v1/notifications/deliveries へのアクセスを audit_logs に記録。
+    action='READ', resource='notification_deliveries'
 """
 
 import math
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
+from app.repositories.audit_log import AuditLogRepository
 from app.repositories.notification_delivery import NotificationDeliveryRepository
 from app.repositories.notification_preference import (
     NotificationPreferenceRepository,
@@ -108,6 +121,7 @@ async def post_notification_test(
     response_model=PaginatedResponse[NotificationDeliveryResponse],
 )
 async def list_notification_deliveries(
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
     page: int = Query(default=1, ge=1),
@@ -127,7 +141,7 @@ async def list_notification_deliveries(
         page       - ページ番号 (1 始まり)
         per_page   - 1 ページあたり件数 (最大 100)
 
-    このエンドポイントへのアクセスは audit_logs に記録される (Phase 2d §9.8)。
+    このエンドポイントへのアクセスは audit_logs に記録される (Phase 2e)。
     """
     offset = (page - 1) * per_page
     repo = NotificationDeliveryRepository(db)
@@ -140,6 +154,24 @@ async def list_notification_deliveries(
         channel=filter_channel,
         event_key=filter_event_key,
         user_id=filter_user_id,
+    )
+
+    # ADMIN アクセスを audit_logs に記録 (ISO27001 §9.8)
+    await AuditLogRepository(db).create(
+        action="READ",
+        resource="notification_deliveries",
+        user_id=current_user.id,
+        after_data={
+            "page": page,
+            "per_page": per_page,
+            "filter_status": filter_status,
+            "filter_channel": filter_channel,
+            "filter_event_key": filter_event_key,
+            "filter_user_id": str(filter_user_id) if filter_user_id else None,
+            "total_returned": total,
+        },
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
     )
 
     return PaginatedResponse(
