@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <body style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 16px;">
+    <h2 style="color: #1f2937;">🔔 通知疎通テスト</h2>
+    <p>{{ user_name }} 様</p>
+    <p>
+      ServiceHub Construction Platform の通知機能から疎通テストが送信されました。<br>
+      このメールが届いている場合、Email 通知チャンネルは正常に動作しています。
+    </p>
+    <p style="color: #6b7280; font-size: 14px;">
+      イベント種別ごとの購読設定は <strong>設定 &gt; 通知設定</strong> から変更できます。
+    </p>
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+    <p style="color: #9ca3af; font-size: 12px;">
+      送信日時: {{ sent_at }}<br>
+      ServiceHub Construction Platform<br>
+      <a href="{{ app_url }}" style="color: #2563eb;">{{ app_url }}</a>
+    </p>
+  </body>
+</html>

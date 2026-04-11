@@ -50,6 +50,19 @@ class Settings(BaseSettings):
     MINIO_SECRET_KEY: str = "minioadmin"
     MINIO_BUCKET: str = "servicehub"
 
+    # SMTP / Email 通知設定（Phase 2a）
+    # 開発環境は Mailhog 互換 SMTP (認証なし / TLS なし) を想定。
+    # 本番は環境変数で上書きする。
+    SMTP_HOST: str = "mailhog"
+    SMTP_PORT: int = 1025
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_USE_TLS: bool = False
+    SMTP_USE_STARTTLS: bool = False
+    SMTP_TIMEOUT_SECONDS: int = 10
+    SMTP_FROM_ADDRESS: str = "noreply@servicehub.local"
+    SMTP_FROM_NAME: str = "ServiceHub"
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
