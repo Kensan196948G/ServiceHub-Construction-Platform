@@ -129,9 +129,7 @@ async def update_incident(
     # 担当者が新規設定された場合のみ通知 (incident_assigned)
     if payload.assigned_to is not None:
         assigned_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-        inc_project = (
-            str(incident.project_id) if incident.project_id else "未設定"
-        )
+        inc_project = str(incident.project_id) if incident.project_id else "未設定"
         await fire_notification_hook(
             background_tasks,
             db,
