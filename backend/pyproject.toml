@@ -17,7 +17,7 @@ asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
-addopts = "-v --cov=app --cov-report=term-missing"
+addopts = "-v --cov=app --cov-report=term-missing --benchmark-disable"
 
 [tool.coverage.run]
 concurrency = ["greenlet", "thread"]
@@ -26,3 +26,10 @@ source = ["app"]
 python_version = "3.12"
 strict = false
 ignore_missing_imports = true
+
+[tool.pytest-benchmark]
+# Store benchmark results for regression comparison
+storage = ".benchmarks"
+# Only compare if the deviation is above this threshold (10%)
+min_time = 0.1
+max_time = 5.0
