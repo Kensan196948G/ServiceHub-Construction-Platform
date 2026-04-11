@@ -104,6 +104,7 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 # Instruments all routes automatically: request count, latency histogram, in-flight.
 Instrumentator().instrument(app).expose(app)
 
+
 # ── ヘルスチェック ────────────────────────────────────
 @app.get("/health", tags=["System"])
 async def health_check():
