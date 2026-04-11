@@ -14,6 +14,11 @@ Phase 2d:
 Phase 2e:
     GET /api/v1/notifications/deliveries へのアクセスを audit_logs に記録。
     action='READ', resource='notification_deliveries'
+
+Phase 2f:
+    POST /api/v1/notifications/retry
+        ADMIN が手動で transient 失敗通知の即時リトライを実行する。
+        lifespan バックグラウンドループとは独立した同期実行。
 """
 
 import math
@@ -43,7 +48,7 @@ from app.repositories.notification_preference import (
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.notification_delivery import NotificationDeliveryResponse
 from app.schemas.notification_preference import NotificationTestResponse
-from app.services.notification_dispatcher import schedule_ping
+from app.services.notification_dispatcher import NotificationDispatcher, schedule_ping
 
 router = APIRouter(
     prefix="/notifications",
@@ -182,6 +187,33 @@ async def list_notification_deliveries(
             per_page=per_page,
             pages=math.ceil(total / per_page) if total > 0 else 0,
         ),
+    )
+
+
+@router.post(
+    "/retry",
+    response_model=ApiResponse[dict],
+    status_code=status.HTTP_200_OK,
+)
+async def post_notification_retry(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
+) -> ApiResponse[dict]:
+    """transient 失敗通知を即時リトライする (ADMIN 専用)。
+
+    lifespan バックグラウンドループ (60 秒間隔) とは独立して同期実行する。
+    最大 3 回リトライ済みの行や permanent 失敗行はスキップされる。
+    """
+    retried = await NotificationDispatcher(db).retry_transient_failures()
+    return ApiResponse(
+        data={
+            "retried_count": len(retried),
+            "message": (
+                f"{len(retried)} 件の transient 失敗通知を再送信しました。"
+                if retried
+                else "リトライ対象の通知がありません。"
+            ),
+        }
     )
 
 

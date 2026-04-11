@@ -2,6 +2,9 @@
 ServiceHub Construction Platform - FastAPI メインアプリケーション
 """
 
+import asyncio
+from contextlib import asynccontextmanager
+
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +16,60 @@ from app.middleware.logging import RequestLoggingMiddleware
 
 logger = structlog.get_logger()
 
+# ── 通知リトライループ (Phase 2f) ──────────────────────
+_RETRY_INTERVAL_SECONDS = 60
+
+
+async def _notification_retry_loop() -> None:  # pragma: no cover
+    """transient 失敗通知を定期的に再送信するバックグラウンドループ。
+
+    60 秒ごとに `retry_transient_failures()` を呼び出し、最大 3 回まで
+    自動リトライする (failure_kind=transient の行のみ対象)。
+
+    複数レプリカ環境では各レプリカが独立実行するが、`mark_retry_pending()` は
+    FAILED 行のみを対象とするため、PENDING に戻った行を並行で 2 度処理しても
+    二重送信は発生しない (Phase 2 同期実装の制約内)。
+    """
+    # Import here to avoid circular imports at module load time
+    from app.services.notification_dispatcher import NotificationDispatcher
+    from app.services.notification_session import notification_session
+
+    while True:
+        await asyncio.sleep(_RETRY_INTERVAL_SECONDS)
+        try:
+            async with notification_session() as db:
+                retried = await NotificationDispatcher(db).retry_transient_failures()
+                if retried:
+                    logger.info(
+                        "notification_retry_loop: retried",
+                        count=len(retried),
+                    )
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # pylint: disable=broad-except
+            logger.warning("notification_retry_loop: error", error=str(exc))
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):  # type: ignore[override]
+    """アプリケーション起動/終了ライフサイクル。
+
+    startup: 通知リトライループを asyncio バックグラウンドタスクとして起動。
+    shutdown: タスクをキャンセルして安全に停止する。
+    """
+    retry_task = asyncio.create_task(_notification_retry_loop())
+    logger.info("notification_retry_loop started", interval=_RETRY_INTERVAL_SECONDS)
+    try:
+        yield
+    finally:
+        retry_task.cancel()
+        try:
+            await retry_task
+        except asyncio.CancelledError:
+            pass
+        logger.info("notification_retry_loop stopped")
+
+
 app = FastAPI(
     title=settings.APP_NAME + " API",
     description="建設業向けAI統合業務プラットフォーム",
@@ -20,6 +77,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/api/v1/openapi.json",
+    lifespan=lifespan,
 )
 
 # ── ミドルウェア登録 ──────────────────────────────────
