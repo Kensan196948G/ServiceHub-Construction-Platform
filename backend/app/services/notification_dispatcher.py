@@ -175,7 +175,9 @@ class NotificationDispatcher:
             await self.delivery_repo.mark_sent(delivery)
         else:
             await self.delivery_repo.mark_failed(
-                delivery, result.error or "unknown error"
+                delivery,
+                result.error or "unknown error",
+                failure_kind=result.failure_kind,
             )
         return delivery
 
@@ -203,9 +205,125 @@ class NotificationDispatcher:
             await self.delivery_repo.mark_sent(delivery)
         else:
             await self.delivery_repo.mark_failed(
-                delivery, result.error or "unknown error"
+                delivery,
+                result.error or "unknown error",
+                failure_kind=result.failure_kind,
             )
         return delivery
+
+    async def retry_transient_failures(self) -> list[NotificationDelivery]:
+        """FAILED + failure_kind=transient の配信行を再試行する (Phase 2d)。
+
+        - `list_retryable()` でスキャン → PENDING に戻す → 再 dispatch
+        - 再試行 1 件ごとに独立トランザクションを持たせるため、呼び出し側
+          が per-delivery で session を管理することを推奨する。
+          ここでは self.db を共有するが flush ごとに visibility は確保される。
+        - 最大試行回数は NotificationDeliveryRepository.MAX_RETRY_ATTEMPTS (3) で制御。
+        """
+        candidates = await self.delivery_repo.list_retryable()
+        if not candidates:
+            return []
+
+        retried: list[NotificationDelivery] = []
+        for delivery in candidates:
+            # Reset to PENDING so mark_sent/mark_failed can transition it
+            await self.delivery_repo.mark_retry_pending(delivery)
+
+            # Load the user to re-render the template correctly
+            user_result = await self.db.execute(
+                select(User).where(
+                    User.id == delivery.user_id,
+                    User.is_active.is_(True),
+                    User.deleted_at.is_(None),
+                )
+            )
+            user = user_result.scalar_one_or_none()
+            if user is None:
+                # User deleted — escalate to permanent failure so it won't retry again
+                await self.delivery_repo.mark_failed(
+                    delivery,
+                    "user not found during retry",
+                    failure_kind="permanent",
+                )
+                continue
+
+            # Re-dispatch using stored event_key and empty context fallback.
+            # context is not stored per-delivery; retry uses a minimal placeholder
+            # so the template renders with "N/A" for dynamic fields.
+            context: dict[str, Any] = {}
+            if delivery.channel == "EMAIL":
+                await self._retry_email(delivery, user, context)
+            elif delivery.channel == "SLACK":
+                pref = await self.pref_repo.get_by_user_id(user.id)
+                webhook_url = pref.slack_webhook_url if pref else None
+                if webhook_url:
+                    await self._retry_slack(delivery, user, context, webhook_url)
+                else:
+                    await self.delivery_repo.mark_failed(
+                        delivery,
+                        "no slack webhook configured",
+                        failure_kind="permanent",
+                    )
+            retried.append(delivery)
+
+        return retried
+
+    async def _retry_email(
+        self,
+        delivery: NotificationDelivery,
+        user: User,
+        context: dict[str, Any],
+    ) -> None:
+        """既存 delivery 行を再送信 (email)。"""
+        try:
+            rendered = self.renderer.render_email(delivery.event_key, context)
+        except Exception as exc:
+            await self.delivery_repo.mark_failed(
+                delivery, f"template render error: {exc}", failure_kind="permanent"
+            )
+            return
+        result = await self.email_sender.send(
+            to=user.email,
+            subject=rendered.subject,
+            body_text=rendered.body_text,
+            body_html=rendered.body_html,
+        )
+        if result.ok:
+            await self.delivery_repo.mark_sent(delivery)
+        else:
+            await self.delivery_repo.mark_failed(
+                delivery,
+                result.error or "unknown error",
+                failure_kind=result.failure_kind,
+            )
+
+    async def _retry_slack(
+        self,
+        delivery: NotificationDelivery,
+        user: User,
+        context: dict[str, Any],
+        webhook_url: str,
+    ) -> None:
+        """既存 delivery 行を再送信 (slack)。"""
+        try:
+            rendered = self.renderer.render_slack(delivery.event_key, context)
+        except Exception as exc:
+            await self.delivery_repo.mark_failed(
+                delivery, f"template render error: {exc}", failure_kind="permanent"
+            )
+            return
+        result = await self.slack_sender.send(
+            webhook_url=webhook_url,
+            text=rendered.text,
+        )
+        if result.ok:
+            await self.delivery_repo.mark_sent(delivery)
+        else:
+            await self.delivery_repo.mark_failed(
+                delivery,
+                result.error or "unknown error",
+                failure_kind=result.failure_kind,
+            )
 
     @staticmethod
     def _should_send(
