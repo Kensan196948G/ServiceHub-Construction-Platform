@@ -48,7 +48,7 @@ export default function NotificationDeliveriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Bell className="h-6 w-6 text-gray-600" />
+          <Bell className="h-6 w-6 text-gray-600" aria-hidden="true" />
           <h1 className="text-2xl font-bold text-gray-900">通知配信履歴</h1>
         </div>
         <Button
@@ -56,7 +56,7 @@ export default function NotificationDeliveriesPage() {
           disabled={retryMutation.isPending}
           data-testid="retry-button"
         >
-          <RefreshCw className="mr-2 h-4 w-4" />
+          <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
           {retryMutation.isPending ? "処理中…" : "transient 失敗を再送信"}
         </Button>
       </div>
@@ -103,7 +103,7 @@ export default function NotificationDeliveriesPage() {
         {!isLoading && !isError && (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm" data-testid="deliveries-table">
+              <table className="w-full text-sm" aria-label="通知配信履歴" data-testid="deliveries-table">
                 <thead className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   <tr>
                     <th className="px-4 py-3">チャンネル</th>
