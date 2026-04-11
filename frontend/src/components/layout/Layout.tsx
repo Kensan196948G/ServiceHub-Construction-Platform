@@ -14,6 +14,7 @@ import {
   X,
   Users,
   Settings,
+  Bell,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
@@ -35,7 +36,10 @@ export default function Layout() {
     { to: "/itsm", icon: AlertCircle, label: "ITSM" },
     { to: "/knowledge", icon: BookOpen, label: "ナレッジ" },
     ...(user?.role === "ADMIN"
-      ? [{ to: "/users", icon: Users, label: "ユーザー管理" }]
+      ? [
+          { to: "/users", icon: Users, label: "ユーザー管理" },
+          { to: "/admin/notifications", icon: Bell, label: "通知管理" },
+        ]
       : []),
     { to: "/settings", icon: Settings, label: "設定" },
   ];

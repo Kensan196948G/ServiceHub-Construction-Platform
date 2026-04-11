@@ -1,22 +1,22 @@
 {
-  "phase": "Phase 2 - 機能強化（Day 8 開始 — 通知Phase2a Dispatcher+Email 実装中）",
-  "loop": "Day8-Verify-PR95",
-  "loop_count": 69,
+  "phase": "Phase 2 - 機能強化（Day 8 — 通知Phase2g フロントエンド管理画面 + E2Eテスト）",
+  "loop": "Day8-Build-Phase2g",
+  "loop_count": 76,
   "status": "stable",
-  "last_updated": "2026-04-11T17:56:00+09:00",
+  "last_updated": "2026-04-11T21:45:00+09:00",
   "execution": {
     "start_time": "2026-04-11T17:41:00+09:00",
     "max_duration_minutes": 300,
-    "elapsed_minutes": 15,
-    "remaining_minutes": 285,
-    "phase": "Verify",
+    "elapsed_minutes": 244,
+    "remaining_minutes": 56,
+    "phase": "Build",
     "auto_stop_threshold": 5,
     "graceful_shutdown": false
   },
   "token": {
     "total_budget": 100,
-    "used": 5,
-    "remaining": 95,
+    "used": 45,
+    "remaining": 55,
     "allocation": {
       "monitor": 10,
       "development": 35,
@@ -27,27 +27,34 @@
       "release": 5
     },
     "dynamic_mode": true,
-    "current_phase_budget": 10,
-    "current_phase_used": 5,
-    "phase_history": ["Monitor:5"]
+    "current_phase_budget": 35,
+    "current_phase_used": 25,
+    "phase_history": [
+      "Monitor:5",
+      "Development:25",
+      "Verify:15"
+    ]
   },
   "development_plan": {
     "start_date": "2026-04-03",
     "release_date": "2026-10-03",
-    "current_phase": "Phase 2 機能強化 — テストカバレッジ88% + OpenAPI codegen + APIパス統一 + エラーハンドリング統一完了",
+    "current_phase": "Phase 2 機能強化 — 通知Phase2f(retry自動起動) PR#104 CI待ち",
     "current_sprint": "Sprint 3",
     "total_hours": 416,
-    "hours_used": 43,
+    "hours_used": 48,
     "schedule": "土日 × 8時間"
   },
   "priorities": {
     "high": [
-      "通知機能 Phase 2 (実送信 email/slack)"
+      "PR#105 (Phase 2g) merge"
     ],
     "medium": [
+      "lifespan retry interval 環境変数化",
       "パフォーマンス計測基盤"
     ],
     "low": [
+      "k8s複数レプリカ重複リトライ抑制 (Phase 3+: Redis分散ロック)",
+      "lifespan retry interval 環境変数化",
       "ダークモード対応",
       "i18n 基盤検討"
     ]
@@ -58,233 +65,67 @@
     "stability": "stable"
   },
   "metrics": {
-    "test_count_backend": 239,
-    "test_count_frontend": 263,
-    "test_count_e2e": 165,
-    "test_total": 667,
-    "coverage_backend": "96%",
-    "coverage_frontend": "88%",
-    "ci_status": "green",
-    "ci_consecutive_success": 15,
-    "ci_checks_count": 14,
-    "stable": true,
-    "frontend_pages": 11,
-    "api_endpoints": 50,
-    "repository_classes": 9,
-    "service_classes": 12,
-    "routers": 10,
-    "routers_using_service": "10/10",
-    "three_layer_architecture": "100%",
-    "ui_components": 11,
-    "ui_coverage": "11/11 pages (100%)",
-    "bundle_css_kb": 27.82,
-    "bundle_js_kb": 399.91,
-    "nodejs_actions": "Node.js 24 ready",
-    "openapi_endpoints": 31,
-    "openapi_schemas": 68,
-    "generated_types_lines": 3568
+    "unit_tests": 162,
+    "e2e_tests": 170,
+    "api_endpoints": 52,
+    "backend_coverage": 85,
+    "frontend_coverage": 88
   },
-  "session_history": {
-    "day3_2026_04_05": {
-      "date": "2026-04-05",
-      "status": "completed",
-      "hours": 5,
-      "loops_completed": 9,
-      "prs_merged": ["#55", "#56", "#57", "#58"]
+  "notification_status": {
+    "phase_2a": {
+      "status": "merged",
+      "pr": "#95"
     },
-    "day4_2026_04_07": {
-      "date": "2026-04-07",
-      "status": "completed",
-      "hours": 3.25,
-      "loops_completed": 4,
-      "prs_merged": ["#60", "#62", "#64"],
-      "prs_merged_later": ["#66"],
-      "issues_closed": ["#59", "#61", "#63", "#65"],
-      "issues_pending": [],
-      "commits_to_main": 4,
-      "highlights": [
-        "PR#60: フロントエンドテストカバレッジ 79%→88.27% (+56テスト, 7ファイル新規)",
-        "PR#62: APIパス不整合修正 5モジュール + ITSM変更要求更新エンドポイント追加",
-        "PR#64: OpenAPI → TypeScript codegen (31エンドポイント / 68スキーマ / 3,568行型自動生成)",
-        "PR#66: Backend エラーハンドリング統一 (ServiceError基底クラス + 24個try/except削除)",
-        "README.md Day 4 成果反映",
-        "zustand v5 + jsdom localStorage 互換性修復",
-        "CI失敗検知・自動修復 2件 (ruff format, E2Eモックパス)"
-      ],
-      "metrics_delta": {
-        "tests": "+56 (443→499)",
-        "coverage_frontend": "+9pt (79%→88%)",
-        "api_endpoints": "+1 (47→48)",
-        "new_files": 14,
-        "lines_removed_by_refactor": 66,
-        "try_except_blocks_removed": 24,
-        "service_exceptions_unified": 19
-      },
-      "resume_point": {
-        "immediate": "完了（PR#66マージ済み）",
-        "next_task": "生成されたOpenAPI型を既存APIモジュールに段階適用",
-        "backlog": ["axios→fetch移行", "レスポンシブ対応", "Docker Compose安定化"]
-      }
+    "phase_2b": {
+      "status": "merged",
+      "pr": "#96"
     },
-    "day5_2026_04_09": {
-      "date": "2026-04-09",
-      "status": "completed",
-      "hours": 2,
-      "loops_completed": 6,
-      "prs_merged": ["#67", "#69", "#71", "#73", "#75"],
-      "prs_pending": [],
-      "issues_closed": ["#72", "#74"],
-      "issues_pending": [],
-      "commits_to_main": 5,
-      "highlights": [
-        "PR#67: OpenAPI型を既存APIモジュールに適用（users.ts / projects.ts / cost.ts / itsm.ts等）",
-        "PR#69: axios → native fetch API 移行完了（postForm廃止・unified request関数）",
-        "PR#71: レスポンシブ対応 + 上記fetch移行を同ブランチに統合",
-        "PR#73: Docker Compose 安定化 — フロントエンド EACCES 権限エラー修正 + ポート競合解消",
-        "PR#75: E2Eテスト拡充 — projects-crud 3→10テスト (検索・フィルタ・作成フロー追加)",
-        "全サービス正常稼働: api(8080) / db(5435) / redis(6380) / frontend(3001)"
-      ],
-      "metrics_delta": {
-        "axios_removed": true,
-        "openapi_types_applied": "全APIモジュール",
-        "ci_errors_fixed": 3,
-        "docker_services_stable": 4,
-        "e2e_tests_added": 7,
-        "e2e_total": "58 (51+7)"
-      },
-      "resume_point": {
-        "immediate": "完了（PR#73,#75マージ済み）",
-        "next_task": "E2Eテスト拡充（usersページ・詳細ページCRUDフロー）",
-        "backlog": ["認証フロー強化（refresh token / logout E2E）", "通知機能", "パフォーマンス計測"]
-      }
+    "phase_2c": {
+      "status": "merged",
+      "pr": "#98"
     },
-    "day6_2026_04_10": {
-      "date": "2026-04-10",
-      "status": "completed",
-      "hours": 2,
-      "loops_completed": 3,
-      "prs_merged": ["#79", "#81", "#88"],
-      "issues_closed": ["#80"],
-      "commits_to_main": 2,
-      "highlights": [
-        "PR#79: project-detail E2E テスト追加 (back link セレクター修正含む)",
-        "PR#81: refresh token 統合 + 自動トークン更新 + logout 強化 + E2E認証フローテスト",
-        "Backend: pytest asyncio event loop 競合修正 (reset_redis_singleton autouse fixture)",
-        "test_logout_success: 422→204 修正 (refresh_token body を送信)",
-        "E2E: waitForResponse 2段階確認で競合状態を解消",
-        "全CI (14チェック) PASS / STABLE判定 (認証変更 N=5連続成功)"
-      ],
-      "metrics_delta": {
-        "tests": "+7 E2E (82→89)",
-        "ci_checks": "+6 (8→14)",
-        "auth_security": "refresh token in-memory only (XSS攻撃面削減)",
-        "axios_interceptor": "401自動リフレッシュ + リトライ実装",
-        "redis_singleton": "event loop安全リセット実装"
-      },
-      "resume_point": {
-        "immediate": "完了（PR#81マージ済み）",
-        "next_task": "通知機能検討 or E2Eテスト拡充（usersページ・設定ページ）",
-        "backlog": ["通知機能（メール/Slack）", "パフォーマンス計測基盤", "ダークモード対応", "i18n基盤検討"]
-      }
+    "phase_2d": {
+      "status": "merged",
+      "pr": "#100"
     },
-    "day8_2026_04_11": {
-      "date": "2026-04-11",
-      "status": "in_progress",
-      "hours_so_far": 1.5,
-      "loops_completed": 2,
-      "prs_opened": ["#95"],
-      "prs_merged": [],
-      "issues_progress": {"#94": "Phase 2a 実装 + Codex review fix + 設計ドキュメント更新 (PR#95 CI green 待ち)"},
-      "commits_to_branch": 3,
-      "highlights": [
-        "PR#95 c641886: 通知機能 Phase 2a — NotificationDispatcher + EmailSender + Jinja2 テンプレ基盤 (16 files, +1082 lines)",
-        "PR#95 Codex adversarial review: 4 件の major 指摘 (durable tracking / fire-and-forget / PII / 冪等性)",
-        "PR#95 7516d75 fix: Codex 指摘 4 件に対応 — Option A (同期 MVP + 必須安全性) で最小修正",
-        "  - Repository: mark_sent/mark_failed に PENDING guard で冪等化",
-        "  - Repository: _sanitize_error_detail() で email / SMTP response を redact",
-        "  - EmailSender: SendResult に failure_kind: Literal['transient','permanent'] 追加、_classify() で分類",
-        "  - Dispatcher: _dispatch_email で明示 commit() を 2 回呼び durable tracking を確保 (自己 transaction 境界)",
-        "  - 新規 25 tests (test_notification_delivery_repo 10 + test_email_sender_classification 15)",
-        "PR#95 5401dd1 docs: 07_通知機能設計.md §9 を Phase 2a 実装後の学びで更新",
-        "  - §9.3.1 実装判断事項 (failure_kind 型固定 / サニタイザ方針 / send_ping 購読バイパス根拠)",
-        "  - §9.3.2 自己 transaction 境界の設計意図と Phase 2b で BackgroundTasks 統合で解消する計画",
-        "  - §9.3.3 冪等な状態遷移",
-        "  - §9.9 サブフェーズ表にステータス列追加、Phase 2b 必須作業を明文化",
-        "backend 全 unit tests 121/121 pass (+25)、regression 0、ruff clean (130 files)"
-      ],
-      "metrics_delta": {
-        "tests_backend": "+40 (199 → 239)",
-        "tests_total": "+40 (627 → 667)",
-        "new_files": 15,
-        "lines_added_total": 1575,
-        "new_tables": 1,
-        "new_dependencies": 2,
-        "codex_review_cycles": 1,
-        "commits_on_branch": 3
-      },
-      "design_decisions": {
-        "1_dispatcher_return_contract": "A (原 B) — Phase 2a は同期 MVP、fire-and-forget は Phase 2b で BackgroundTasks 統合",
-        "2_sender_error_handling": "B+ — SendResult(ok, error, failure_kind) で transient/permanent 分類",
-        "3_delivery_write_timing": "A+ — 事前書き込み + 自己 commit で durable tracking 確保 (Phase 2a 暫定)",
-        "4_idempotency": "PENDING guard による silent no-op",
-        "5_pii_sanitization": "regex redact (email + SMTP response) — §9.8 準拠",
-        "6_failure_classification": "SMTP 階層例外 + OSError ファミリ + 4xx/5xx + unknown→permanent safe default"
-      },
-      "codex_review": {
-        "first_review": "REQUEST_CHANGES - 4 major (durable/fire-forget/PII/idempotency)",
-        "fix_commit": "7516d75",
-        "re_review": "in progress"
-      },
-      "resume_point": {
-        "immediate": "Codex re-review 待ち、LGTM で PR#95 merge → Phase 2b 着手",
-        "next_task": "Phase 2b: SlackSender + POST /notifications/test + BackgroundTasks 統合 (self-commit 解消)",
-        "backlog": ["Phase 2c: ドメインイベントフック統合", "Phase 2d: リトライ + 監査ログ", "パフォーマンス計測基盤"]
-      }
+    "phase_2e": {
+      "status": "merged",
+      "pr": "#102"
     },
-    "day7_2026_04_10": {
-      "date": "2026-04-10",
-      "status": "in_progress",
-      "hours_so_far": 2.85,
-      "loops_completed": 5,
-      "prs_merged": ["#90", "#92", "#93"],
-      "issues_closed": ["#89", "#91"],
-      "commits_to_main": 7,
-      "highlights": [
-        "PR#90: 設定ページ新規追加 (SettingsPage + プロフィール + パスワード変更)",
-        "PR#90: ErrorBoundary class component + E2E テスト (fiber traversal 手法)",
-        "PR#90: E2E 13件追加 (settings 8件 + error-boundary 5件)",
-        "PR#92: 通知機能 Phase 1 backend — preferences CRUD 基盤 (upsert-on-read 方式)",
-        "PR#92: NotificationPreference モデル + Alembic 0008 + 3層アーキテクチャ",
-        "PR#92: Backend テスト 14件追加 (unit 7 + integration 7, coverage 100%)",
-        "PR#93: 通知機能 Phase 1 frontend UI 統合 (マスタースイッチ + イベント別テーブル)",
-        "PR#93: E2E 6件追加 (notification-settings.spec.ts)",
-        "PR#93: api-mocks 共通モック集約で既存テストの strict mode 互換維持",
-        "設計ドキュメント追加: 07_通知機能設計（Notification Feature）.md"
-      ],
-      "metrics_delta": {
-        "tests_total": "+33 (594 → 627)",
-        "tests_backend": "+14 (185 → 199)",
-        "tests_e2e": "+19 (146 → 165)",
-        "api_endpoints": "+2 (48 → 50, 通知設定 GET/PATCH)",
-        "pages": "+1 (11 → 12, SettingsPage)",
-        "ui_components": "+1 (11 → 12, ErrorBoundary)",
-        "routers": "+1 (9 → 10, notification_preferences)",
-        "services": "+1 (11 → 12, NotificationPreferenceService)",
-        "repositories": "+1 (8 → 9)",
-        "e2e_spec_files": "+3 (21 → 24)"
-      },
-      "key_learnings": [
-        "SQLAlchemy JSON (SQLite互換) vs JSONB (PostgreSQL性能) の使い分け",
-        "GitHub Push Protection: テスト用 Slack webhook も secret scanning にブロックされる → example.com 使用",
-        "Playwright ルート優先度: setupAllApiMocks に集約、個別テストで後勝ち上書き",
-        "React ErrorBoundary の E2E 発火: <main> の child を .child/.sibling で DFS (return ではない)",
-        "複数 role='alert' の strict mode 回避: 共通モックで予防 (個別テスト修正ではなく)"
-      ],
-      "resume_point": {
-        "immediate": "完了候補 (本日 HIGH 優先 2件完全消化 / STABLE 17+回連続)",
-        "next_task": "通知機能 Phase 2 (Email/Slack 実送信) or パフォーマンス計測基盤",
-        "backlog": ["通知機能 Phase 2", "パフォーマンス計測基盤", "ダークモード対応", "i18n基盤検討"]
-      }
+    "phase_2f": {
+      "status": "pr_review",
+      "pr": "#104",
+      "features": [
+        "FastAPI lifespan + asyncio.create_task() — 60秒ごとバックグラウンドリトライ",
+        "POST /api/v1/notifications/retry (ADMIN専用) 手動即時リトライ",
+        "5ユニットテスト追加"
+      ]
+    },
+    "phase_2g": {
+      "status": "pr_review",
+      "pr": "#105",
+      "features": [
+        "NotificationDeliveriesPage (ADMIN専用管理画面)",
+        "POST /retry ボタン → retried_count 表示",
+        "E2E 5件追加 (nav/empty/rows/retry/non-admin)"
+      ]
     }
+  },
+  "current_sprint": {
+    "phase": "Sprint 3 Phase 2",
+    "completed_prs": [
+      "PR#92",
+      "PR#93",
+      "PR#95",
+      "PR#96",
+      "PR#98",
+      "PR#100",
+      "PR#102",
+      "PR#104"
+    ],
+    "in_review": [
+      "PR#105 (Phase 2g: 通知管理画面 + E2Eテスト)"
+    ],
+    "next": "PR#105 merge後 → Phase 3 or lifespan retry interval 環境変数化"
   }
 }

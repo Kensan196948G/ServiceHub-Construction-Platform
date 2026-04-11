@@ -12,6 +12,7 @@ import CostPage from "@/pages/cost/CostPage";
 import PhotosPage from "@/pages/photos/PhotosPage";
 import UsersPage from "@/pages/users/UsersPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
+import NotificationDeliveriesPage from "@/pages/notifications/NotificationDeliveriesPage";
 import { useAuthStore } from "@/stores/authStore";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -42,6 +43,10 @@ export default function App() {
         <Route path="cost" element={<CostPage />} />
         <Route path="photos" element={<PhotosPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route
+          path="admin/notifications"
+          element={<NotificationDeliveriesPage />}
+        />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
