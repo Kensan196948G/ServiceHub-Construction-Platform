@@ -9,9 +9,10 @@ DELETE /api/v1/projects/{id}  - 論理削除
 
 import math
 import uuid
+from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -19,6 +20,7 @@ from app.db.base import get_db
 from app.models.user import User
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from app.services.notification_hook import fire_notification_hook
 from app.services.project_service import ProjectService
 
 router = APIRouter(prefix="/projects", tags=["工事案件管理"])
@@ -97,13 +99,34 @@ async def get_project(
 async def update_project(
     project_id: uuid.UUID,
     payload: ProjectUpdate,
+    background_tasks: BackgroundTasks,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[
         User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
     ],
 ):
     svc = ProjectService(db)
+    # Capture old status before update for notification context
+    old_project = await svc.get_project(project_id)
+    old_status = old_project.status if old_project else None
     project = await svc.update_project(project_id, payload, updated_by=current_user.id)
+    # Notify on status change only
+    if payload.status is not None and payload.status != old_status:
+        changed_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        await fire_notification_hook(
+            background_tasks,
+            db,
+            event_key="project_status_changed",
+            context={
+                "project_id": str(project_id),
+                "project_name": project.name,
+                "old_status": old_status or "未設定",
+                "new_status": payload.status,
+                "changed_by": current_user.full_name,
+                "changed_at": changed_at,
+                "app_url": "https://servicehub.local",
+            },
+        )
     return ApiResponse(data=project)
 
 

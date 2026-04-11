@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ja">
+<body>
+<p>日報が提出されました。</p>
+<table>
+  <tr><th>プロジェクト</th><td>{{ project_name }}</td></tr>
+  <tr><th>提出者</th><td>{{ submitted_by }}</td></tr>
+  <tr><th>提出日時</th><td>{{ submitted_at }}</td></tr>
+</table>
+<p><a href="{{ app_url }}/projects/{{ project_id }}/reports/{{ report_id }}">日報を確認する</a></p>
+<hr>
+<small>ServiceHub Construction Platform</small>
+</body>
+</html>

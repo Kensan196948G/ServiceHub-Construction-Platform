@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ja">
+<body>
+<p>安全インシデントが報告されました。</p>
+<table>
+  <tr><th>タイトル</th><td>{{ title }}</td></tr>
+  <tr><th>深刻度</th><td>{{ severity }}</td></tr>
+  <tr><th>報告者</th><td>{{ reported_by }}</td></tr>
+  <tr><th>報告日時</th><td>{{ reported_at }}</td></tr>
+  <tr><th>プロジェクト</th><td>{{ project_name }}</td></tr>
+</table>
+<p><a href="{{ app_url }}/itsm/incidents/{{ incident_id }}">インシデントを確認する</a></p>
+<hr>
+<small>ServiceHub Construction Platform</small>
+</body>
+</html>

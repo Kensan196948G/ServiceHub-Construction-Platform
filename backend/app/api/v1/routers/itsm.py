@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import math
 import uuid
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -24,6 +25,7 @@ from app.schemas.itsm import (
     IncidentUpdate,
 )
 from app.services.itsm_service import ITSMService
+from app.services.notification_hook import fire_notification_hook
 
 router = APIRouter(prefix="/itsm", tags=["ITSM管理"])
 
@@ -38,6 +40,7 @@ router = APIRouter(prefix="/itsm", tags=["ITSM管理"])
 )
 async def create_incident(
     payload: IncidentCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
         require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
@@ -46,6 +49,22 @@ async def create_incident(
     """インシデント起票"""
     svc = ITSMService(db)
     incident = await svc.create_incident(payload, created_by=current_user.id)
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    project_name = str(incident.project_id) if incident.project_id else "未設定"
+    await fire_notification_hook(
+        background_tasks,
+        db,
+        event_key="safety_incident_created",
+        context={
+            "incident_id": str(incident.id),
+            "title": incident.title,
+            "severity": incident.severity,
+            "reported_by": current_user.full_name,
+            "reported_at": now_str,
+            "project_name": project_name,
+            "app_url": "https://servicehub.local",
+        },
+    )
     return ApiResponse(
         data=incident,
         message="インシデントを起票しました",
@@ -96,6 +115,7 @@ async def get_incident(
 async def update_incident(
     incident_id: uuid.UUID,
     payload: IncidentUpdate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(
         require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR, UserRole.PROJECT_MANAGER)
@@ -106,6 +126,24 @@ async def update_incident(
     incident = await svc.update_incident(
         incident_id, payload, updated_by=current_user.id
     )
+    # 担当者が新規設定された場合のみ通知 (incident_assigned)
+    if payload.assigned_to is not None:
+        assigned_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        inc_project = str(incident.project_id) if incident.project_id else "未設定"
+        await fire_notification_hook(
+            background_tasks,
+            db,
+            event_key="incident_assigned",
+            context={
+                "incident_id": str(incident.id),
+                "title": incident.title,
+                "assignee_name": str(payload.assigned_to),
+                "assigned_at": assigned_at,
+                "project_name": inc_project,
+                "app_url": "https://servicehub.local",
+            },
+            explicit_user_ids=[payload.assigned_to],
+        )
     return ApiResponse(
         data=incident,
         message="インシデントを更新しました",
@@ -122,12 +160,27 @@ async def update_incident(
 )
 async def create_change(
     payload: ChangeRequestCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(require_roles(UserRole.ADMIN, UserRole.IT_OPERATOR)),
 ):
     """変更要求起票（SoD: IT_OPERATORのみ起票可）"""
     svc = ITSMService(db)
     change = await svc.create_change(payload, created_by=current_user.id)
+    requested_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    await fire_notification_hook(
+        background_tasks,
+        db,
+        event_key="change_request_pending_approval",
+        context={
+            "change_id": str(change.id),
+            "title": change.title,
+            "requested_by": current_user.full_name,
+            "requested_at": requested_at,
+            "project_name": "ServiceHub",
+            "app_url": "https://servicehub.local",
+        },
+    )
     return ApiResponse(
         data=change,
         message="変更要求を起票しました",

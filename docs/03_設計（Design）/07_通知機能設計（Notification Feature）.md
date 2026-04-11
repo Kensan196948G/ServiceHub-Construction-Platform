@@ -165,7 +165,7 @@ ServiceHub Construction Platform は工事案件 / 日報 / 安全品質 / ITSM 
 
 ## 9. Phase 2 設計（実送信基盤）
 
-**ステータス**: **Phase 2a 実装中（PR #95）** / 2b–2d 未着手
+**ステータス**: **Phase 2a 完了（PR #95 merged）** / **Phase 2b 完了（PR #96 merged）** / **Phase 2c 実装済（PR #98 review中）** / Phase 2d 未着手
 
 ### 9.1 目的と受入れ条件
 

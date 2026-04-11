@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ja">
+<body>
+<p>変更要求が承認待ちです。</p>
+<table>
+  <tr><th>タイトル</th><td>{{ title }}</td></tr>
+  <tr><th>申請者</th><td>{{ requested_by }}</td></tr>
+  <tr><th>申請日時</th><td>{{ requested_at }}</td></tr>
+  <tr><th>プロジェクト</th><td>{{ project_name }}</td></tr>
+</table>
+<p><a href="{{ app_url }}/itsm/changes/{{ change_id }}">変更要求を確認する</a></p>
+<hr>
+<small>ServiceHub Construction Platform</small>
+</body>
+</html>
