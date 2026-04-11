@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "./Layout";
 
 const mockNavigate = vi.fn();
@@ -23,9 +24,11 @@ vi.mock("@/stores/authStore", () => ({
 
 function renderLayout(path = "/dashboard") {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Layout />
-    </MemoryRouter>,
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Layout />
+      </MemoryRouter>
+    </ThemeProvider>,
   );
 }
 
