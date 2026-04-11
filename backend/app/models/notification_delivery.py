@@ -4,7 +4,11 @@ Phase 2a: NotificationDispatcher が通知を送信する際、送信前に PEND
 挿入し、送信完了後に SENT / FAILED へ更新する (事前書き込み方式)。
 この方式により送信途中クラッシュが RETRY 候補として残り、Phase 2d のリトライ
 機構が status スキャンで回収できる。
+
+Phase 2d: failure_kind カラムを追加。'transient' のみリトライ対象。
 """
+
+from __future__ import annotations
 
 import uuid
 from datetime import datetime
@@ -33,6 +37,8 @@ class NotificationDelivery(Base):
     # Body preview is capped at 500 chars in application layer to limit PII exposure.
     body_preview: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Phase 2d: 'transient' | 'permanent' | None — used by retry scanner
+    failure_kind: Mapped[str | None] = mapped_column(String(20), nullable=True)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -52,6 +58,12 @@ class NotificationDelivery(Base):
             "ix_notification_deliveries_status_created",
             "status",
             "created_at",
+        ),
+        Index(
+            "ix_notification_deliveries_retry",
+            "status",
+            "failure_kind",
+            "attempts",
         ),
     )
 

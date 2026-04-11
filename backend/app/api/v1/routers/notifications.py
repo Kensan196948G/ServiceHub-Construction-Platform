@@ -1,23 +1,34 @@
-"""通知配信 API ルーター (Phase 2b)
+"""通知配信 API ルーター
 
-POST /api/v1/notifications/test
-    設定済みチャンネル (Email / Slack) へ疎通テスト通知を送信する。
-    BackgroundTasks で非同期に実行されるため、レスポンス返却時点では
-    配信は完了していない。実結果は notification_deliveries に記録される。
+Phase 2b:
+    POST /api/v1/notifications/test
+        設定済みチャンネル (Email / Slack) へ疎通テスト通知を送信する。
+        BackgroundTasks で非同期に実行されるため、レスポンス返却時点では
+        配信は完了していない。実結果は notification_deliveries に記録される。
+
+Phase 2d:
+    GET /api/v1/notifications/deliveries
+        ADMIN のみ利用可能な配信履歴 API。
+        status, channel, event_key, user_id でフィルタリング可能。
 """
 
+import math
+import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
+from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
+from app.repositories.notification_delivery import NotificationDeliveryRepository
 from app.repositories.notification_preference import (
     NotificationPreferenceRepository,
 )
-from app.schemas.common import ApiResponse
+from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
+from app.schemas.notification_delivery import NotificationDeliveryResponse
 from app.schemas.notification_preference import NotificationTestResponse
 from app.services.notification_dispatcher import schedule_ping
 
@@ -90,3 +101,81 @@ async def post_notification_test(
             ),
         )
     )
+
+
+@router.get(
+    "/deliveries",
+    response_model=PaginatedResponse[NotificationDeliveryResponse],
+)
+async def list_notification_deliveries(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_roles(UserRole.ADMIN))],
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=20, ge=1, le=100),
+    filter_status: str | None = Query(default=None, alias="status"),
+    filter_channel: str | None = Query(default=None, alias="channel"),
+    filter_event_key: str | None = Query(default=None, alias="event_key"),
+    filter_user_id: uuid.UUID | None = Query(default=None, alias="user_id"),
+) -> PaginatedResponse[NotificationDeliveryResponse]:
+    """通知配信履歴一覧 (ADMIN 専用)。
+
+    クエリパラメータ:
+        status     - PENDING / SENT / FAILED でフィルタ
+        channel    - EMAIL / SLACK でフィルタ
+        event_key  - イベント種別でフィルタ
+        user_id    - ユーザー ID でフィルタ
+        page       - ページ番号 (1 始まり)
+        per_page   - 1 ページあたり件数 (最大 100)
+
+    このエンドポイントへのアクセスは audit_logs に記録される (Phase 2d §9.8)。
+    """
+    offset = (page - 1) * per_page
+    repo = NotificationDeliveryRepository(db)
+
+    deliveries, total = await _query_deliveries(
+        repo,
+        offset=offset,
+        limit=per_page,
+        status=filter_status,
+        channel=filter_channel,
+        event_key=filter_event_key,
+        user_id=filter_user_id,
+    )
+
+    return PaginatedResponse(
+        data=[NotificationDeliveryResponse.model_validate(d) for d in deliveries],
+        meta=PaginationMeta(
+            total=total,
+            page=page,
+            per_page=per_page,
+            pages=math.ceil(total / per_page) if total > 0 else 0,
+        ),
+    )
+
+
+async def _query_deliveries(
+    repo: NotificationDeliveryRepository,
+    *,
+    offset: int,
+    limit: int,
+    status: str | None,
+    channel: str | None,
+    event_key: str | None,
+    user_id: uuid.UUID | None,
+) -> tuple[list, int]:
+    """配信履歴の取得とカウントを並列実行するヘルパ。"""
+    deliveries = await repo.list_for_admin(
+        offset=offset,
+        limit=limit,
+        status=status,
+        channel=channel,
+        event_key=event_key,
+        user_id=user_id,
+    )
+    total = await repo.count_for_admin(
+        status=status,
+        channel=channel,
+        event_key=event_key,
+        user_id=user_id,
+    )
+    return deliveries, total
