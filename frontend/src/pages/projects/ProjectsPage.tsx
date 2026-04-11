@@ -68,13 +68,14 @@ export default function ProjectsPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
         <input
           type="text"
           placeholder="案件名・コード・施主で検索..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+          aria-label="工事案件を検索"
+          className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
@@ -85,8 +86,8 @@ export default function ProjectsPage() {
         </Card>
       ) : (
         <Card padding="none" className="overflow-hidden">
-          <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <div className="overflow-x-auto" role="region" aria-label="工事案件一覧テーブル">
+          <table className="min-w-full divide-y divide-gray-200" aria-label="工事案件一覧">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件コード</th>
@@ -103,7 +104,7 @@ export default function ProjectsPage() {
                   <td className="px-4 py-3">
                     <Link
                       to={`/projects/${p.id}`}
-                      className="text-sm font-medium text-primary-600 hover:text-primary-700"
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
                     >
                       {p.name}
                     </Link>

@@ -64,11 +64,12 @@ export default function Layout() {
         to={to}
         onClick={() => setSidebarOpen(false)}
         className={clsx(
-          "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+          "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
           active
             ? "bg-primary-700 text-white"
             : "text-primary-100 hover:bg-primary-700 hover:text-white",
         )}
+        aria-current={active ? "page" : undefined}
       >
         <Icon className="w-5 h-5 flex-shrink-0" />
         <span>{label}</span>
@@ -83,25 +84,27 @@ export default function Layout() {
         <div
           className="fixed inset-0 bg-black/50 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* Sidebar */}
       <aside
+        aria-label="サイドバーナビゲーション"
         className={clsx(
           "fixed top-0 left-0 h-full w-64 bg-primary-900 text-white z-30 flex flex-col transition-transform duration-200",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex items-center gap-2 px-4 h-16 border-b border-primary-700">
-          <HardHat className="w-7 h-7 text-construction-orange" />
+          <HardHat className="w-7 h-7 text-construction-orange" aria-hidden="true" />
           <div>
             <p className="text-sm font-bold leading-tight">ServiceHub</p>
             <p className="text-xs text-primary-300 leading-tight">工事管理</p>
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav id="sidebar-nav" aria-label="メインナビゲーション" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink key={item.to} {...item} />
           ))}
@@ -114,9 +117,9 @@ export default function Layout() {
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm text-primary-100 hover:bg-primary-700 hover:text-white transition-colors"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm text-primary-100 hover:bg-primary-700 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4" aria-hidden="true" />
             ログアウト
           </button>
         </div>
@@ -127,10 +130,13 @@ export default function Layout() {
         {/* Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 gap-4 flex-shrink-0">
           <button
-            className="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100"
+            className="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? "メニューを閉じる" : "メニューを開く"}
+            aria-expanded={sidebarOpen}
+            aria-controls="sidebar-nav"
           >
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {sidebarOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
           </button>
           <h1 className="text-lg font-semibold text-gray-800">
             ServiceHub 工事管理プラットフォーム
