@@ -9,9 +9,10 @@ DELETE /api/v1/daily-reports/{id}
 
 import math
 import uuid
+from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import UserRole, require_roles
@@ -24,6 +25,7 @@ from app.schemas.daily_report import (
     DailyReportUpdate,
 )
 from app.services.daily_report_service import DailyReportService
+from app.services.notification_hook import fire_notification_hook
 
 router = APIRouter(tags=["日報管理"])
 
@@ -70,6 +72,7 @@ async def list_daily_reports(
 async def create_daily_report(
     project_id: uuid.UUID,
     payload: DailyReportCreate,
+    background_tasks: BackgroundTasks,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[
         User,
@@ -82,6 +85,25 @@ async def create_daily_report(
 ):
     svc = DailyReportService(db)
     report = await svc.create_report(project_id, payload, created_by=current_user.id)
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    project_name = (
+        report.project_name  # type: ignore[attr-defined]
+        if hasattr(report, "project_name")
+        else str(project_id)
+    )
+    await fire_notification_hook(
+        background_tasks,
+        db,
+        event_key="daily_report_submitted",
+        context={
+            "report_id": str(report.id),
+            "project_id": str(project_id),
+            "project_name": project_name,
+            "submitted_by": current_user.full_name,
+            "submitted_at": now_str,
+            "app_url": "https://servicehub.local",
+        },
+    )
     return ApiResponse(data=report)
 
 

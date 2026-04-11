@@ -2,6 +2,8 @@
 ユーザーリポジトリ（DB操作レイヤー）
 """
 
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
@@ -85,3 +87,14 @@ class UserRepository:
     async def update_last_login(self, user: User) -> None:
         user.last_login_at = datetime.now(timezone.utc)
         await self.db.flush()
+
+    async def get_ids_by_roles(self, roles: list[str]) -> list[uuid.UUID]:
+        """Return IDs of active users whose role is in the given list."""
+        result = await self.db.execute(
+            select(User.id).where(
+                User.role.in_(roles),
+                User.is_active.is_(True),
+                User.deleted_at.is_(None),
+            )
+        )
+        return list(result.scalars().all())

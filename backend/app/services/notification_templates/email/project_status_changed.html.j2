@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ja">
+<body>
+<p>プロジェクトのステータスが変更されました。</p>
+<table>
+  <tr><th>プロジェクト</th><td>{{ project_name }}</td></tr>
+  <tr><th>旧ステータス</th><td>{{ old_status }}</td></tr>
+  <tr><th>新ステータス</th><td>{{ new_status }}</td></tr>
+  <tr><th>変更者</th><td>{{ changed_by }}</td></tr>
+  <tr><th>変更日時</th><td>{{ changed_at }}</td></tr>
+</table>
+<p><a href="{{ app_url }}/projects/{{ project_id }}">プロジェクトを確認する</a></p>
+<hr>
+<small>ServiceHub Construction Platform</small>
+</body>
+</html>
