@@ -66,18 +66,18 @@ export function Modal({
     <dialog
       ref={dialogRef}
       className={cn(
-        "w-full rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/40",
+        "w-full rounded-lg bg-white dark:bg-gray-800 p-0 shadow-xl backdrop:bg-black/40",
         sizeMap[size],
         className,
       )}
       onClick={handleBackdrop}
       onCancel={handleCancel}
     >
-      <div className="flex items-center justify-between border-b px-6 py-4">
-        {title && <h2 className="text-lg font-semibold text-gray-900">{title}</h2>}
+      <div className="flex items-center justify-between border-b dark:border-gray-700 px-6 py-4">
+        {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>}
         <button
           type="button"
-          className="ml-auto rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="ml-auto rounded-md p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300"
           onClick={onClose}
           aria-label="閉じる"
         >

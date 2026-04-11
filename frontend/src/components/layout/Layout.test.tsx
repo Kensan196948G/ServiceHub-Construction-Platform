@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "./Layout";
 
 const mockNavigate = vi.fn();
@@ -23,9 +24,11 @@ vi.mock("@/stores/authStore", () => ({
 
 function renderLayout(path = "/dashboard") {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Layout />
-    </MemoryRouter>,
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Layout />
+      </MemoryRouter>
+    </ThemeProvider>,
   );
 }
 
@@ -85,5 +88,23 @@ describe("Layout", () => {
     // header has the menu toggle button (first non-logout button)
     const menuBtn = buttons.find((b) => b.className.includes("lg:hidden"));
     expect(menuBtn).toBeDefined();
+  });
+
+  it("テーマトグルボタンが表示される", () => {
+    renderLayout();
+    const toggle = screen.getByTestId("theme-toggle");
+    expect(toggle).toBeInTheDocument();
+    const label = toggle.getAttribute("aria-label");
+    expect(["ダークモードに切り替え", "ライトモードに切り替え"]).toContain(label);
+  });
+
+  it("テーマトグルをクリックすると aria-label が切り替わる", () => {
+    // Start in light mode
+    localStorage.setItem("theme", "light");
+    renderLayout();
+    const toggle = screen.getByTestId("theme-toggle");
+    expect(toggle).toHaveAttribute("aria-label", "ダークモードに切り替え");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-label", "ライトモードに切り替え");
   });
 });

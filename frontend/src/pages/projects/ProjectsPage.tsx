@@ -60,7 +60,7 @@ export default function ProjectsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">工事案件一覧</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">工事案件一覧</h2>
         <Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowModal(true)}>
           新規案件
         </Button>
@@ -75,7 +75,7 @@ export default function ProjectsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="工事案件を検索"
-          className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
@@ -88,19 +88,19 @@ export default function ProjectsPage() {
         <Card padding="none" className="overflow-hidden">
           <div className="overflow-x-auto" role="region" aria-label="工事案件一覧テーブル">
           <table className="min-w-full divide-y divide-gray-200" aria-label="工事案件一覧">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件コード</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件名</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">施主</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">期間</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">案件コード</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">案件名</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">施主</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden lg:table-cell">期間</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ステータス</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {(filtered ?? []).map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-500">{p.project_code}</td>
+                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{p.project_code}</td>
                   <td className="px-4 py-3">
                     <Link
                       to={`/projects/${p.id}`}
@@ -109,8 +109,8 @@ export default function ProjectsPage() {
                       {p.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">{p.client_name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500 hidden lg:table-cell">
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 hidden md:table-cell">{p.client_name}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                     {p.start_date ?? "—"} 〜 {p.end_date ?? "—"}
                   </td>
                   <td className="px-4 py-3">
@@ -134,7 +134,7 @@ export default function ProjectsPage() {
 
           {/* Pagination */}
           {data && (
-            <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between text-sm text-gray-600">
+            <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>全 {data.meta.total} 件</span>
               <Pagination
                 page={page}
