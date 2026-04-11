@@ -334,10 +334,14 @@ async def test_send_ping_bypasses_subscription(db_session_with_users):
         )
     ).scalar_one()
 
-    delivery = await dispatcher.send_ping(user=user)
+    # Phase 2b: send_ping はデフォルト email チャンネルのみ送信し
+    # list[NotificationDelivery] を返す。
+    deliveries = await dispatcher.send_ping(user=user)
 
-    assert delivery.status == "SENT"
-    assert delivery.event_key == "ping"
+    assert len(deliveries) == 1
+    assert deliveries[0].status == "SENT"
+    assert deliveries[0].event_key == "ping"
+    assert deliveries[0].channel == "EMAIL"
     assert len(fake_sender.sent) == 1
     assert fake_sender.sent[0]["to"] == "admin@test.example.com"
 
@@ -367,3 +371,45 @@ async def test_body_preview_is_truncated_to_500_chars(db_session_with_users):
 
     assert deliveries[0].body_preview is not None
     assert len(deliveries[0].body_preview) == 500
+
+
+def test_should_send_slack_returns_false_without_webhook_url():
+    """_should_send: slack_enabled=True でも webhook_url 未設定なら False。
+
+    Codex review Fix #2: _should_send() が唯一の判定ゲートウェイになるよう
+    webhook_url チェックをメソッド内に包含させた。
+    """
+    from dataclasses import dataclass
+
+    @dataclass
+    class _FakePref:
+        email_enabled: bool = True
+        slack_enabled: bool = True
+        slack_webhook_url: str | None = None
+        events: dict = None  # type: ignore[assignment]
+
+        def __post_init__(self) -> None:
+            if self.events is None:
+                self.events = {"evt": {"email": True, "slack": True}}
+
+    pref = _FakePref(slack_webhook_url=None)
+    assert NotificationDispatcher._should_send(pref, "evt", "slack") is False
+
+
+def test_should_send_slack_returns_true_with_webhook_url():
+    """_should_send: slack_enabled=True + webhook_url 設定済みなら True。"""
+    from dataclasses import dataclass
+
+    @dataclass
+    class _FakePref:
+        email_enabled: bool = True
+        slack_enabled: bool = True
+        slack_webhook_url: str | None = "https://hooks.slack.example.com/xxx"
+        events: dict = None  # type: ignore[assignment]
+
+        def __post_init__(self) -> None:
+            if self.events is None:
+                self.events = {"evt": {"email": True, "slack": True}}
+
+    pref = _FakePref()
+    assert NotificationDispatcher._should_send(pref, "evt", "slack") is True
