@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { loginAndNavigate, MOCK_USER } from "./fixtures/api-mocks";
+import {
+  loginAndNavigate,
+  setupAllApiMocks,
+  MOCK_USER,
+  MOCK_TOKEN,
+  MOCK_REFRESH_TOKEN,
+} from "./fixtures/api-mocks";
 
 // Sample delivery rows for mock responses
 const MOCK_DELIVERIES = [
@@ -152,22 +158,30 @@ test.describe("Notification Deliveries Admin Page", () => {
   });
 
   test("non-ADMIN user does not see 通知管理 nav link", async ({ page }) => {
-    // Override auth/me to return VIEWER role
-    await loginAndNavigate(page);
-    // After loginAndNavigate, override me response to VIEWER
-    await page.route("**/api/v1/auth/me", (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          data: { ...MOCK_USER, role: "VIEWER" },
-        }),
-      });
-    });
-    await page.reload();
+    // Setup API mocks without setting ADMIN role in localStorage
+    await setupAllApiMocks(page);
+
+    await page.goto("/login");
+    // Set VIEWER role directly in localStorage (mirrors loginAndNavigate but with VIEWER)
+    await page.evaluate(
+      ({ token, refreshToken, user }) => {
+        localStorage.setItem(
+          "servicehub-auth",
+          JSON.stringify({ state: { token, refreshToken, user }, version: 0 }),
+        );
+      },
+      {
+        token: MOCK_TOKEN,
+        refreshToken: MOCK_REFRESH_TOKEN,
+        user: { ...MOCK_USER, role: "VIEWER" },
+      },
+    );
+    await page.goto("/dashboard");
     await page.waitForURL("**/dashboard");
 
     // Navigation link should not be present for non-ADMIN
-    await expect(page.getByRole("link", { name: "通知管理" })).not.toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "通知管理" }),
+    ).not.toBeVisible();
   });
 });
