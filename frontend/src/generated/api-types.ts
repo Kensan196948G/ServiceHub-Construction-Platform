@@ -75,7 +75,9 @@ export interface paths {
         put?: never;
         /**
          * Logout
-         * @description ログアウト（クライアント側でトークン破棄）
+         * @description ログアウト — refresh token の jti を Redis から削除して無効化。
+         *     認証不要: access token 期限切れ時でも logout できるよう意図的に認証を外している。
+         *     refresh token の所持自体を認証根拠とし、service 層で jti を検証する。
          */
         post: operations["logout_api_v1_auth_logout_post"];
         delete?: never;
@@ -575,6 +577,156 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Notification Preferences */
+        get: operations["get_my_notification_preferences_api_v1_users_me_notification_preferences_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update My Notification Preferences */
+        patch: operations["update_my_notification_preferences_api_v1_users_me_notification_preferences_patch"];
+        trace?: never;
+    };
+    "/api/v1/notifications/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Notification Test
+         * @description 設定済みチャンネルへ疎通テスト通知を送信する。
+         *
+         *     フロー:
+         *         1. 現在ユーザーの preferences を読む (slack_webhook_url 取得のため)
+         *         2. `email_enabled` / `slack_enabled` + webhook_url の有無を見て
+         *            送信対象チャンネルを決定する
+         *         3. BackgroundTasks に send_ping をスケジュール
+         *         4. 202 Accepted を返す (配信は非同期)
+         *
+         *     購読判定 (prefs.events[event_key]) はここでは適用しない。疎通テストは
+         *     ユーザーが設定そのものを検証する目的なので、個別イベント購読の ON/OFF
+         *     に関わらず強制送信する (`send_ping` の契約)。
+         */
+        post: operations["post_notification_test_api_v1_notifications_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Notification Deliveries
+         * @description 通知配信履歴一覧 (ADMIN 専用)。
+         *
+         *     クエリパラメータ:
+         *         status     - PENDING / SENT / FAILED でフィルタ
+         *         channel    - EMAIL / SLACK でフィルタ
+         *         event_key  - イベント種別でフィルタ
+         *         user_id    - ユーザー ID でフィルタ
+         *         page       - ページ番号 (1 始まり)
+         *         per_page   - 1 ページあたり件数 (最大 100)
+         *
+         *     このエンドポイントへのアクセスは audit_logs に記録される (Phase 2e)。
+         */
+        get: operations["list_notification_deliveries_api_v1_notifications_deliveries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Notification Retry
+         * @description transient 失敗通知を即時リトライする (ADMIN 専用)。
+         *
+         *     lifespan バックグラウンドループ (60 秒間隔) とは独立して同期実行する。
+         *     最大 3 回リトライ済みの行や permanent 失敗行はスキップされる。
+         */
+        post: operations["post_notification_retry_api_v1_notifications_retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * SSE リアルタイム通知ストリーム (Phase 4a)
+         * @description 認証済みユーザー向け SSE ストリームエンドポイント。
+         *
+         *     接続するとサーバーからリアルタイムに通知イベントが push される。
+         *     クライアントは EventSource API で購読し、切断時は自動再接続する。
+         *
+         *     イベントフォーマット:
+         *         data: {"type": "notification", "id": "...", "title": "...", "message": "..."}
+         *
+         *     Keep-alive として 30 秒ごとに `: ping` コメントを送信する。
+         */
+        get: operations["get_notification_stream_api_v1_notifications_stream_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Metrics
+         * @description Endpoint that serves Prometheus metrics.
+         */
+        get: operations["metrics_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -742,6 +894,28 @@ export interface components {
             /** Message */
             message?: string | null;
         };
+        /** ApiResponse[NotificationPreferenceResponse] */
+        ApiResponse_NotificationPreferenceResponse_: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data?: components["schemas"]["NotificationPreferenceResponse"] | null;
+            /** Message */
+            message?: string | null;
+        };
+        /** ApiResponse[NotificationTestResponse] */
+        ApiResponse_NotificationTestResponse_: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data?: components["schemas"]["NotificationTestResponse"] | null;
+            /** Message */
+            message?: string | null;
+        };
         /** ApiResponse[PhotoResponse] */
         ApiResponse_PhotoResponse_: {
             /**
@@ -824,10 +998,7 @@ export interface components {
         };
         /** Body_upload_photo_api_v1_projects__project_id__photos_post */
         Body_upload_photo_api_v1_projects__project_id__photos_post: {
-            /**
-             * File
-             * Format: binary
-             */
+            /** File */
             file: string;
             /**
              * Category
@@ -1355,6 +1526,103 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** LogoutRequest */
+        LogoutRequest: {
+            /** Refresh Token */
+            refresh_token?: string | null;
+        };
+        /**
+         * NotificationDeliveryResponse
+         * @description GET /api/v1/notifications/deliveries の 1 件レスポンス。
+         */
+        NotificationDeliveryResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Event Key */
+            event_key: string;
+            /** Channel */
+            channel: string;
+            /** Status */
+            status: string;
+            /** Subject */
+            subject: string | null;
+            /** Body Preview */
+            body_preview: string | null;
+            /** Error Detail */
+            error_detail: string | null;
+            /** Failure Kind */
+            failure_kind: ("transient" | "permanent") | null;
+            /** Attempts */
+            attempts: number;
+            /** Sent At */
+            sent_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * NotificationPreferenceResponse
+         * @description 通知設定レスポンス
+         */
+        NotificationPreferenceResponse: {
+            /** Email Enabled */
+            email_enabled: boolean;
+            /** Slack Enabled */
+            slack_enabled: boolean;
+            /** Slack Webhook Url */
+            slack_webhook_url: string | null;
+            /** Events */
+            events: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * NotificationPreferenceUpdate
+         * @description 通知設定更新（部分更新）
+         */
+        NotificationPreferenceUpdate: {
+            /** Email Enabled */
+            email_enabled?: boolean | null;
+            /** Slack Enabled */
+            slack_enabled?: boolean | null;
+            /**
+             * Slack Webhook Url
+             * @description Slack Incoming Webhook URL
+             */
+            slack_webhook_url?: string | null;
+            /**
+             * Events
+             * @description イベント種別ごとの購読設定（完全置換）
+             */
+            events?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * NotificationTestResponse
+         * @description 通知疎通テストレスポンス (Phase 2b)
+         *
+         *     channels にはスケジューリングされたチャンネル (例: ['email', 'slack'])
+         *     が返る。実際の配信は BackgroundTasks で非同期実行されるため、本レスポンス
+         *     は「受理」ステータスに過ぎない。配信結果は notification_deliveries を
+         *     見るか、実際のメール/Slack を確認する。
+         */
+        NotificationTestResponse: {
+            /** Scheduled Channels */
+            scheduled_channels: string[];
+            /** Message */
+            message: string;
+        };
         /** PaginatedResponse[ChangeRequestResponse] */
         PaginatedResponse_ChangeRequestResponse_: {
             /**
@@ -1408,6 +1676,17 @@ export interface components {
             success: boolean;
             /** Data */
             data: components["schemas"]["KnowledgeArticleResponse"][];
+            meta: components["schemas"]["PaginationMeta"];
+        };
+        /** PaginatedResponse[NotificationDeliveryResponse] */
+        PaginatedResponse_NotificationDeliveryResponse_: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["NotificationDeliveryResponse"][];
             meta: components["schemas"]["PaginationMeta"];
         };
         /** PaginatedResponse[PhotoResponse] */
@@ -1861,6 +2140,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
         /** WorkHourCreate */
         WorkHourCreate: {
@@ -1992,7 +2275,9 @@ export interface operations {
     };
     get_me_api_v1_auth_me_get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2008,6 +2293,15 @@ export interface operations {
                     "application/json": components["schemas"]["UserResponse"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     logout_api_v1_auth_logout_post: {
@@ -2017,7 +2311,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoutRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             204: {
@@ -2025,6 +2323,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
@@ -2034,6 +2341,7 @@ export interface operations {
                 page?: number;
                 per_page?: number;
                 status?: string | null;
+                token?: string | null;
             };
             header?: never;
             path?: never;
@@ -2063,7 +2371,9 @@ export interface operations {
     };
     create_project_api_v1_projects_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2096,7 +2406,9 @@ export interface operations {
     };
     get_project_api_v1_projects__project_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2127,7 +2439,9 @@ export interface operations {
     };
     update_project_api_v1_projects__project_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2162,7 +2476,9 @@ export interface operations {
     };
     delete_project_api_v1_projects__project_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2194,6 +2510,7 @@ export interface operations {
             query?: {
                 page?: number;
                 per_page?: number;
+                token?: string | null;
             };
             header?: never;
             path: {
@@ -2225,7 +2542,9 @@ export interface operations {
     };
     create_daily_report_api_v1_projects__project_id__daily_reports_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2260,7 +2579,9 @@ export interface operations {
     };
     get_daily_report_api_v1_daily_reports__report_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 report_id: string;
@@ -2291,7 +2612,9 @@ export interface operations {
     };
     update_daily_report_api_v1_daily_reports__report_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 report_id: string;
@@ -2326,7 +2649,9 @@ export interface operations {
     };
     delete_daily_report_api_v1_daily_reports__report_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 report_id: string;
@@ -2359,6 +2684,7 @@ export interface operations {
                 page?: number;
                 per_page?: number;
                 category?: string | null;
+                token?: string | null;
             };
             header?: never;
             path: {
@@ -2390,7 +2716,9 @@ export interface operations {
     };
     upload_photo_api_v1_projects__project_id__photos_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2425,7 +2753,9 @@ export interface operations {
     };
     get_photo_api_v1_photos__photo_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 photo_id: string;
@@ -2456,7 +2786,9 @@ export interface operations {
     };
     update_photo_api_v1_photos__photo_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 photo_id: string;
@@ -2491,7 +2823,9 @@ export interface operations {
     };
     delete_photo_api_v1_photos__photo_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 photo_id: string;
@@ -2523,6 +2857,7 @@ export interface operations {
             query?: {
                 page?: number;
                 per_page?: number;
+                token?: string | null;
             };
             header?: never;
             path: {
@@ -2554,7 +2889,9 @@ export interface operations {
     };
     create_safety_check_api_v1_projects__project_id__safety_checks_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2592,6 +2929,7 @@ export interface operations {
             query?: {
                 page?: number;
                 per_page?: number;
+                token?: string | null;
             };
             header?: never;
             path: {
@@ -2623,7 +2961,9 @@ export interface operations {
     };
     create_quality_inspection_api_v1_projects__project_id__quality_inspections_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2658,7 +2998,9 @@ export interface operations {
     };
     delete_safety_check_api_v1_projects__project_id__safety_checks__check_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2688,7 +3030,9 @@ export interface operations {
     };
     delete_quality_inspection_api_v1_projects__project_id__quality_inspections__inspection_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2721,6 +3065,7 @@ export interface operations {
             query?: {
                 page?: number;
                 per_page?: number;
+                token?: string | null;
             };
             header?: never;
             path: {
@@ -2752,7 +3097,9 @@ export interface operations {
     };
     create_cost_record_api_v1_projects__project_id__cost_records_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2787,7 +3134,9 @@ export interface operations {
     };
     get_cost_summary_api_v1_projects__project_id__cost_summary_get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2818,7 +3167,9 @@ export interface operations {
     };
     create_work_hour_api_v1_projects__project_id__work_hours_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2853,7 +3204,9 @@ export interface operations {
     };
     delete_cost_record_api_v1_projects__project_id__cost_records__record_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 project_id: string;
@@ -2888,6 +3241,7 @@ export interface operations {
                 priority?: string | null;
                 page?: number;
                 per_page?: number;
+                token?: string | null;
             };
             header?: never;
             path?: never;
@@ -2917,7 +3271,9 @@ export interface operations {
     };
     create_incident_api_v1_itsm_incidents_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2950,7 +3306,9 @@ export interface operations {
     };
     get_incident_api_v1_itsm_incidents__incident_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 incident_id: string;
@@ -2981,7 +3339,9 @@ export interface operations {
     };
     update_incident_api_v1_itsm_incidents__incident_id__patch: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 incident_id: string;
@@ -3021,6 +3381,7 @@ export interface operations {
                 change_type?: string | null;
                 page?: number;
                 per_page?: number;
+                token?: string | null;
             };
             header?: never;
             path?: never;
@@ -3050,7 +3411,9 @@ export interface operations {
     };
     create_change_api_v1_itsm_changes_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3083,7 +3446,9 @@ export interface operations {
     };
     update_change_api_v1_itsm_changes__change_id__patch: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 change_id: string;
@@ -3118,7 +3483,9 @@ export interface operations {
     };
     approve_change_api_v1_itsm_changes__change_id__approve_patch: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 change_id: string;
@@ -3155,6 +3522,7 @@ export interface operations {
                 q?: string | null;
                 page?: number;
                 per_page?: number;
+                token?: string | null;
             };
             header?: never;
             path?: never;
@@ -3184,7 +3552,9 @@ export interface operations {
     };
     create_article_api_v1_knowledge_articles_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3217,7 +3587,9 @@ export interface operations {
     };
     get_article_api_v1_knowledge_articles__article_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 article_id: string;
@@ -3248,7 +3620,9 @@ export interface operations {
     };
     delete_article_api_v1_knowledge_articles__article_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 article_id: string;
@@ -3279,7 +3653,9 @@ export interface operations {
     };
     update_article_api_v1_knowledge_articles__article_id__patch: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 article_id: string;
@@ -3314,7 +3690,9 @@ export interface operations {
     };
     ai_search_api_v1_knowledge_search_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3350,6 +3728,7 @@ export interface operations {
             query?: {
                 page?: number;
                 per_page?: number;
+                token?: string | null;
             };
             header?: never;
             path?: never;
@@ -3379,7 +3758,9 @@ export interface operations {
     };
     create_user_api_v1_users_post: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3412,7 +3793,9 @@ export interface operations {
     };
     get_user_api_v1_users__user_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 user_id: string;
@@ -3443,7 +3826,9 @@ export interface operations {
     };
     update_user_api_v1_users__user_id__put: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 user_id: string;
@@ -3478,7 +3863,9 @@ export interface operations {
     };
     delete_user_api_v1_users__user_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path: {
                 user_id: string;
@@ -3507,7 +3894,9 @@ export interface operations {
     };
     get_dashboard_kpi_api_v1_dashboard_kpi_get: {
         parameters: {
-            query?: never;
+            query?: {
+                token?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3521,6 +3910,229 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_DashboardKPI_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_notification_preferences_api_v1_users_me_notification_preferences_get: {
+        parameters: {
+            query?: {
+                token?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NotificationPreferenceResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_my_notification_preferences_api_v1_users_me_notification_preferences_patch: {
+        parameters: {
+            query?: {
+                token?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NotificationPreferenceResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_notification_test_api_v1_notifications_test_post: {
+        parameters: {
+            query?: {
+                token?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NotificationTestResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_notification_deliveries_api_v1_notifications_deliveries_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+                status?: string | null;
+                channel?: string | null;
+                event_key?: string | null;
+                user_id?: string | null;
+                token?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_NotificationDeliveryResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_notification_retry_api_v1_notifications_retry_post: {
+        parameters: {
+            query?: {
+                token?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_notification_stream_api_v1_notifications_stream_get: {
+        parameters: {
+            query?: {
+                token?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metrics_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

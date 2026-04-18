@@ -74,3 +74,9 @@ export type PhotoResponse = Schemas["PhotoResponse"];
 
 // --- Common ---
 export type PaginationMeta = Schemas["PaginationMeta"];
+
+// --- Notifications (Phase 4) ---
+export type NotificationDeliveryResponse = Schemas["NotificationDeliveryResponse"];
+export type NotificationPreferenceResponse = Schemas["NotificationPreferenceResponse"];
+export type NotificationPreferenceUpdate = Schemas["NotificationPreferenceUpdate"];
+export type NotificationTestResponse = Schemas["NotificationTestResponse"];
