@@ -3,6 +3,46 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Brand colors — canonical from docs/design/ServiceHub-WebUI.html */
+    --brand-90: #0b2545;
+    --brand-80: #13315c;
+    --brand-70: #1b4079;
+    --brand-60: #2458a6;
+    --brand-50: #3b7dd8;
+    --brand-20: #d6e4f5;
+    --brand-10: #eaf2fb;
+
+    /* Safety / Status */
+    --safety-60: #d64a1a;
+    --safety-50: #e76025;
+    --safety-20: #fde3d2;
+    --safety-10: #fff1e8;
+
+    --ok-60:    #0f8b4a;
+    --ok-20:    #d3f0df;
+    --ok-10:    #e6f7ee;
+
+    --warn-60:  #b76200;
+    --warn-20:  #fde6c4;
+    --warn-10:  #fff4e0;
+
+    --err-60:   #c8102e;
+    --err-20:   #ffd4d8;
+    --err-10:   #ffebed;
+
+    --info-60:  #2458a6;
+
+    /* Surface */
+    --bg:      #f4f4f4;
+    --surface: #ffffff;
+    --line:    #e0e0e0;
+    --line-strong: #c6c6c6;
+
+    /* Focus ring */
+    --focus: 0 0 0 2px #ffffff, 0 0 0 4px var(--brand-60);
+  }
+
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
   }
