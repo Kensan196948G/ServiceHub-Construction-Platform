@@ -23,15 +23,22 @@ import { useAuthStore } from "@/stores/authStore";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useSSE } from "@/hooks/useSSE";
 import { NotificationBadge } from "@/components/ui/NotificationBadge";
+import { NotificationPanel } from "@/components/ui/NotificationPanel";
 import clsx from "clsx";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
-  const { unreadCount, clearUnread, connected } = useSSE();
+  const { unreadCount, clearUnread, notifications, connected } = useSSE();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleBadgeClick = () => {
+    setPanelOpen((prev) => !prev);
+    clearUnread();
+  };
 
   const navItems = [
     { to: "/dashboard", icon: LayoutDashboard, label: "ダッシュボード" },
@@ -86,6 +93,14 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Notification panel */}
+      <NotificationPanel
+        open={panelOpen}
+        notifications={notifications}
+        onClose={() => setPanelOpen(false)}
+        onClearAll={() => { clearUnread(); setPanelOpen(false); }}
+      />
+
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -152,7 +167,7 @@ export default function Layout() {
           <NotificationBadge
             count={unreadCount}
             connected={connected}
-            onClick={clearUnread}
+            onClick={handleBadgeClick}
           />
           {/* Theme toggle */}
           <button

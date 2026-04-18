@@ -1,4 +1,4 @@
-"""通知配信オーケストレータ (Phase 2b)
+"""通知配信オーケストレータ (Phase 2b / Phase 4b)
 
 設計書 §9.2 のアーキテクチャを実装する:
 
@@ -6,6 +6,7 @@
       ├─ 購読ユーザー解決 (notification_preferences 参照)
       ├─ チャンネル別事前書き込み (delivery 行を PENDING で作成)
       ├─ Sender 呼び出し (EmailSender / SlackSender)
+      ├─ SSE push (sse_manager.push — Phase 4b)
       └─ mark_sent / mark_failed で status 更新
 
 === Transaction boundary (Phase 2b 以降) ===
@@ -46,6 +47,7 @@ from app.repositories.notification_preference import NotificationPreferenceRepos
 from app.services.notification_senders import EmailSender, SlackSender
 from app.services.notification_session import notification_session
 from app.services.notification_templates import TemplateRenderer
+from app.services.sse_manager import sse_manager
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +111,18 @@ class NotificationDispatcher:
                     webhook_url=pref.slack_webhook_url,  # type: ignore[arg-type]
                 )
                 deliveries.append(delivery)
+
+            # SSE push — fire-and-forget to all connected browser tabs (Phase 4b)
+            await sse_manager.push(
+                user.id,
+                {
+                    "type": "notification",
+                    "event_key": event_key,
+                    "title": context.get("title", event_key),
+                    "message": context.get("message", ""),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
+            )
 
         return deliveries
 
