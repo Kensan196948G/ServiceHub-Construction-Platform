@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import App from "./App";
@@ -31,7 +31,7 @@ describe("App", () => {
     vi.clearAllMocks();
   });
 
-  it("未認証の場合、/login にリダイレクトする", () => {
+  it("未認証の場合、/login にリダイレクトする", async () => {
     vi.mocked(useAuthStore).mockImplementation((selector: (s: { token: string | null }) => unknown) =>
       selector({ token: null }),
     );
@@ -40,10 +40,10 @@ describe("App", () => {
         <App />
       </MemoryRouter>,
     );
-    expect(screen.getByTestId("login-page")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("login-page")).toBeInTheDocument());
   });
 
-  it("/login にアクセスするとログインページが表示される", () => {
+  it("/login にアクセスするとログインページが表示される", async () => {
     vi.mocked(useAuthStore).mockImplementation((selector: (s: { token: string | null }) => unknown) =>
       selector({ token: null }),
     );
@@ -52,10 +52,10 @@ describe("App", () => {
         <App />
       </MemoryRouter>,
     );
-    expect(screen.getByTestId("login-page")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("login-page")).toBeInTheDocument());
   });
 
-  it("認証済みの場合、/ から /dashboard にリダイレクトする", () => {
+  it("認証済みの場合、/ から /dashboard にリダイレクトする", async () => {
     vi.mocked(useAuthStore).mockImplementation((selector: (s: { token: string | null }) => unknown) =>
       selector({ token: "test-token" }),
     );
@@ -64,10 +64,10 @@ describe("App", () => {
         <App />
       </MemoryRouter>,
     );
-    expect(screen.getByTestId("dashboard-page")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("dashboard-page")).toBeInTheDocument());
   });
 
-  it("認証済みの場合、/projects ページが表示される", () => {
+  it("認証済みの場合、/projects ページが表示される", async () => {
     vi.mocked(useAuthStore).mockImplementation((selector: (s: { token: string | null }) => unknown) =>
       selector({ token: "test-token" }),
     );
@@ -76,10 +76,10 @@ describe("App", () => {
         <App />
       </MemoryRouter>,
     );
-    expect(screen.getByTestId("projects-page")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("projects-page")).toBeInTheDocument());
   });
 
-  it("認証済みの場合、各ルートが正しくレンダリングされる", () => {
+  it("認証済みの場合、各ルートが正しくレンダリングされる", async () => {
     vi.mocked(useAuthStore).mockImplementation((selector: (s: { token: string | null }) => unknown) =>
       selector({ token: "test-token" }),
     );
@@ -99,7 +99,7 @@ describe("App", () => {
           <App />
         </MemoryRouter>,
       );
-      expect(screen.getByTestId(testId)).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByTestId(testId)).toBeInTheDocument());
       unmount();
     }
   });
