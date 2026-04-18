@@ -118,7 +118,10 @@ export function NotificationPanel({
           data-testid="notification-list"
         >
           {notifications.length === 0 ? (
-            <li className="flex flex-col items-center justify-center gap-2 py-16 text-gray-400 dark:text-gray-500">
+            <li
+              className="flex flex-col items-center justify-center gap-2 py-16 text-gray-400 dark:text-gray-500"
+              data-testid="notification-empty"
+            >
               <Bell className="h-8 w-8 opacity-30" aria-hidden="true" />
               <span className="text-sm">通知はありません</span>
             </li>
