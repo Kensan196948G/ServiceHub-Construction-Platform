@@ -30,6 +30,17 @@ import { NotificationBadge } from "@/components/ui/NotificationBadge";
 import { NotificationPanel } from "@/components/ui/NotificationPanel";
 import clsx from "clsx";
 
+type NavItem = {
+  to: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+};
+
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -44,26 +55,46 @@ export default function Layout() {
     clearUnread();
   };
 
-  const navItems = [
-    { to: "/dashboard", icon: LayoutDashboard, label: "ダッシュボード" },
-    { to: "/projects", icon: Building2, label: "工事案件" },
-    { to: "/reports", icon: FileText, label: "日報" },
-    { to: "/safety", icon: HardHat, label: "安全品質" },
-    { to: "/cost", icon: DollarSign, label: "原価管理" },
-    { to: "/photos", icon: Image, label: "写真管理" },
-    { to: "/itsm", icon: AlertCircle, label: "ITSM" },
-    { to: "/knowledge", icon: BookOpen, label: "ナレッジ" },
-    { to: "/portal", icon: Home, label: "社内ポータル" },
-    { to: "/notices", icon: Newspaper, label: "お知らせ" },
-    { to: "/hr", icon: UserCog, label: "人事・勤怠" },
-    { to: "/rules", icon: BookText, label: "社内規程" },
-    ...(user?.role === "ADMIN"
-      ? [
-          { to: "/users", icon: Users, label: "ユーザー管理" },
-          { to: "/admin/notifications", icon: Bell, label: "通知管理" },
-        ]
-      : []),
-    { to: "/settings", icon: Settings, label: "設定" },
+  const navGroups: NavGroup[] = [
+    {
+      label: "業務",
+      items: [
+        { to: "/dashboard", icon: LayoutDashboard, label: "ダッシュボード" },
+        { to: "/projects",  icon: Building2,        label: "工事案件" },
+        { to: "/reports",   icon: FileText,         label: "日報" },
+        { to: "/photos",    icon: Image,            label: "写真管理" },
+      ],
+    },
+    {
+      label: "運用",
+      items: [
+        { to: "/safety",    icon: HardHat,      label: "安全品質" },
+        { to: "/cost",      icon: DollarSign,   label: "原価管理" },
+        { to: "/itsm",      icon: AlertCircle,  label: "ITSM" },
+        { to: "/knowledge", icon: BookOpen,     label: "ナレッジ" },
+      ],
+    },
+    {
+      label: "社内",
+      items: [
+        { to: "/portal",  icon: Home,      label: "社内ポータル" },
+        { to: "/notices", icon: Newspaper, label: "お知らせ" },
+        { to: "/hr",      icon: UserCog,   label: "人事・勤怠" },
+        { to: "/rules",   icon: BookText,  label: "社内規程" },
+      ],
+    },
+    {
+      label: "管理",
+      items: [
+        ...(user?.role === "ADMIN"
+          ? [
+              { to: "/users",               icon: Users, label: "ユーザー管理" },
+              { to: "/admin/notifications", icon: Bell,  label: "通知管理" },
+            ]
+          : []),
+        { to: "/settings", icon: Settings, label: "設定" },
+      ],
+    },
   ];
 
   const handleLogout = () => {
@@ -71,15 +102,7 @@ export default function Layout() {
     navigate("/login");
   };
 
-  const NavLink = ({
-    to,
-    icon: Icon,
-    label,
-  }: {
-    to: string;
-    icon: typeof LayoutDashboard;
-    label: string;
-  }) => {
+  const NavLink = ({ to, icon: Icon, label }: NavItem) => {
     const active = location.pathname.startsWith(to);
     return (
       <Link
@@ -134,9 +157,18 @@ export default function Layout() {
           </div>
         </div>
 
-        <nav id="sidebar-nav" aria-label="メインナビゲーション" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <NavLink key={item.to} {...item} />
+        <nav id="sidebar-nav" aria-label="メインナビゲーション" className="flex-1 px-3 py-4 overflow-y-auto">
+          {navGroups.map((group, gi) => (
+            <div key={group.label} className={gi > 0 ? "mt-4" : ""}>
+              <div className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-primary-300 dark:text-gray-500">
+                {group.label}
+              </div>
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <NavLink key={item.to} {...item} />
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
