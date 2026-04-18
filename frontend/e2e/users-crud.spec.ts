@@ -255,9 +255,10 @@ test.describe("Users CRUD", () => {
   });
 
   test("shows role badges for users", async ({ page }) => {
-    // Use exact match to avoid matching navigation items or email strings containing role names
-    await expect(page.getByText("ADMIN", { exact: true })).toBeVisible();
-    await expect(page.getByText("VIEWER", { exact: true })).toBeVisible();
+    // Scope to main content to avoid matching the sidebar's logged-in user role badge
+    const main = page.locator("main");
+    await expect(main.getByText("ADMIN", { exact: true })).toBeVisible();
+    await expect(main.getByText("VIEWER", { exact: true })).toBeVisible();
   });
 
   // ─── Access control ───────────────────────────────────

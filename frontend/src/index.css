@@ -1,9 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* Typography */
+    --font-sans: 'IBM Plex Sans', 'Noto Sans JP', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    /* Type scale */
+    --fs-12: 0.75rem;
+    --fs-14: 0.875rem;
+    --fs-16: 1rem;
+    --fs-18: 1.125rem;
+    --fs-20: 1.25rem;
+    --fs-24: 1.5rem;
+    --fs-28: 1.75rem;
+    --fs-32: 2rem;
+
+    /* Spacing / radius */
+    --touch: 44px;
+    --r-sm: 4px;
+    --r-md: 8px;
+    --r-lg: 12px;
+    --r-xl: 16px;
+    --r-pill: 9999px;
+
+    /* Elevation */
+    --e1: 0 1px 3px rgba(0,0,0,0.08);
+    --e2: 0 4px 16px rgba(0,0,0,0.10);
+    --e3: 0 8px 40px rgba(0,0,0,0.14);
+
+    /* Gray scale */
+    --gray-10: #f4f4f4;
+    --gray-20: #e0e0e0;
+    --gray-40: #a8a8a8;
+    --gray-50: #8d8d8d;
+    --gray-60: #6f6f6f;
+    --gray-70: #525252;
+    --gray-80: #393939;
+    --gray-100: #161616;
     /* Brand colors — canonical from docs/design/ServiceHub-WebUI.html */
     --brand-90: #0b2545;
     --brand-80: #13315c;
@@ -44,7 +82,12 @@
   }
 
   body {
+    font-family: var(--font-sans);
     @apply bg-gray-50 text-gray-900 antialiased;
+  }
+
+  code, kbd, pre, .font-mono {
+    font-family: var(--font-mono);
   }
 }
 
