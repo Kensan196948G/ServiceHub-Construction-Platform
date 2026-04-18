@@ -12,8 +12,8 @@ class CostRecordCreate(BaseModel):
     record_date: date
     category: str
     description: str
-    budgeted_amount: Decimal = Field(default=0, ge=0)
-    actual_amount: Decimal = Field(default=0, ge=0)
+    budgeted_amount: Decimal = Field(default=Decimal("0"), ge=0)
+    actual_amount: Decimal = Field(default=Decimal("0"), ge=0)
     vendor_name: str | None = None
     invoice_number: str | None = None
     notes: str | None = None

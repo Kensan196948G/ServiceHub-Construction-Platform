@@ -115,6 +115,7 @@ async def test_refresh_token_invalid():
 
 
 @pytest.mark.asyncio
+@pytest.mark.redis
 async def test_refresh_with_access_token_fails(auth_client):
     """アクセストークンをリフレッシュに使うと401"""
     # アクセストークン取得
@@ -142,6 +143,7 @@ async def test_me_authenticated(auth_client, admin_headers):
 
 
 @pytest.mark.asyncio
+@pytest.mark.redis
 async def test_logout_success(auth_client):
     """ログアウト - 正常 (refresh_token を body に含めて送信)"""
     # Login to obtain a refresh_token first
