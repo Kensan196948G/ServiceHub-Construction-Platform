@@ -458,7 +458,9 @@ async def test_dispatch_pushes_sse_event(db_session_with_users):
 
 
 @pytest.mark.asyncio
-async def test_dispatch_pushes_sse_even_without_email_subscription(db_session_with_users):
+async def test_dispatch_pushes_sse_even_without_email_subscription(
+    db_session_with_users,
+):
     """メール購読なしでも SSE push は発生する。"""
     from unittest.mock import AsyncMock, patch
 
