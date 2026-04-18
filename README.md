@@ -31,7 +31,7 @@
 - 💰 **原価・工数管理** — コスト記録・予実対比ダッシュボード
 - 🏛️ **ITSM 運用管理** — インシデント管理・変更要求ワークフロー
 - 🤖 **AI ナレッジ管理** — OpenAI 連携によるナレッジ AI 検索
-- 🚀 **ClaudeOS v5 自律開発** — Monitor → Development → Verify → Improvement ループ
+- 🚀 **ClaudeOS v8 自律開発** — Monitor → Development → Verify → Improvement ループ（CodeRabbit + Codex + Agent Teams）
 
 ---
 
@@ -514,8 +514,9 @@ ServiceHub-Construction-Platform/
 │   └── vite.config.ts
 ├── nginx/                       # Nginx 設定
 ├── docs/                        # 設計・運用ドキュメント
+│   └── design/                  # 正式 UI デザインリファレンス (ServiceHub-WebUI.html)
 ├── .claude/
-│   ├── claudeos/                # ClaudeOS v5 自律開発カーネル
+│   ├── claudeos/                # ClaudeOS v8 自律開発カーネル
 │   │   ├── system/              # orchestrator / loop-guard / token-budget
 │   │   ├── executive/           # ai-cto / architecture-board
 │   │   ├── management/          # scrum-master / dev-factory
@@ -529,7 +530,7 @@ ServiceHub-Construction-Platform/
 
 ---
 
-## 📋 ClaudeOS v5 カーネル構成
+## 📋 ClaudeOS v8 カーネル構成
 
 `.claude/claudeos/` を正規構成として自律開発を行います。
 
@@ -592,5 +593,5 @@ This project is licensed under the [MIT License](LICENSE).
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by ClaudeOS v5 · ServiceHub Construction Platform</sub>
+  <sub>Built with ❤️ by ClaudeOS v8 · ServiceHub Construction Platform</sub>
 </div>
