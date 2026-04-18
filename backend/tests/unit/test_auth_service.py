@@ -56,9 +56,7 @@ async def test_login_success_issues_tokens():
     svc.user_repo.get_by_email.return_value = user
 
     with (
-        patch(
-            "app.services.auth_service.verify_password", return_value=True
-        ) as vp,
+        patch("app.services.auth_service.verify_password", return_value=True) as vp,
         patch(
             "app.services.auth_service.create_access_token",
             return_value="access.jwt",
@@ -103,9 +101,7 @@ async def test_login_password_mismatch_raises_authentication():
     svc = _build_service()
     svc.user_repo.get_by_email.return_value = _build_user()
 
-    with patch(
-        "app.services.auth_service.verify_password", return_value=False
-    ):
+    with patch("app.services.auth_service.verify_password", return_value=False):
         with pytest.raises(AuthenticationError):
             await svc.login(_login_payload())
 
@@ -115,9 +111,7 @@ async def test_login_inactive_user_raises_authorization():
     svc = _build_service()
     svc.user_repo.get_by_email.return_value = _build_user(is_active=False)
 
-    with patch(
-        "app.services.auth_service.verify_password", return_value=True
-    ):
+    with patch("app.services.auth_service.verify_password", return_value=True):
         with pytest.raises(AuthorizationError) as exc:
             await svc.login(_login_payload())
 
