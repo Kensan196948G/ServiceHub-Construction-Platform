@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "./Layout";
 
 vi.mock("@/hooks/useSSE", () => ({
-  useSSE: () => ({ unreadCount: 0, clearUnread: vi.fn(), notifications: [], connected: false }),
+  useSSE: () => ({ unreadCount: 0, clearUnread: vi.fn(), clearNotifications: vi.fn(), notifications: [], connected: false }),
 }));
 
 const mockNavigate = vi.fn();

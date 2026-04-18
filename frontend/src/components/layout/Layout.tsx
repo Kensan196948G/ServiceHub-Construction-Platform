@@ -31,7 +31,7 @@ export default function Layout() {
   const [panelOpen, setPanelOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
-  const { unreadCount, clearUnread, notifications, connected } = useSSE();
+  const { unreadCount, clearUnread, clearNotifications, notifications, connected } = useSSE();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -98,7 +98,7 @@ export default function Layout() {
         open={panelOpen}
         notifications={notifications}
         onClose={() => setPanelOpen(false)}
-        onClearAll={() => { clearUnread(); setPanelOpen(false); }}
+        onClearAll={() => { clearNotifications(); setPanelOpen(false); }}
       />
 
       {/* Mobile overlay */}
