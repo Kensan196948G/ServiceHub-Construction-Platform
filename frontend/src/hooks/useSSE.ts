@@ -28,6 +28,8 @@ interface UseSSEReturn {
   unreadCount: number;
   /** Clear / reset the unread counter */
   clearUnread: () => void;
+  /** Clear the notification list and unread counter */
+  clearNotifications: () => void;
   /** Latest received notifications (up to 50) */
   notifications: SSENotification[];
   /** Whether the SSE connection is open */
@@ -47,6 +49,10 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearUnread = () => setUnreadCount(0);
+  const clearNotifications = () => {
+    setNotifications([]);
+    setUnreadCount(0);
+  };
 
   useEffect(() => {
     if (!token) return;
@@ -97,5 +103,5 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     };
   }, [token, reconnectDelay, onNotification]);
 
-  return { unreadCount, clearUnread, notifications, connected };
+  return { unreadCount, clearUnread, clearNotifications, notifications, connected };
 }
