@@ -299,8 +299,8 @@ export default function Layout() {
 
           {/* Online indicator */}
           <div
-            role="status"
             aria-live="polite"
+            aria-label={connected ? "接続状態：オンライン" : "接続状態：オフライン"}
             className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
             style={{
               background: connected ? "var(--ok-10)" : "var(--warn-10)",
