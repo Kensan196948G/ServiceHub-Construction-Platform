@@ -39,13 +39,18 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const prevOpen = useRef(false);
 
+  // Focus input when palette opens; reset query on next render after close
   useEffect(() => {
-    if (open) {
-      setQ("");
+    if (open && !prevOpen.current) {
       setTimeout(() => inputRef.current?.focus(), 20);
     }
+    prevOpen.current = open;
   }, [open]);
+
+  // Sync q reset: happens outside the effect body to avoid cascading-render lint rule
+  if (!open && q !== "") setQ("");
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
