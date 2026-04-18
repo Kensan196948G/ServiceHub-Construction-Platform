@@ -166,7 +166,7 @@ export default function SafetyPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <HardHat className="w-7 h-7 text-primary-600" />
           安全品質管理
         </h2>
@@ -180,7 +180,7 @@ export default function SafetyPage() {
       </div>
 
       <Card>
-        <label className="block text-sm font-medium text-gray-700 mb-1">プロジェクト選択</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">プロジェクト選択</label>
         <select
           className="input w-64"
           value={selectedProjectId}
@@ -195,7 +195,7 @@ export default function SafetyPage() {
         </select>
       </Card>
 
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700">
         {(["checks", "inspections"] as Tab[]).map((t) => (
           <button
             key={t}
@@ -203,7 +203,7 @@ export default function SafetyPage() {
             className={`px-4 py-2 text-sm font-medium flex items-center gap-1 border-b-2 transition-colors ${
               tab === t
                 ? "border-primary-600 text-primary-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             {t === "checks" ? (
@@ -234,14 +234,14 @@ export default function SafetyPage() {
           <Card padding="none" className="overflow-hidden">
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                 <tr>
                   {["日付", "チェック種別", "OK数", "NG数", "総合判定", "", ""].map((h, i) => (
-                    <th key={i} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                    <th key={i} className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {checks.map((c) => {
                   const total = (c.items_total && c.items_total > 0) ? c.items_total : (c.items_ok + c.items_ng) || 1;
                   const okPct = Math.round((c.items_ok / total) * 100);
@@ -249,7 +249,7 @@ export default function SafetyPage() {
                   return (
                     <React.Fragment key={c.id}>
                       <tr
-                        className="hover:bg-gray-50 cursor-pointer"
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                         onClick={() => setExpandedCheckId(isExpanded ? null : c.id)}
                       >
                         <td className="px-4 py-3">{c.check_date}</td>
@@ -279,11 +279,11 @@ export default function SafetyPage() {
                         </td>
                       </tr>
                       {isExpanded && (
-                        <tr className="bg-blue-50">
+                        <tr className="bg-blue-50 dark:bg-blue-900/20">
                           <td colSpan={7} className="px-6 py-4">
                             <div className="space-y-3">
                               <div>
-                                <div className="flex justify-between text-xs font-medium text-gray-600 mb-1">
+                                <div className="flex justify-between text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
                                   <span className="text-green-700">OK: {c.items_ok}件</span>
                                   <span>合計: {total}件</span>
                                   <span className="text-red-600">NG: {c.items_ng}件</span>
@@ -300,7 +300,7 @@ export default function SafetyPage() {
                                 </div>
                               </div>
                               {c.notes && (
-                                <p className="text-sm text-gray-700 bg-white rounded p-2 border border-gray-200">
+                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded p-2 border border-gray-200 dark:border-gray-600">
                                   <span className="font-medium">備考: </span>{c.notes}
                                 </p>
                               )}
@@ -334,7 +334,7 @@ export default function SafetyPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {inspections.map((i) => (
-                <tr key={i.id} className="hover:bg-gray-50">
+                <tr key={i.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-4 py-3">{i.inspection_date}</td>
                   <td className="px-4 py-3">{i.inspection_type}</td>
                   <td className="px-4 py-3">{i.target_item}</td>
@@ -363,9 +363,9 @@ export default function SafetyPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
-              <h3 className="text-lg font-semibold">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b dark:border-gray-600 sticky top-0 bg-white dark:bg-gray-800">
+              <h3 className="text-lg font-semibold dark:text-white">
                 {tab === "checks" ? "安全チェック新規作成" : "品質検査新規作成"}
               </h3>
               <button onClick={() => setShowModal(false)}>

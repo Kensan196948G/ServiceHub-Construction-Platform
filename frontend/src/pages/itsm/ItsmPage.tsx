@@ -225,7 +225,7 @@ export default function ItsmPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <AlertCircle className="w-7 h-7 text-primary-600" />
           ITSM（インシデント・変更管理）
         </h2>
@@ -234,7 +234,7 @@ export default function ItsmPage() {
         </Button>
       </div>
 
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700">
         {(["incidents", "changes"] as Tab[]).map((t) => (
           <button
             key={t}
@@ -242,7 +242,7 @@ export default function ItsmPage() {
             className={`px-4 py-2 text-sm font-medium flex items-center gap-1 border-b-2 transition-colors ${
               tab === t
                 ? "border-primary-600 text-primary-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             {t === "incidents" ? (
@@ -272,16 +272,16 @@ export default function ItsmPage() {
           <Card padding="none" className="overflow-hidden">
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                 <tr>
                   {["番号", "タイトル", "カテゴリ", "優先度", "重大度", "ステータス", "操作"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {incidents.map((inc) => (
-                  <tr key={inc.id} className="hover:bg-gray-50">
+                  <tr key={inc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-4 py-3 font-mono text-xs">{inc.incident_number}</td>
                     <td className="px-4 py-3 font-medium max-w-xs truncate">{inc.title}</td>
                     <td className="px-4 py-3">{inc.category}</td>
@@ -335,7 +335,7 @@ export default function ItsmPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {changes.map((cr) => (
-                <tr key={cr.id} className="hover:bg-gray-50">
+                <tr key={cr.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-4 py-3 font-mono text-xs">{cr.change_number}</td>
                   <td className="px-4 py-3 font-medium max-w-xs truncate">{cr.title}</td>
                   <td className="px-4 py-3">{cr.change_type}</td>

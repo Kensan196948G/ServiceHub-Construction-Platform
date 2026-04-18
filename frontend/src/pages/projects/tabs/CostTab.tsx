@@ -50,7 +50,7 @@ export function CostTab({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-gray-900">原価管理</h4>
+        <h4 className="font-semibold text-gray-900 dark:text-white">原価管理</h4>
         <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setOpen(true)}>
           新規作成
         </Button>
@@ -59,13 +59,13 @@ export function CostTab({ projectId }: { projectId: string }) {
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: "予算合計", value: `¥${Number(summary.total_budgeted).toLocaleString()}`, color: "text-gray-900" },
-            { label: "実績合計", value: `¥${Number(summary.total_actual).toLocaleString()}`, color: "text-gray-900" },
+            { label: "予算合計", value: `¥${Number(summary.total_budgeted).toLocaleString()}`, color: "text-gray-900 dark:text-white" },
+            { label: "実績合計", value: `¥${Number(summary.total_actual).toLocaleString()}`, color: "text-gray-900 dark:text-white" },
             { label: "差異", value: `¥${Number(summary.variance).toLocaleString()}`, color: Number(summary.variance) >= 0 ? "text-green-600" : "text-red-600" },
             { label: "差異率", value: `${summary.variance_rate.toFixed(1)}%`, color: summary.variance_rate >= 0 ? "text-green-600" : "text-red-600" },
           ].map(({ label, value, color }) => (
             <Card key={label} className="text-center py-3">
-              <p className="text-xs text-gray-500">{label}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
               <p className={`text-lg font-bold mt-1 ${color}`}>{value}</p>
             </Card>
           ))}
@@ -81,7 +81,7 @@ export function CostTab({ projectId }: { projectId: string }) {
       ) : records.length === 0 ? (
         <Card className="text-center py-12">
           <p className="text-4xl mb-3">💰</p>
-          <p className="text-gray-500 mb-4">原価記録がまだありません</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">原価記録がまだありません</p>
           <Button variant="primary" size="sm" onClick={() => setOpen(true)}>追加する</Button>
         </Card>
       ) : (
@@ -89,36 +89,36 @@ export function CostTab({ projectId }: { projectId: string }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">日付</th>
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">カテゴリ</th>
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">内容</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">予算</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">実績</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">差異</th>
-                  <th className="py-2 px-3 text-xs font-medium text-gray-500"></th>
+                <tr className="border-b border-gray-100 dark:border-gray-700">
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 dark:text-gray-400">日付</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 dark:text-gray-400">カテゴリ</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 dark:text-gray-400">内容</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 dark:text-gray-400">予算</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 dark:text-gray-400">実績</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 dark:text-gray-400">差異</th>
+                  <th className="py-2 px-3 text-xs font-medium text-gray-500 dark:text-gray-400"></th>
                 </tr>
               </thead>
               <tbody>
                 {records.map((r) => {
                   const diff = Number(r.budgeted_amount) - Number(r.actual_amount);
                   return (
-                    <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-2 px-3 text-gray-600">{r.record_date}</td>
+                    <tr key={r.id} className="border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="py-2 px-3 text-gray-600 dark:text-gray-300">{r.record_date}</td>
                       <td className="py-2 px-3">
                         <Badge variant="info" size="sm">
                           {COST_CATEGORY_LABELS[r.category] ?? r.category}
                         </Badge>
                       </td>
-                      <td className="py-2 px-3 text-gray-800 max-w-xs truncate">{r.description}</td>
-                      <td className="py-2 px-3 text-right text-gray-600">¥{Number(r.budgeted_amount).toLocaleString()}</td>
-                      <td className="py-2 px-3 text-right text-gray-600">¥{Number(r.actual_amount).toLocaleString()}</td>
+                      <td className="py-2 px-3 text-gray-800 dark:text-gray-200 max-w-xs truncate">{r.description}</td>
+                      <td className="py-2 px-3 text-right text-gray-600 dark:text-gray-300">¥{Number(r.budgeted_amount).toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right text-gray-600 dark:text-gray-300">¥{Number(r.actual_amount).toLocaleString()}</td>
                       <td className={`py-2 px-3 text-right font-medium ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
                         {diff >= 0 ? "+" : ""}¥{diff.toLocaleString()}
                       </td>
                       <td className="py-2 px-3 text-center">
                         <button
-                          className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                           onClick={() => handleDelete(r)}
                           title="削除"
                           disabled={deleteMutation.isPending}

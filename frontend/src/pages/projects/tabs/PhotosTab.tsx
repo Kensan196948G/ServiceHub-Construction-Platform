@@ -52,7 +52,7 @@ export function PhotosTab({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap justify-between items-center gap-2">
-        <h4 className="font-semibold text-gray-900">写真一覧</h4>
+        <h4 className="font-semibold text-gray-900 dark:text-white">写真一覧</h4>
         <div className="flex items-center gap-2">
           <Select
             value={category}
@@ -79,7 +79,7 @@ export function PhotosTab({ projectId }: { projectId: string }) {
       ) : photos.length === 0 ? (
         <Card className="text-center py-12">
           <p className="text-4xl mb-3">🖼️</p>
-          <p className="text-gray-500 mb-4">写真がまだありません</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">写真がまだありません</p>
           <label className="inline-flex items-center justify-center rounded-md font-medium transition-colors bg-primary-600 text-white hover:bg-primary-700 h-8 px-3 text-sm cursor-pointer">
             追加する
             <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
@@ -88,11 +88,11 @@ export function PhotosTab({ projectId }: { projectId: string }) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {photos.map((p) => (
-            <div key={p.id} className="relative group rounded-xl overflow-hidden bg-gray-100 aspect-square">
+            <div key={p.id} className="relative group rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-square">
               {p.url ? (
                 <img src={p.url} alt={p.original_filename} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                   <Image className="w-8 h-8" />
                 </div>
               )}

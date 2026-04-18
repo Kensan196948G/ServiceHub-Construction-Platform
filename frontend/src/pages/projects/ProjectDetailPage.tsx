@@ -32,17 +32,17 @@ export default function ProjectDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Link to="/projects" className="text-gray-400 hover:text-gray-600 transition-colors">
+        <Link to="/projects" className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <Building2 className="w-6 h-6 text-primary-600" />
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{project.name}</h2>
-          <p className="text-sm text-gray-500">{project.project_code}</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{project.name}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{project.project_code}</p>
         </div>
       </div>
 
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="flex gap-1 -mb-px overflow-x-auto">
           {TABS.map((tab) => (
             <button
@@ -51,7 +51,7 @@ export default function ProjectDetailPage() {
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === tab.key
                   ? "border-b-2 border-primary-600 text-primary-600"
-                  : "text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-b-2 hover:border-gray-300 dark:hover:border-gray-500"
               }`}
             >
               {tab.icon}

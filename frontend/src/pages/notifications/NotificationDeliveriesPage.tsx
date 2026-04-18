@@ -48,8 +48,8 @@ export default function NotificationDeliveriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Bell className="h-6 w-6 text-gray-600" aria-hidden="true" />
-          <h1 className="text-2xl font-bold text-gray-900">通知配信履歴</h1>
+          <Bell className="h-6 w-6 text-gray-600 dark:text-gray-400" aria-hidden="true" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">通知配信履歴</h1>
         </div>
         <Button
           onClick={() => retryMutation.mutate()}
@@ -64,7 +64,7 @@ export default function NotificationDeliveriesPage() {
       {retryMutation.isSuccess && (
         <div
           role="alert"
-          className="rounded-md bg-green-50 p-3 text-sm text-green-800"
+          className="rounded-md bg-green-50 dark:bg-green-900/30 p-3 text-sm text-green-800 dark:text-green-300"
           data-testid="retry-result"
         >
           {retryMutation.data?.message}
@@ -74,7 +74,7 @@ export default function NotificationDeliveriesPage() {
       {retryMutation.isError && (
         <div
           role="alert"
-          className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+          className="rounded-md bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-800 dark:text-red-300"
           data-testid="retry-error"
         >
           再送信に失敗しました。
@@ -93,7 +93,7 @@ export default function NotificationDeliveriesPage() {
         {isError && (
           <div
             role="alert"
-            className="p-4 text-sm text-red-600"
+            className="p-4 text-sm text-red-600 dark:text-red-400"
             data-testid="deliveries-error"
           >
             配信履歴の取得に失敗しました。
@@ -104,7 +104,7 @@ export default function NotificationDeliveriesPage() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm" aria-label="通知配信履歴" data-testid="deliveries-table">
-                <thead className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <thead className="border-b dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                   <tr>
                     <th className="px-4 py-3">チャンネル</th>
                     <th className="px-4 py-3">イベント</th>
@@ -115,12 +115,12 @@ export default function NotificationDeliveriesPage() {
                     <th className="px-4 py-3">作成日時</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y dark:divide-gray-700">
                   {data?.data.length === 0 && (
                     <tr>
                       <td
                         colSpan={7}
-                        className="py-8 text-center text-gray-500"
+                        className="py-8 text-center text-gray-500 dark:text-gray-400"
                         data-testid="deliveries-empty"
                       >
                         配信履歴がありません。
@@ -130,7 +130,7 @@ export default function NotificationDeliveriesPage() {
                   {data?.data.map((d) => (
                     <tr
                       key={d.id}
-                      className="hover:bg-gray-50"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
                       data-testid="delivery-row"
                     >
                       <td className="px-4 py-3">
@@ -138,7 +138,7 @@ export default function NotificationDeliveriesPage() {
                           {d.channel}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs">
+                      <td className="px-4 py-3 font-mono text-xs text-gray-900 dark:text-gray-200">
                         {d.event_key}
                       </td>
                       <td className="px-4 py-3">
@@ -146,11 +146,11 @@ export default function NotificationDeliveriesPage() {
                           {d.status}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                         {d.failure_kind ?? "—"}
                       </td>
-                      <td className="px-4 py-3 text-center">{d.attempts}</td>
-                      <td className="px-4 py-3 max-w-xs truncate">
+                      <td className="px-4 py-3 text-center text-gray-900 dark:text-gray-200">{d.attempts}</td>
+                      <td className="px-4 py-3 max-w-xs truncate text-gray-900 dark:text-gray-200">
                         {d.subject ?? "—"}
                       </td>
                       <td className="px-4 py-3 text-gray-500 text-xs">
@@ -163,7 +163,7 @@ export default function NotificationDeliveriesPage() {
             </div>
 
             {data && data.meta.pages > 1 && (
-              <div className="border-t px-4 py-3">
+              <div className="border-t dark:border-gray-600 px-4 py-3">
                 <Pagination
                   page={data.meta.page}
                   totalPages={data.meta.pages}

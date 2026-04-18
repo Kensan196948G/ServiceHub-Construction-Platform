@@ -118,7 +118,7 @@ export default function KnowledgePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <BookOpen className="w-7 h-7 text-primary-600" />
           AIナレッジベース
         </h2>
@@ -128,8 +128,8 @@ export default function KnowledgePage() {
       </div>
 
       {/* AI検索エリア */}
-      <Card className="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
-        <p className="text-sm font-semibold text-primary-700 mb-2 flex items-center gap-1">
+      <Card className="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200 dark:from-primary-900/20 dark:to-blue-900/20 dark:border-primary-800">
+        <p className="text-sm font-semibold text-primary-700 dark:text-primary-300 mb-2 flex items-center gap-1">
           <Sparkles className="w-4 h-4" />
           AI検索
         </p>
@@ -155,7 +155,7 @@ export default function KnowledgePage() {
           </Button>
         </div>
         {aiAnswer && (
-          <div className="mt-3 p-3 bg-white rounded-lg border border-primary-200 text-sm text-gray-700 whitespace-pre-wrap">
+          <div className="mt-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-primary-200 dark:border-primary-700 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
             {aiAnswer}
           </div>
         )}
@@ -213,9 +213,9 @@ export default function KnowledgePage() {
                     )}
                   </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{article.title}</h3>
-                <p className="text-sm text-gray-500 line-clamp-2 mb-3">{article.content}</p>
-                <div className="flex items-center gap-4 text-xs text-gray-400">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">{article.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{article.content}</p>
+                <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
                   <span className="flex items-center gap-1">
                     <Eye className="w-3 h-3" />
                     {article.view_count}
@@ -227,7 +227,7 @@ export default function KnowledgePage() {
                     </span>
                   )}
                   {tags.map((tag) => (
-                    <span key={tag} className="bg-gray-100 px-2 py-0.5 rounded-full text-gray-500">
+                    <span key={tag} className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-500 dark:text-gray-400">
                       #{tag}
                     </span>
                   ))}
@@ -264,8 +264,8 @@ export default function KnowledgePage() {
                       <Badge variant="warning">非公開</Badge>
                     )}
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">{selectedArticle.title}</h3>
-                  <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{selectedArticle.title}</h3>
+                  <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500 mt-1">
                     <span className="flex items-center gap-1">
                       <Eye className="w-3 h-3" />
                       閲覧数: {selectedArticle.view_count}
@@ -316,7 +316,7 @@ export default function KnowledgePage() {
                       checked={editForm.is_published}
                       onChange={(e) => setEditForm({ ...editForm, is_published: e.target.checked })}
                     />
-                    <label htmlFor="edit_is_published" className="text-sm font-medium text-gray-700">公開する</label>
+                    <label htmlFor="edit_is_published" className="text-sm font-medium text-gray-700 dark:text-gray-300">公開する</label>
                   </div>
                   {updateMutation.isError && (
                     <ErrorText message="保存に失敗しました。" />
@@ -324,13 +324,13 @@ export default function KnowledgePage() {
                 </div>
               ) : (
                 <>
-                  <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                     {selectedArticle.content}
                   </div>
                   {selectedArticle.tags && (
                     <div className="mt-4 flex flex-wrap gap-2">
                       {selectedArticle.tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
-                        <span key={tag} className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-500">
+                        <span key={tag} className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full text-xs text-gray-500 dark:text-gray-400">
                           #{tag}
                         </span>
                       ))}
@@ -339,7 +339,7 @@ export default function KnowledgePage() {
                 </>
               )}
             </div>
-            <div className="flex items-center justify-between pt-4 border-t mt-4">
+            <div className="flex items-center justify-between pt-4 border-t dark:border-gray-600 mt-4">
               <Button
                 variant="danger"
                 size="sm"
@@ -415,7 +415,7 @@ export default function KnowledgePage() {
           <div className="flex items-center gap-2">
             <input type="checkbox" id="is_published" checked={form.is_published}
               onChange={(e) => setForm({ ...form, is_published: e.target.checked })} />
-            <label htmlFor="is_published" className="text-sm font-medium text-gray-700">公開する</label>
+            <label htmlFor="is_published" className="text-sm font-medium text-gray-700 dark:text-gray-300">公開する</label>
           </div>
           {createMutation.isError && (
             <ErrorText message="作成に失敗しました。" />
