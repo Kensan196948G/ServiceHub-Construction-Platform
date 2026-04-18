@@ -1,9 +1,9 @@
 {
-  "phase": "Phase 5e-1 社内 4 ページ 実装完了 (Issue #132) — PR 準備中 / 先行: Phase 5a/5c merged",
-  "loop": "Day18-Phase5e1-InternalPages",
-  "loop_count": 132,
+  "phase": "Phase 5e-1 社内 4 ページ merged (PR#136 / 3fb86d2) — 次: Issue #133 Sidebar 4 グループ化 or Phase 5b Lighthouse",
+  "loop": "Day18-PostPhase5e1-Sync",
+  "loop_count": 133,
   "status": "active",
-  "last_updated": "2026-04-18T17:20:00+09:00",
+  "last_updated": "2026-04-18T16:35:00+09:00",
   "execution": {
     "start_time": "2026-04-18T13:57:32+09:00",
     "max_duration_minutes": 300,
@@ -34,16 +34,15 @@
   },
   "priorities": {
     "high": [
-      "Phase 5e-1 PR review → merge (Issue #132 / 社内 4 ページ)",
+      "Issue #133 サイドバー 4 グループ化 (業務 / 運用 / 社内 / 管理)",
       "Issue #126 Phase 5b: Lighthouse スコア改善 (LCP/CLS/INP)"
     ],
     "medium": [
-      "Issue #133 サイドバー 4 グループ化 (業務 / 運用 / 社内 / 管理)",
       "Issue #134 Tailwind トークン統一 (brand-10..90 / safety / warn)",
-      "Issue #128 Phase 5d: OpenAPI codegen 更新 (Frontend 型同期)"
+      "Issue #128 Phase 5d: OpenAPI codegen 更新 (Frontend 型同期)",
+      "Issue #135 サイドバー brand カラー (デジタル庁準拠)"
     ],
     "low": [
-      "Issue #135 サイドバー brand カラー (デジタル庁準拠)",
       "Playwright SIGTRAP 環境調査 (Phase 5e-1 E2E spec 実行不可)",
       "distroless Docker イメージ検討 (PR #129 follow-up)",
       "Trivy HIGH 0 検証 (PR #129 follow-up)"
@@ -109,9 +108,12 @@
       "priority": "P3"
     },
     "phase_5e1_internal_pages": {
-      "status": "pr_pending",
+      "status": "merged",
+      "pr": "#136",
       "issue": "#132",
-      "branch": "feat/phase5e1-internal-pages",
+      "merged_at": "2026-04-18T07:22:11Z",
+      "merge_commit": "3fb86d2",
+      "branch": "feat/phase5e1-internal-pages (deleted)",
       "scope": "docs/design/ServiceHub-WebUI.html 正ソース化に基づく社内グループ 4 ページ新設",
       "pages_added": [
         "/portal (社内ポータル — お知らせ / 直近イベント / クイックリンク)",
@@ -119,11 +121,11 @@
         "/hr (人事・勤怠 — KPI 4 枚 / 手続きメニュー 6 / 最近の申請テーブル)",
         "/rules (社内規程 — カテゴリ検索 / 最近の改訂 / 様式・申請書)"
       ],
-      "e2e_blocker": {
-        "issue": "ローカル Playwright chromium launch が SIGTRAP で失敗",
-        "evidence": "chromium-1217 / chromium_headless_shell-1217 両方で再現 / --workers=1 でも再現",
-        "action": "env 調査 Issue 化、CI で別途検証予定"
-      }
+      "e2e_added": 4,
+      "ci_result": "E2E 10/10 PASS (post selector fix 1169ac6)",
+      "follow_ups": [
+        "ローカル Playwright chromium SIGTRAP 環境調査 (CI では未再現)"
+      ]
     }
   },
   "phase4_status": {
@@ -132,14 +134,14 @@
     "phase_4c_e2e": {"status": "merged", "pr": "#123"}
   },
   "resume_point": {
-    "action": "Phase 5e-1 PR 作成 → Codex/CodeRabbit レビュー → admin merge → Phase 5b Lighthouse or #133 サイドバー 4 グループ化",
-    "branch": "feat/phase5e1-internal-pages",
-    "next_phase": "Issue #133 (サイドバーグループ化) → #126 Lighthouse → #128 codegen"
+    "action": "Issue #133 Sidebar 4 グループ化 着手 (業務/運用/社内/管理 分離) — or Phase 5b Lighthouse #126",
+    "branch": "(次 Issue 用 worktree 新規作成)",
+    "next_phase": "#133 Sidebar → #126 Lighthouse → #134 Tailwind token → #128 codegen"
   },
   "current_sprint": {
     "phase": "Sprint 6 Phase 5",
-    "completed_prs_phase5": ["PR#129", "PR#130"],
-    "in_review_phase5": ["Phase 5e-1 (PR 作成予定 / Issue #132)"],
-    "next": "Phase 5e-1 merge 後: Issue #133 (サイドバー 4 グループ化) / #126 Lighthouse / #128 codegen"
+    "completed_prs_phase5": ["PR#129", "PR#130", "PR#136"],
+    "in_review_phase5": [],
+    "next": "Issue #133 サイドバー 4 グループ化 / #126 Lighthouse / #128 codegen"
   }
 }

@@ -122,7 +122,7 @@ graph TB
 | ✅ CI チェック数 | **15 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115 / Phase 4a PR#119 / 4b PR#121 / 4c PR#123 / Phase 5a PR#129 Docker / Phase 5c PR#130 coverage 95% 全 merge 済み） |
+| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115 / Phase 4a PR#119 / 4b PR#121 / 4c PR#123 / Phase 5a PR#129 Docker / Phase 5c PR#130 coverage 95% / Phase 5e-1 PR#136 社内 4 ページ 全 merge 済み） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -259,7 +259,7 @@ graph LR
 | `notification-settings.spec.ts` | 6 | 通知設定 UI (マスタースイッチ・イベント別・保存) |
 | `notification-panel.spec.ts` | 11 | 通知バッジ表示・パネル開閉・SSE 受信・未読カウント・すべてクリア・アクセシビリティ |
 | `phase5e1-internal-pages.spec.ts` | 4 | 社内ポータル / お知らせ / 人事・勤怠 / 社内規程 — 見出し・セクション・フィルタ smoke (Phase 5e-1) |
-| **合計** | **206** | **全16ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル(Phase 4c) + 社内グループ(Phase 5e-1)** |
+| **合計** | **206** | **全17ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル(Phase 4c) + 社内グループ(Phase 5e-1)** |
 
 ---
 
