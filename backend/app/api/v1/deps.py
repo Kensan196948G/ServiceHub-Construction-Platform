@@ -6,7 +6,7 @@ JWT認証・現在ユーザー取得
 import uuid
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +20,7 @@ security = HTTPBearer(auto_error=False)
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    token_query: Annotated[str | None, Query(alias="token")] = None,
 ):
     """JWTトークン検証→ユーザー取得"""
     from app.models.user import User
@@ -30,10 +31,12 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    if credentials is None:
+    # Support token via query param for SSE (EventSource cannot set headers)
+    raw_token = credentials.credentials if credentials else token_query
+    if raw_token is None:
         raise credentials_exception
 
-    token_data = verify_token(credentials.credentials)
+    token_data = verify_token(raw_token)
     if token_data is None:
         raise credentials_exception
 
