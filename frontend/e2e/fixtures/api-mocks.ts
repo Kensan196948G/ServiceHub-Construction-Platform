@@ -327,4 +327,5 @@ export async function loginAndNavigate(page: Page): Promise<void> {
   )
   await page.goto('/dashboard')
   await page.waitForURL('**/dashboard')
+  await page.waitForSelector('main')
 }
