@@ -13,6 +13,10 @@ import PhotosPage from "@/pages/photos/PhotosPage";
 import UsersPage from "@/pages/users/UsersPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
 import NotificationDeliveriesPage from "@/pages/notifications/NotificationDeliveriesPage";
+import PortalPage from "@/pages/internal/PortalPage";
+import NoticesPage from "@/pages/internal/NoticesPage";
+import HRPage from "@/pages/internal/HRPage";
+import RulesPage from "@/pages/internal/RulesPage";
 import { useAuthStore } from "@/stores/authStore";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -47,6 +51,10 @@ export default function App() {
           path="admin/notifications"
           element={<NotificationDeliveriesPage />}
         />
+        <Route path="portal" element={<PortalPage />} />
+        <Route path="notices" element={<NoticesPage />} />
+        <Route path="hr" element={<HRPage />} />
+        <Route path="rules" element={<RulesPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
