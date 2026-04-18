@@ -4,6 +4,10 @@ import { MemoryRouter } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "./Layout";
 
+vi.mock("@/hooks/useSSE", () => ({
+  useSSE: () => ({ unreadCount: 0, clearUnread: vi.fn(), notifications: [], connected: false }),
+}));
+
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");

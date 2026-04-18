@@ -17,6 +17,31 @@ if (typeof window !== "undefined" && !window.matchMedia) {
   });
 }
 
+// EventSource is not implemented in jsdom — provide a no-op stub
+if (typeof window !== "undefined" && !window.EventSource) {
+  class EventSourceStub {
+    static readonly CONNECTING = 0;
+    static readonly OPEN = 1;
+    static readonly CLOSED = 2;
+    readonly CONNECTING = 0;
+    readonly OPEN = 1;
+    readonly CLOSED = 2;
+    readyState = 1;
+    onopen: (() => void) | null = null;
+    onmessage: ((ev: MessageEvent) => void) | null = null;
+    onerror: ((ev: Event) => void) | null = null;
+    constructor(_url: string) {}
+    close() { this.readyState = 2; }
+    addEventListener() {}
+    removeEventListener() {}
+    dispatchEvent() { return false; }
+  }
+  Object.defineProperty(window, "EventSource", {
+    writable: true,
+    value: EventSourceStub,
+  });
+}
+
 // Ensure localStorage is available for zustand persist middleware in jsdom
 if (typeof globalThis.localStorage === "undefined" || !globalThis.localStorage.setItem) {
   const store: Record<string, string> = {};
