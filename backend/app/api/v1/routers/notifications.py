@@ -34,6 +34,7 @@ from fastapi import (
     Request,
     status,
 )
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
@@ -49,6 +50,7 @@ from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
 from app.schemas.notification_delivery import NotificationDeliveryResponse
 from app.schemas.notification_preference import NotificationTestResponse
 from app.services.notification_dispatcher import NotificationDispatcher, schedule_ping
+from app.services.sse_manager import sse_manager
 
 router = APIRouter(
     prefix="/notifications",
@@ -214,6 +216,35 @@ async def post_notification_retry(
                 else "リトライ対象の通知がありません。"
             ),
         }
+    )
+
+
+@router.get(
+    "/stream",
+    summary="SSE リアルタイム通知ストリーム (Phase 4a)",
+    response_class=StreamingResponse,
+)
+async def get_notification_stream(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> StreamingResponse:
+    """認証済みユーザー向け SSE ストリームエンドポイント。
+
+    接続するとサーバーからリアルタイムに通知イベントが push される。
+    クライアントは EventSource API で購読し、切断時は自動再接続する。
+
+    イベントフォーマット:
+        data: {"type": "notification", "id": "...", "title": "...", "message": "..."}
+
+    Keep-alive として 30 秒ごとに `: ping` コメントを送信する。
+    """
+    q = sse_manager.connect(current_user.id)
+    return StreamingResponse(
+        sse_manager.event_stream(current_user.id, q),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # nginx buffering off
+        },
     )
 
 

@@ -21,12 +21,15 @@ import {
 import { useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useSSE } from "@/hooks/useSSE";
+import { NotificationBadge } from "@/components/ui/NotificationBadge";
 import clsx from "clsx";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
+  const { unreadCount, clearUnread, connected } = useSSE();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -145,6 +148,12 @@ export default function Layout() {
           <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex-1">
             ServiceHub 工事管理プラットフォーム
           </h1>
+          {/* Notification badge */}
+          <NotificationBadge
+            count={unreadCount}
+            connected={connected}
+            onClick={clearUnread}
+          />
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
