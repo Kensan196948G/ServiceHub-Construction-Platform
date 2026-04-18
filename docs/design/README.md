@@ -39,7 +39,10 @@
 | CostPage | `frontend/src/pages/cost/CostPage.tsx` |
 | ITSMPage | `frontend/src/pages/itsm/ItsmPage.tsx` |
 | KnowledgePage | `frontend/src/pages/knowledge/KnowledgePage.tsx` |
-| PortalPage (新設) | `frontend/src/pages/portal/` (未実装) |
+| PortalPage (Phase 5e-1) | `frontend/src/pages/internal/PortalPage.tsx` |
+| NoticesPage (Phase 5e-1) | `frontend/src/pages/internal/NoticesPage.tsx` |
+| HRPage (Phase 5e-1) | `frontend/src/pages/internal/HRPage.tsx` |
+| RulesPage (Phase 5e-1) | `frontend/src/pages/internal/RulesPage.tsx` |
 | UsersPage | `frontend/src/pages/users/UsersPage.tsx` |
 | NotifPage | `frontend/src/pages/notifications/NotificationDeliveriesPage.tsx` |
 | SettingsPage | `frontend/src/pages/settings/SettingsPage.tsx` |
@@ -53,3 +56,4 @@
 ## 更新履歴
 
 - v1.0 (2026-04-18): 初版。4グループ構成、社内ポータル新設、ブルー系ブランドカラー統一
+- v1.1 (2026-04-18): Phase 5e-1 実装反映。社内グループ 4 ページ (Portal/Notices/HR/Rules) 実装完了、対応表を 12 → 16 行に拡張

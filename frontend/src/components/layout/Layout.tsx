@@ -17,6 +17,10 @@ import {
   Users,
   Settings,
   Bell,
+  Home,
+  Newspaper,
+  UserCog,
+  BookText,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
@@ -49,6 +53,10 @@ export default function Layout() {
     { to: "/photos", icon: Image, label: "写真管理" },
     { to: "/itsm", icon: AlertCircle, label: "ITSM" },
     { to: "/knowledge", icon: BookOpen, label: "ナレッジ" },
+    { to: "/portal", icon: Home, label: "社内ポータル" },
+    { to: "/notices", icon: Newspaper, label: "お知らせ" },
+    { to: "/hr", icon: UserCog, label: "人事・勤怠" },
+    { to: "/rules", icon: BookText, label: "社内規程" },
     ...(user?.role === "ADMIN"
       ? [
           { to: "/users", icon: Users, label: "ユーザー管理" },
