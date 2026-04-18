@@ -46,7 +46,11 @@ uploads/
 *.swo
 *~
 .DS_Store
+._*
 Thumbs.db
+
+# ── Claude Code (local dev config) ───────────────────
+.claude/
 
 # ── ログ ─────────────────────────────────────────────
 *.log

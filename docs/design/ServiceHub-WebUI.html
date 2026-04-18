@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ServiceHub — 改善版 WebUI (v2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     Design Tokens — Carbon / Atlassian / デジタル庁 に準拠
+     ═══════════════════════════════════════════════════════════════ */
+  :root {
+    /* Color — neutrals (Carbon Gray 100 scale) */
+    --gray-10:  #f4f4f4;
+    --gray-20:  #e0e0e0;
+    --gray-30:  #c6c6c6;
+    --gray-40:  #a8a8a8;
+    --gray-50:  #8d8d8d;
+    --gray-60:  #6f6f6f;
+    --gray-70:  #525252;
+    --gray-80:  #393939;
+    --gray-90:  #262626;
+    --gray-100: #161616;
+    --white:    #ffffff;
+    --bg:       #f4f4f4;
+    --surface:  #ffffff;
+    --line:     #e0e0e0;
+    --line-strong: #c6c6c6;
+
+    /* Brand — 深い専門色に刷新 (建設の信頼感 + デジタル庁準拠) */
+    --brand-90: #0b2545;
+    --brand-80: #13315c;
+    --brand-70: #1b4079;
+    --brand-60: #2458a6;
+    --brand-50: #3b7dd8;
+    --brand-20: #d6e4f5;
+    --brand-10: #eaf2fb;
+
+    /* Accent — 建設の警戒色 (JIS 安全色に近いオレンジ) */
+    --safety-60: #d64a1a;
+    --safety-50: #e76025;
+    --safety-20: #fde3d2;
+    --safety-10: #fff1e8;
+
+    /* Semantic */
+    --ok-60:    #0f8b4a;
+    --ok-20:    #d3f0df;
+    --ok-10:    #e6f7ee;
+    --warn-60:  #b76200;
+    --warn-20:  #fde6c4;
+    --warn-10:  #fff4e0;
+    --err-60:   #c8102e;
+    --err-20:   #ffd4d8;
+    --err-10:   #ffebed;
+    --info-60:  #2458a6;
+
+    /* Typography — IBM Plex 系 (Carbon) + Noto Sans JP */
+    --font-sans: "IBM Plex Sans", "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+    /* Type scale — Carbon productive */
+    --fs-12: 0.75rem;    /* 12 — caption only, avoid for body */
+    --fs-14: 0.875rem;   /* 14 — MIN body size (WCAG conservative) */
+    --fs-16: 1rem;       /* 16 — default body */
+    --fs-18: 1.125rem;
+    --fs-20: 1.25rem;
+    --fs-24: 1.5rem;
+    --fs-28: 1.75rem;
+    --fs-32: 2rem;
+    --fs-42: 2.625rem;
+
+    /* Spacing — 4px baseline grid */
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
+    --sp-9: 48px; --sp-10: 64px; --sp-11: 80px;
+
+    /* Radius */
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 8px;
+    --r-xl: 12px;
+    --r-pill: 9999px;
+
+    /* Elevation — subtle, enterprise */
+    --e1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+    --e2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --e3: 0 16px 32px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04);
+
+    /* Touch — min 44px per WCAG 2.2 SC 2.5.8 */
+    --touch: 44px;
+
+    /* Focus — high-contrast 2px outline */
+    --focus: 0 0 0 2px var(--white), 0 0 0 4px var(--brand-60);
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--gray-100);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-size: var(--fs-16);
+    line-height: 1.5;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; font-size: inherit; }
+  a { color: var(--brand-60); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ::placeholder { color: var(--gray-60); opacity: 1; } /* AA-safe */
+
+  /* Focus ring — global */
+  *:focus-visible {
+    outline: 2px solid var(--brand-60);
+    outline-offset: 2px;
+    border-radius: var(--r-sm);
+  }
+
+  /* Skip link — accessibility */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    background: var(--gray-100);
+    color: var(--white);
+    padding: 12px 20px;
+    border-radius: var(--r-md);
+    font-weight: 600;
+    z-index: 9999;
+    transition: top 0.15s;
+  }
+  .skip-link:focus { top: 12px; text-decoration: none; }
+
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#0b2545">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#0b2545"/>
+    <g transform="translate(360,200)">
+      <rect x="0" y="0" width="480" height="400" rx="24" fill="#13315c"/>
+      <rect x="40" y="60" width="200" height="80" rx="8" fill="#2458a6"/>
+      <rect x="260" y="60" width="180" height="80" rx="8" fill="#e76025"/>
+      <rect x="40" y="170" width="400" height="14" rx="4" fill="#3b7dd8" opacity="0.6"/>
+      <rect x="40" y="200" width="320" height="14" rx="4" fill="#3b7dd8" opacity="0.4"/>
+      <rect x="40" y="240" width="400" height="120" rx="12" fill="#0b2545" stroke="#2458a6" stroke-width="2"/>
+      <path d="M60 340 L140 310 L220 320 L300 280 L380 260 L420 250" stroke="#e76025" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </g>
+    <text x="600" y="680" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="36" font-weight="700" letter-spacing="4">ServiceHub</text>
+  </svg>
+</template>
+<a href="#main-content" class="skip-link">メインコンテンツへスキップ</a>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo, createContext, useContext } = React;
+
+/* ═══════════════════════════════════════════════════════════════
+   ICONS — stroke-based, 20px default (touch-friendly)
+   ═══════════════════════════════════════════════════════════════ */
+const Icon = ({ d, size = 20, fill = false, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill ? "currentColor" : "none"}
+       stroke="currentColor" strokeWidth={fill ? 0 : 1.6} strokeLinecap="round" strokeLinejoin="round"
+       className={className} aria-hidden="true">
+    {Array.isArray(d) ? d.map((path, i) => <path key={i} d={path} />) : <path d={d} />}
+  </svg>
+);
+
+const Icons = {
+  Dashboard: (p) => <Icon {...p} d={["M3 13h8V3H3v10zM3 21h8v-6H3v6zM13 21h8V11h-8v10zM13 3v6h8V3h-8z"]} />,
+  Building:  (p) => <Icon {...p} d={["M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"]} />,
+  FileText:  (p) => <Icon {...p} d={["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6","M9 13h6M9 17h6"]} />,
+  Shield:    (p) => <Icon {...p} d={["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z","M9 12l2 2 4-4"]} />,
+  Coins:     (p) => <Icon {...p} d={["M12 8c3.9 0 7-1.3 7-3s-3.1-3-7-3-7 1.3-7 3 3.1 3 7 3z","M5 5v4c0 1.7 3.1 3 7 3s7-1.3 7-3V5","M5 11v4c0 1.7 3.1 3 7 3s7-1.3 7-3v-4","M5 17v2c0 1.7 3.1 3 7 3s7-1.3 7-3v-2"]} />,
+  Camera:    (p) => <Icon {...p} d={["M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z","M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]} />,
+  Alert:     (p) => <Icon {...p} d={["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4M12 17h.01"]} />,
+  Book:      (p) => <Icon {...p} d={["M4 19.5A2.5 2.5 0 0 1 6.5 17H20","M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"]} />,
+  Users:     (p) => <Icon {...p} d={["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2","M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z","M23 21v-2a4 4 0 0 0-3-3.87","M16 3.13a4 4 0 0 1 0 7.75"]} />,
+  Bell:      (p) => <Icon {...p} d={["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9","M13.73 21a2 2 0 0 1-3.46 0"]} />,
+  Settings:  (p) => <Icon {...p} d={["M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z","M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"]} />,
+  Search:    (p) => <Icon {...p} d={["M21 21l-4.35-4.35","M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"]} />,
+  ChevronR:  (p) => <Icon {...p} d={["M9 18l6-6-6-6"]} />,
+  ChevronD:  (p) => <Icon {...p} d={["M6 9l6 6 6-6"]} />,
+  Plus:      (p) => <Icon {...p} d={["M12 5v14M5 12h14"]} />,
+  Command:   (p) => <Icon {...p} d={["M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"]} />,
+  Menu:      (p) => <Icon {...p} d={["M3 12h18M3 6h18M3 18h18"]} />,
+  LogOut:    (p) => <Icon {...p} d={["M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4","M16 17l5-5-5-5","M21 12H9"]} />,
+  Hardhat:   (p) => <Icon {...p} d={["M2 18h20M4 18v-4a8 8 0 0 1 16 0v4","M10 6V4a2 2 0 1 1 4 0v2"]} />,
+  Wifi:      (p) => <Icon {...p} d={["M5 12.55a11 11 0 0 1 14.08 0","M1.42 9a16 16 0 0 1 21.16 0","M8.53 16.11a6 6 0 0 1 6.95 0","M12 20h.01"]} />,
+  Mic:       (p) => <Icon {...p} d={["M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z","M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"]} />,
+  Camera2:   (p) => <Icon {...p} d={["M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z","M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]} />,
+  Download:  (p) => <Icon {...p} d={["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4","M7 10l5 5 5-5","M12 15V3"]} />,
+  Calendar:  (p) => <Icon {...p} d={["M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z","M16 2v4M8 2v4M3 10h18"]} />,
+  Map:       (p) => <Icon {...p} d={["M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z","M8 2v16M16 6v16"]} />,
+  TrendUp:   (p) => <Icon {...p} d={["M23 6l-9.5 9.5-5-5L1 18","M17 6h6v6"]} />,
+  Check:     (p) => <Icon {...p} d={["M20 6L9 17l-5-5"]} />,
+  X:         (p) => <Icon {...p} d={["M18 6L6 18M6 6l12 12"]} />,
+  Clock:     (p) => <Icon {...p} d={["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z","M12 6v6l4 2"]} />,
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   SAMPLE DATA
+   ═══════════════════════════════════════════════════════════════ */
+const PROJECTS = [
+  { id: 1, code: "PRJ-2026-0412", name: "新宿区A棟 改修工事", client: "株式会社丸山地所", status: "IN_PROGRESS", start: "2026-03-01", end: "2026-08-31", progress: 42, budget: 8400, actual: 3700, lead: "佐藤 健一" },
+  { id: 2, code: "PRJ-2026-0408", name: "川崎駅前 複合ビル新築", client: "東急不動産", status: "IN_PROGRESS", start: "2026-02-15", end: "2027-01-20", progress: 18, budget: 24500, actual: 4200, lead: "鈴木 一郎" },
+  { id: 3, code: "PRJ-2026-0399", name: "横浜みなとみらい 基礎工事", client: "三井不動産", status: "ON_HOLD",     start: "2026-01-10", end: "2026-06-30", progress: 68, budget: 12000, actual: 9800, lead: "田中 美咲" },
+  { id: 4, code: "PRJ-2026-0386", name: "大手町 内装リノベ", client: "三菱地所", status: "PLANNING",    start: "2026-05-01", end: "2026-07-15", progress: 0,  budget: 3200,  actual: 0,    lead: "山本 良太" },
+  { id: 5, code: "PRJ-2026-0371", name: "千葉 物流倉庫 解体", client: "プロロジス", status: "COMPLETED", start: "2025-11-20", end: "2026-03-31", progress: 100, budget: 6100, actual: 5880, lead: "佐藤 健一" },
+];
+
+const INCIDENTS = [
+  { id: "INC-2026-0342", title: "A棟 3F 足場の一部に緩み、巡回中に発見", priority: "HIGH", status: "IN_PROGRESS", at: "2026-04-17", project: "新宿区A棟" },
+  { id: "INC-2026-0341", title: "川崎現場 資材搬入トラックの進入経路変更要望", priority: "MEDIUM", status: "OPEN", at: "2026-04-17", project: "川崎駅前" },
+  { id: "INC-2026-0338", title: "横浜 基礎コンクリート打設 — 養生期間延長", priority: "MEDIUM", status: "OPEN", at: "2026-04-16", project: "横浜みなとみらい" },
+];
+
+const STATUS_MAP = {
+  PLANNING:    { label: "計画中",  tone: "info" },
+  IN_PROGRESS: { label: "進行中",  tone: "ok"   },
+  ON_HOLD:     { label: "保留",    tone: "warn" },
+  COMPLETED:   { label: "完了",    tone: "neutral" },
+  CANCELLED:   { label: "中止",    tone: "err"  },
+};
+const PRIORITY_MAP = {
+  CRITICAL: { label: "重大", tone: "err" },
+  HIGH:     { label: "高",   tone: "err" },
+  MEDIUM:   { label: "中",   tone: "warn" },
+  LOW:      { label: "低",   tone: "neutral" },
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   UI PRIMITIVES
+   ═══════════════════════════════════════════════════════════════ */
+function Badge({ tone = "neutral", size = "md", children }) {
+  const toneMap = {
+    ok:      { bg: "var(--ok-10)",    fg: "var(--ok-60)",    bd: "var(--ok-20)" },
+    warn:    { bg: "var(--warn-10)",  fg: "var(--warn-60)",  bd: "var(--warn-20)" },
+    err:     { bg: "var(--err-10)",   fg: "var(--err-60)",   bd: "var(--err-20)" },
+    info:    { bg: "var(--brand-10)", fg: "var(--brand-60)", bd: "var(--brand-20)" },
+    neutral: { bg: "var(--gray-10)",  fg: "var(--gray-80)",  bd: "var(--gray-20)" },
+  };
+  const t = toneMap[tone] || toneMap.neutral;
+  const padding = size === "sm" ? "2px 8px" : "4px 10px";
+  const fontSize = size === "sm" ? "var(--fs-12)" : "var(--fs-14)";
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding, borderRadius: "var(--r-pill)",
+      fontSize, fontWeight: 600, lineHeight: 1.2,
+      background: t.bg, color: t.fg, border: `1px solid ${t.bd}`,
+      whiteSpace: "nowrap",
+    }}>{children}</span>
+  );
+}
+
+function Button({ variant = "primary", size = "md", leftIcon, children, onClick, type = "button", full = false, ...rest }) {
+  const sizes = {
+    sm: { h: "var(--touch)", px: 14, fs: "var(--fs-14)" }, // still 44px for touch
+    md: { h: "var(--touch)", px: 18, fs: "var(--fs-14)" },
+    lg: { h: 52, px: 22, fs: "var(--fs-16)" },
+  };
+  const s = sizes[size];
+  const variants = {
+    primary:   { bg: "var(--brand-60)", fg: "#fff", bd: "var(--brand-60)", hbg: "var(--brand-70)" },
+    secondary: { bg: "#fff",            fg: "var(--gray-100)", bd: "var(--gray-30)", hbg: "var(--gray-10)" },
+    ghost:     { bg: "transparent",     fg: "var(--gray-100)", bd: "transparent",    hbg: "var(--gray-10)" },
+    danger:    { bg: "var(--err-60)",   fg: "#fff", bd: "var(--err-60)", hbg: "#a50b24" },
+  };
+  const v = variants[variant];
+  return (
+    <button type={type} onClick={onClick} {...rest}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+        height: s.h, padding: `0 ${s.px}px`, fontSize: s.fs, fontWeight: 600,
+        background: v.bg, color: v.fg, border: `1px solid ${v.bd}`,
+        borderRadius: "var(--r-md)", transition: "background 0.12s, border 0.12s",
+        width: full ? "100%" : "auto", letterSpacing: 0.01,
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.background = v.hbg}
+      onMouseLeave={(e) => e.currentTarget.style.background = v.bg}
+    >
+      {leftIcon}{children}
+    </button>
+  );
+}
+
+function Card({ children, padding = 24, style = {}, as: Tag = "div", ...rest }) {
+  return (
+    <Tag {...rest} style={{
+      background: "var(--surface)",
+      border: "1px solid var(--line)",
+      borderRadius: "var(--r-lg)",
+      padding,
+      ...style,
+    }}>{children}</Tag>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD WIDGETS
+   ═══════════════════════════════════════════════════════════════ */
+function StatTile({ label, value, delta, deltaTone = "ok", icon, tone = "brand" }) {
+  const tones = {
+    brand:  { bg: "var(--brand-10)",  fg: "var(--brand-60)" },
+    safety: { bg: "var(--safety-10)", fg: "var(--safety-60)" },
+    ok:     { bg: "var(--ok-10)",     fg: "var(--ok-60)" },
+    warn:   { bg: "var(--warn-10)",   fg: "var(--warn-60)" },
+  };
+  const t = tones[tone];
+  return (
+    <Card padding={20}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: "var(--fs-14)", color: "var(--gray-70)", fontWeight: 500, marginBottom: 4 }}>{label}</div>
+          <div style={{ fontSize: "var(--fs-32)", fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.1, color: "var(--gray-100)", fontVariantNumeric: "tabular-nums" }}>{value}</div>
+          {delta && (
+            <div style={{ marginTop: 10, fontSize: "var(--fs-14)", color: deltaTone === "ok" ? "var(--ok-60)" : "var(--err-60)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <Icons.TrendUp size={14} />{delta}
+            </div>
+          )}
+        </div>
+        <div style={{
+          width: 40, height: 40, borderRadius: "var(--r-md)",
+          background: t.bg, color: t.fg,
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>{icon}</div>
+      </div>
+    </Card>
+  );
+}
+
+/* Line / Area chart — SVG, no library */
+function CostChart() {
+  const months = ["11月", "12月", "1月", "2月", "3月", "4月"];
+  const planned = [10, 24, 38, 55, 68, 78];
+  const actual  = [9,  22, 35, 50, 62, 71];
+  const W = 600, H = 220, PAD = { t: 20, r: 20, b: 36, l: 44 };
+  const plotW = W - PAD.l - PAD.r;
+  const plotH = H - PAD.t - PAD.b;
+  const maxV = 100;
+  const xAt = (i) => PAD.l + (i / (months.length - 1)) * plotW;
+  const yAt = (v) => PAD.t + (1 - v / maxV) * plotH;
+
+  const areaPath = `M ${xAt(0)} ${yAt(0)} ` +
+    actual.map((v, i) => `L ${xAt(i)} ${yAt(v)}`).join(" ") +
+    ` L ${xAt(actual.length - 1)} ${yAt(0)} Z`;
+  const actualLine = `M ` + actual.map((v, i) => `${xAt(i)} ${yAt(v)}`).join(" L ");
+  const plannedLine = `M ` + planned.map((v, i) => `${xAt(i)} ${yAt(v)}`).join(" L ");
+
+  return (
+    <Card padding={24}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600, color: "var(--gray-100)" }}>原価予実対比 — 全案件累計</h3>
+          <p style={{ margin: "4px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>過去6ヶ月 · 予算達成率 91.0%</p>
+        </div>
+        <div style={{ display: "flex", gap: 16, fontSize: "var(--fs-14)" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--gray-80)" }}>
+            <span style={{ width: 12, height: 2, background: "var(--gray-50)" }} />計画
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--gray-80)" }}>
+            <span style={{ width: 12, height: 3, background: "var(--brand-60)" }} />実績
+          </span>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", maxHeight: 240 }} role="img" aria-label="原価予実対比チャート">
+        {/* gridlines */}
+        {[0, 25, 50, 75, 100].map((v) => (
+          <g key={v}>
+            <line x1={PAD.l} x2={W - PAD.r} y1={yAt(v)} y2={yAt(v)} stroke="var(--gray-20)" strokeWidth="1" />
+            <text x={PAD.l - 8} y={yAt(v) + 4} fill="var(--gray-60)" fontSize="11" textAnchor="end" fontFamily="var(--font-mono)">{v}M</text>
+          </g>
+        ))}
+        {/* x labels */}
+        {months.map((m, i) => (
+          <text key={m} x={xAt(i)} y={H - 12} fill="var(--gray-70)" fontSize="12" textAnchor="middle">{m}</text>
+        ))}
+        {/* area */}
+        <path d={areaPath} fill="var(--brand-60)" opacity="0.1" />
+        {/* planned (dashed) */}
+        <path d={plannedLine} fill="none" stroke="var(--gray-50)" strokeWidth="2" strokeDasharray="4 4" />
+        {/* actual */}
+        <path d={actualLine} fill="none" stroke="var(--brand-60)" strokeWidth="2.5" />
+        {/* points */}
+        {actual.map((v, i) => (
+          <circle key={i} cx={xAt(i)} cy={yAt(v)} r="4" fill="#fff" stroke="var(--brand-60)" strokeWidth="2" />
+        ))}
+      </svg>
+    </Card>
+  );
+}
+
+/* Progress by project bar chart */
+function ProgressChart() {
+  const items = PROJECTS.filter(p => p.status !== "CANCELLED").slice(0, 4);
+  return (
+    <Card padding={24}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600 }}>進捗率 — 主要案件</h3>
+        <a href="#" style={{ fontSize: "var(--fs-14)", fontWeight: 500 }}>すべて →</a>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {items.map((p) => (
+          <div key={p.id}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--fs-14)", marginBottom: 6 }}>
+              <span style={{ color: "var(--gray-100)", fontWeight: 500, maxWidth: "70%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+              <span style={{ color: "var(--gray-70)", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>{p.progress}%</span>
+            </div>
+            <div style={{ height: 8, background: "var(--gray-10)", borderRadius: "var(--r-pill)", overflow: "hidden" }}>
+              <div style={{
+                width: `${p.progress}%`, height: "100%",
+                background: p.status === "ON_HOLD" ? "var(--warn-60)" : p.progress === 100 ? "var(--ok-60)" : "var(--brand-60)",
+                borderRadius: "var(--r-pill)",
+                transition: "width 0.6s",
+              }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMMAND PALETTE (Cmd+K) — global search
+   ═══════════════════════════════════════════════════════════════ */
+function CommandPalette({ open, onClose, onNavigate }) {
+  const [q, setQ] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 20); }, [open]);
+
+  const items = useMemo(() => {
+    const base = [
+      { type: "nav", label: "ダッシュボード", target: "dashboard", kw: "dashboard ホーム 概要" },
+      { type: "nav", label: "工事案件一覧", target: "projects", kw: "案件 プロジェクト 工事" },
+      { type: "nav", label: "日報", target: "reports", kw: "日報 daily" },
+      { type: "nav", label: "安全品質", target: "safety", kw: "安全 KY 危険予知 品質" },
+      { type: "nav", label: "原価管理", target: "cost", kw: "原価 コスト 予実" },
+      ...PROJECTS.map(p => ({ type: "project", label: p.name, sub: p.code, kw: `${p.name} ${p.code} ${p.client}`, target: `projects` })),
+      ...INCIDENTS.map(i => ({ type: "incident", label: i.title, sub: i.id, kw: `${i.id} ${i.title}`, target: `itsm` })),
+    ];
+    if (!q) return base.slice(0, 8);
+    return base.filter(it => (it.kw || it.label).toLowerCase().includes(q.toLowerCase())).slice(0, 10);
+  }, [q]);
+
+  if (!open) return null;
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="グローバル検索"
+      style={{
+        position: "fixed", inset: 0, background: "rgba(15,23,42,0.55)", zIndex: 1000,
+        display: "flex", justifyContent: "center", alignItems: "flex-start", paddingTop: "10vh",
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        width: "min(640px, 92vw)", background: "#fff", borderRadius: "var(--r-xl)",
+        boxShadow: "var(--e3)", overflow: "hidden",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--line)" }}>
+          <Icons.Search size={20} />
+          <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder="案件・日報・ナレッジ・コマンドを検索..."
+            aria-label="グローバル検索"
+            style={{
+              flex: 1, border: 0, outline: "none", fontSize: "var(--fs-16)",
+              background: "transparent", padding: "6px 0",
+            }}
+            onKeyDown={(e) => e.key === "Escape" && onClose()}
+          />
+          <kbd style={{
+            fontFamily: "var(--font-mono)", fontSize: "var(--fs-12)",
+            padding: "2px 8px", background: "var(--gray-10)", borderRadius: "var(--r-sm)",
+            border: "1px solid var(--gray-20)", color: "var(--gray-70)",
+          }}>ESC</kbd>
+        </div>
+        <div style={{ maxHeight: 420, overflow: "auto", padding: 8 }}>
+          {items.length === 0 && (
+            <div style={{ padding: 32, textAlign: "center", color: "var(--gray-60)", fontSize: "var(--fs-14)" }}>結果なし</div>
+          )}
+          {items.map((it, i) => (
+            <button key={i} onClick={() => { onNavigate(it.target); onClose(); }}
+              style={{
+                display: "flex", width: "100%", alignItems: "center", gap: 12,
+                padding: "12px 14px", background: "transparent", border: 0, borderRadius: "var(--r-md)",
+                textAlign: "left", fontSize: "var(--fs-14)", color: "var(--gray-100)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "var(--brand-10)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+            >
+              <span style={{
+                width: 32, height: 32, borderRadius: "var(--r-sm)",
+                background: it.type === "nav" ? "var(--brand-10)" : it.type === "project" ? "var(--ok-10)" : "var(--warn-10)",
+                color:       it.type === "nav" ? "var(--brand-60)": it.type === "project" ? "var(--ok-60)"  : "var(--warn-60)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>
+                {it.type === "nav" ? <Icons.ChevronR size={16} /> : it.type === "project" ? <Icons.Building size={16} /> : <Icons.Alert size={16} />}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.label}</div>
+                {it.sub && <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", fontFamily: "var(--font-mono)", marginTop: 2 }}>{it.sub}</div>}
+              </div>
+              <span style={{ fontSize: "var(--fs-12)", color: "var(--gray-50)", textTransform: "uppercase", letterSpacing: 0.06 }}>{it.type}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{
+          padding: "10px 20px", borderTop: "1px solid var(--line)",
+          fontSize: "var(--fs-12)", color: "var(--gray-60)",
+          display: "flex", gap: 16, justifyContent: "flex-end",
+        }}>
+          <span><kbd style={{fontFamily:"var(--font-mono)", padding:"1px 5px", background:"var(--gray-10)", borderRadius:3, border:"1px solid var(--gray-20)"}}>↵</kbd> で移動</span>
+          <span><kbd style={{fontFamily:"var(--font-mono)", padding:"1px 5px", background:"var(--gray-10)", borderRadius:3, border:"1px solid var(--gray-20)"}}>⌘K</kbd> で開閉</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LAYOUT — hierarchical sidebar (3 groups), skip link, breadcrumb
+   ═══════════════════════════════════════════════════════════════ */
+const NAV_GROUPS = [
+  {
+    label: "業務",
+    items: [
+      { key: "dashboard", label: "ダッシュボード", icon: Icons.Dashboard },
+      { key: "projects",  label: "工事案件",       icon: Icons.Building },
+      { key: "reports",   label: "日報",           icon: Icons.FileText },
+      { key: "photos",    label: "写真 / 小黒板",  icon: Icons.Camera },
+    ],
+  },
+  {
+    label: "運用",
+    items: [
+      { key: "safety",    label: "安全 · 品質",    icon: Icons.Shield },
+      { key: "cost",      label: "原価管理",       icon: Icons.Coins },
+      { key: "itsm",      label: "ITSM",           icon: Icons.Alert },
+      { key: "knowledge", label: "ナレッジ",       icon: Icons.Book },
+    ],
+  },
+  {
+    label: "社内",
+    items: [
+      { key: "portal",    label: "ポータルTOP",    icon: Icons.Dashboard },
+      { key: "notices",   label: "お知らせ・掲示板", icon: Icons.Bell },
+      { key: "hr",        label: "人事・勤怠",     icon: Icons.Users },
+      { key: "rules",     label: "規程・手続き",   icon: Icons.Book },
+    ],
+  },
+  {
+    label: "管理",
+    items: [
+      { key: "users",     label: "ユーザー管理",   icon: Icons.Users },
+      { key: "notif",     label: "通知設定",       icon: Icons.Bell },
+      { key: "settings",  label: "設定",           icon: Icons.Settings },
+    ],
+  },
+];
+
+function Sidebar({ active, onNavigate }) {
+  return (
+    <aside aria-label="メインナビゲーション" style={{
+      width: 256, background: "#ffffff", color: "var(--gray-100)",
+      display: "flex", flexDirection: "column",
+      position: "sticky", top: 0, height: "100vh", flexShrink: 0,
+      borderRight: "1px solid var(--line)",
+    }}>
+      {/* Logo */}
+      <div style={{
+        padding: "20px 20px", display: "flex", alignItems: "center", gap: 12,
+        borderBottom: "1px solid var(--line)",
+      }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 8,
+          background: "linear-gradient(135deg, var(--brand-50), var(--safety-50))",
+          color: "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <Icons.Hardhat size={20} />
+        </div>
+        <div>
+          <div style={{ fontSize: "var(--fs-16)", fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.1, color: "var(--gray-100)" }}>ServiceHub</div>
+          <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", marginTop: 2 }}>建設業プラットフォーム</div>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav style={{ flex: 1, overflow: "auto", padding: "16px 12px" }} aria-label="セクションナビゲーション">
+        {NAV_GROUPS.map((g, gi) => (
+          <div key={g.label} style={{ marginBottom: gi < NAV_GROUPS.length - 1 ? 24 : 0 }}>
+            <div style={{
+              fontSize: "var(--fs-12)", color: "var(--gray-60)", fontWeight: 600,
+              letterSpacing: "0.14em", textTransform: "uppercase",
+              padding: "8px 12px 10px",
+            }}>{g.label}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {g.items.map((it) => {
+                const IconC = it.icon;
+                const isActive = active === it.key;
+                return (
+                  <button key={it.key} onClick={() => onNavigate(it.key)}
+                    aria-current={isActive ? "page" : undefined}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 12,
+                      minHeight: "var(--touch)",
+                      padding: "0 12px",
+                      background: isActive ? "var(--brand-10)" : "transparent",
+                      color: isActive ? "var(--brand-70)" : "var(--gray-80)",
+                      border: 0, borderRadius: "var(--r-md)",
+                      fontSize: "var(--fs-14)", fontWeight: isActive ? 600 : 500,
+                      textAlign: "left", cursor: "pointer",
+                      transition: "background 0.12s, color 0.12s",
+                      boxShadow: isActive ? "inset 3px 0 0 var(--brand-60)" : "none",
+                    }}
+                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "var(--gray-10)"; }}
+                    onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <IconC size={18} />
+                    <span>{it.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* User */}
+      <div style={{ padding: "16px 16px", borderTop: "1px solid var(--line)", background: "var(--gray-10)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: "50%",
+            background: "var(--brand-60)", color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontWeight: 700, fontSize: "var(--fs-14)",
+          }}>佐藤</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: "var(--fs-14)", fontWeight: 600, color: "var(--gray-100)" }}>佐藤 健一</div>
+            <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)" }}>現場監督 · ADMIN</div>
+          </div>
+          <button aria-label="ログアウト" style={{
+            width: "var(--touch)", height: "var(--touch)",
+            background: "transparent", border: 0, color: "var(--gray-60)",
+            borderRadius: "var(--r-md)", display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.color = "var(--gray-100)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--gray-60)"; }}
+          ><Icons.LogOut size={18} /></button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function TopBar({ breadcrumb, onOpenSearch, online }) {
+  return (
+    <header style={{
+      position: "sticky", top: 0, zIndex: 10,
+      background: "rgba(255,255,255,0.92)", backdropFilter: "blur(10px)",
+      borderBottom: "1px solid var(--line)",
+      height: 64, padding: "0 32px",
+      display: "flex", alignItems: "center", gap: 20,
+    }}>
+      {/* Breadcrumb */}
+      <nav aria-label="パンくずリスト" style={{ flex: 1, minWidth: 0 }}>
+        <ol style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, padding: 0, listStyle: "none", fontSize: "var(--fs-14)" }}>
+          {breadcrumb.map((b, i) => (
+            <React.Fragment key={i}>
+              <li style={{ color: i === breadcrumb.length - 1 ? "var(--gray-100)" : "var(--gray-60)", fontWeight: i === breadcrumb.length - 1 ? 600 : 400 }}
+                  {...(i === breadcrumb.length - 1 ? { "aria-current": "page" } : {})}>
+                {b}
+              </li>
+              {i < breadcrumb.length - 1 && <li aria-hidden="true" style={{ color: "var(--gray-40)", display: "flex" }}><Icons.ChevronR size={14} /></li>}
+            </React.Fragment>
+          ))}
+        </ol>
+      </nav>
+
+      {/* Search trigger */}
+      <button onClick={onOpenSearch}
+        aria-label="グローバル検索を開く (⌘K)"
+        style={{
+          display: "flex", alignItems: "center", gap: 10,
+          height: 40, padding: "0 14px 0 12px",
+          background: "var(--gray-10)", border: "1px solid var(--line)",
+          borderRadius: "var(--r-md)",
+          color: "var(--gray-70)", fontSize: "var(--fs-14)",
+          minWidth: 260, cursor: "pointer",
+        }}>
+        <Icons.Search size={16} />
+        <span style={{ flex: 1, textAlign: "left" }}>横断検索 ...</span>
+        <kbd style={{
+          fontFamily: "var(--font-mono)", fontSize: "var(--fs-12)",
+          padding: "2px 6px", background: "#fff", borderRadius: 3,
+          border: "1px solid var(--gray-20)", color: "var(--gray-70)",
+        }}>⌘K</kbd>
+      </button>
+
+      {/* Online indicator */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "6px 12px", borderRadius: "var(--r-pill)",
+        background: online ? "var(--ok-10)" : "var(--warn-10)",
+        color: online ? "var(--ok-60)" : "var(--warn-60)",
+        fontSize: "var(--fs-12)", fontWeight: 600,
+      }} role="status" aria-live="polite">
+        <Icons.Wifi size={14} />
+        {online ? "オンライン" : "オフライン同期待ち"}
+      </div>
+
+      {/* Notif */}
+      <button aria-label="通知を開く" style={{
+        width: "var(--touch)", height: "var(--touch)",
+        background: "transparent", border: "1px solid var(--line)",
+        borderRadius: "var(--r-md)",
+        position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
+        color: "var(--gray-80)",
+      }}>
+        <Icons.Bell size={18} />
+        <span style={{
+          position: "absolute", top: 6, right: 6,
+          width: 8, height: 8, borderRadius: "50%",
+          background: "var(--safety-60)", border: "2px solid #fff",
+        }} aria-hidden="true" />
+      </button>
+    </header>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGES
+   ═══════════════════════════════════════════════════════════════ */
+function DashboardPage({ onNavigate }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Page header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <div style={{ fontSize: "var(--fs-14)", color: "var(--gray-70)", fontWeight: 500, marginBottom: 4 }}>
+            2026年4月18日（土）· 現場4件稼働中
+          </div>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-32)", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--gray-100)" }}>
+            おはようございます、佐藤さん
+          </h1>
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <Button variant="secondary" leftIcon={<Icons.Download size={16} />}>帳票ダウンロード</Button>
+          <Button variant="primary" leftIcon={<Icons.Plus size={16} />}>新規案件を追加</Button>
+        </div>
+      </div>
+
+      {/* Stat tiles */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <StatTile label="進行中の案件数" value="12" delta="+2 先月比" tone="brand" icon={<Icons.Building size={20} />} />
+        <StatTile label="未対応インシデント" value="3" delta="−1 前日比" deltaTone="ok" tone="safety" icon={<Icons.Alert size={20} />} />
+        <StatTile label="コスト達成率" value="91.0%" delta="+1.2pt 先月比" tone="ok" icon={<Icons.TrendUp size={20} />} />
+        <StatTile label="本日提出の日報" value="8 / 12" delta="残り4件" deltaTone="warn" tone="warn" icon={<Icons.FileText size={20} />} />
+      </div>
+
+      {/* Charts row */}
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+        <CostChart />
+        <ProgressChart />
+      </div>
+
+      {/* Bottom row — projects + incidents */}
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+        {/* Recent projects */}
+        <Card padding={0}>
+          <div style={{ padding: "18px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--line)" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600 }}>最近の工事案件</h3>
+              <p style={{ margin: "2px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>更新順 · 5件表示</p>
+            </div>
+            <button onClick={() => onNavigate("projects")} style={{
+              background: "transparent", border: 0, color: "var(--brand-60)",
+              fontSize: "var(--fs-14)", fontWeight: 500, cursor: "pointer",
+              display: "inline-flex", alignItems: "center", gap: 4,
+              minHeight: "var(--touch)", padding: "0 8px",
+            }}>すべて <Icons.ChevronR size={14} /></button>
+          </div>
+          <div role="table" aria-label="最近の工事案件">
+            <div role="row" style={{
+              display: "grid", gridTemplateColumns: "1.8fr 1.4fr 1fr 100px 120px",
+              padding: "10px 24px", background: "var(--gray-10)",
+              fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)",
+              textTransform: "uppercase", letterSpacing: "0.06em",
+              borderBottom: "1px solid var(--line)",
+            }}>
+              <span role="columnheader">案件</span>
+              <span role="columnheader">施主</span>
+              <span role="columnheader">期間</span>
+              <span role="columnheader" style={{ textAlign: "right" }}>進捗</span>
+              <span role="columnheader">ステータス</span>
+            </div>
+            {PROJECTS.slice(0, 5).map((p, i) => (
+              <div key={p.id} role="row" style={{
+                display: "grid", gridTemplateColumns: "1.8fr 1.4fr 1fr 100px 120px",
+                padding: "14px 24px", fontSize: "var(--fs-14)",
+                borderBottom: i < 4 ? "1px solid var(--line)" : "none",
+                alignItems: "center",
+              }}>
+                <div role="cell" style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 500, color: "var(--gray-100)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
+                  <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", fontFamily: "var(--font-mono)", marginTop: 2 }}>{p.code}</div>
+                </div>
+                <div role="cell" style={{ color: "var(--gray-80)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.client}</div>
+                <div role="cell" style={{ color: "var(--gray-70)", fontSize: "var(--fs-14)", fontVariantNumeric: "tabular-nums" }}>
+                  <span style={{ whiteSpace: "nowrap" }}>{p.start.slice(5)} — {p.end.slice(5)}</span>
+                </div>
+                <div role="cell" style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>{p.progress}%</div>
+                <div role="cell"><Badge tone={STATUS_MAP[p.status].tone}>{STATUS_MAP[p.status].label}</Badge></div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Incidents */}
+        <Card padding={0}>
+          <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--line)" }}>
+            <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600 }}>注意すべきインシデント</h3>
+            <p style={{ margin: "2px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>未対応 · 優先度順</p>
+          </div>
+          <div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+            {INCIDENTS.map((inc) => (
+              <button key={inc.id} style={{
+                display: "block", width: "100%", textAlign: "left",
+                padding: "12px 12px", background: "transparent", border: 0,
+                borderRadius: "var(--r-md)", cursor: "pointer",
+                minHeight: "var(--touch)",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "var(--gray-10)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-12)", color: "var(--gray-60)" }}>{inc.id}</span>
+                  <Badge tone={PRIORITY_MAP[inc.priority].tone} size="sm">優先度 {PRIORITY_MAP[inc.priority].label}</Badge>
+                </div>
+                <div style={{ fontSize: "var(--fs-14)", fontWeight: 500, color: "var(--gray-100)", lineHeight: 1.45, marginBottom: 6 }}>{inc.title}</div>
+                <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", display: "flex", gap: 12 }}>
+                  <span><Icons.Calendar size={12} /> {inc.at}</span>
+                  <span>· {inc.project}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* Quick actions for field workers */}
+      <Card padding={24}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16 }}>
+          <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600 }}>現場クイックアクション</h3>
+          <span style={{ fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>44px タッチターゲット · WCAG 2.2 SC 2.5.8 準拠</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+          {[
+            { icon: Icons.Camera2,  label: "電子小黒板で撮影",   tone: "safety" },
+            { icon: Icons.Mic,      label: "音声で日報作成",     tone: "brand" },
+            { icon: Icons.Shield,   label: "KY活動 記録",        tone: "ok" },
+            { icon: Icons.Alert,    label: "ヒヤリハット報告",   tone: "warn" },
+            { icon: Icons.Map,      label: "現場地図 · 工程表",  tone: "brand" },
+          ].map((a, i) => {
+            const IC = a.icon;
+            const bg = a.tone === "safety" ? "var(--safety-10)" : a.tone === "ok" ? "var(--ok-10)" : a.tone === "warn" ? "var(--warn-10)" : "var(--brand-10)";
+            const fg = a.tone === "safety" ? "var(--safety-60)" : a.tone === "ok" ? "var(--ok-60)" : a.tone === "warn" ? "var(--warn-60)" : "var(--brand-60)";
+            return (
+              <button key={i} style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
+                padding: "20px 12px", background: "#fff", border: "1px solid var(--line)",
+                borderRadius: "var(--r-lg)", minHeight: 100, cursor: "pointer",
+                transition: "all 0.12s", color: "var(--gray-100)", fontSize: "var(--fs-14)", fontWeight: 500,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = fg; e.currentTarget.style.background = bg; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
+              >
+                <div style={{
+                  width: 48, height: 48, borderRadius: "var(--r-md)",
+                  background: bg, color: fg,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}><IC size={22} /></div>
+                <span style={{ textAlign: "center", lineHeight: 1.3 }}>{a.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function ProjectsPage() {
+  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState("ALL");
+  const filtered = PROJECTS.filter(p =>
+    (filter === "ALL" || p.status === filter) &&
+    (!q || p.name.includes(q) || p.code.includes(q) || p.client.includes(q))
+  );
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>工事案件一覧</h1>
+          <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>全 {PROJECTS.length} 件 · 表示 {filtered.length} 件</p>
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <Button variant="secondary" leftIcon={<Icons.Download size={16} />}>CSV 出力</Button>
+          <Button variant="primary" leftIcon={<Icons.Plus size={16} />}>新規案件</Button>
+        </div>
+      </div>
+
+      {/* Filter bar */}
+      <Card padding={16}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ position: "relative", flex: 1, minWidth: 240 }}>
+            <Icons.Search size={16} />
+            <input value={q} onChange={(e) => setQ(e.target.value)}
+              placeholder="案件名・コード・施主で検索..."
+              aria-label="案件検索"
+              style={{
+                width: "100%", height: "var(--touch)", padding: "0 14px 0 40px",
+                border: "1px solid var(--gray-30)", borderRadius: "var(--r-md)",
+                fontSize: "var(--fs-14)", background: "#fff", color: "var(--gray-100)",
+              }}
+            />
+            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--gray-60)", pointerEvents: "none" }}>
+              <Icons.Search size={16} />
+            </span>
+          </div>
+          <div role="tablist" aria-label="ステータスフィルタ" style={{ display: "flex", gap: 6, background: "var(--gray-10)", padding: 4, borderRadius: "var(--r-md)" }}>
+            {[
+              { k: "ALL", label: "すべて" },
+              { k: "PLANNING", label: "計画中" },
+              { k: "IN_PROGRESS", label: "進行中" },
+              { k: "ON_HOLD", label: "保留" },
+              { k: "COMPLETED", label: "完了" },
+            ].map((t) => (
+              <button key={t.k} role="tab" aria-selected={filter === t.k}
+                onClick={() => setFilter(t.k)}
+                style={{
+                  minHeight: 36, padding: "0 14px",
+                  background: filter === t.k ? "#fff" : "transparent",
+                  border: filter === t.k ? "1px solid var(--line)" : "1px solid transparent",
+                  boxShadow: filter === t.k ? "var(--e1)" : "none",
+                  borderRadius: "var(--r-sm)",
+                  fontSize: "var(--fs-14)", fontWeight: filter === t.k ? 600 : 500,
+                  color: filter === t.k ? "var(--gray-100)" : "var(--gray-70)",
+                  cursor: "pointer",
+                }}>{t.label}</button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <Card padding={0}>
+        <div role="table" aria-label="工事案件テーブル">
+          <div role="row" style={{
+            display: "grid", gridTemplateColumns: "1.6fr 1.4fr 1fr 180px 120px 140px",
+            padding: "12px 24px", background: "var(--gray-10)",
+            fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)",
+            textTransform: "uppercase", letterSpacing: "0.06em",
+            borderBottom: "1px solid var(--line)",
+          }}>
+            <span>案件名</span><span>施主</span><span>期間</span><span>進捗</span><span>ステータス</span><span>担当</span>
+          </div>
+          {filtered.map((p, i) => (
+            <div key={p.id} role="row" style={{
+              display: "grid", gridTemplateColumns: "1.6fr 1.4fr 1fr 180px 120px 140px",
+              padding: "18px 24px", fontSize: "var(--fs-14)",
+              borderBottom: i < filtered.length - 1 ? "1px solid var(--line)" : "none",
+              alignItems: "center", transition: "background 0.12s",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = "var(--brand-10)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+            >
+              <div>
+                <a href="#" style={{ fontWeight: 600, color: "var(--gray-100)" }}>{p.name}</a>
+                <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", fontFamily: "var(--font-mono)", marginTop: 2 }}>{p.code}</div>
+              </div>
+              <div style={{ color: "var(--gray-80)" }}>{p.client}</div>
+              <div style={{ color: "var(--gray-70)", fontVariantNumeric: "tabular-nums" }}>{p.start} 〜 {p.end}</div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flex: 1, height: 6, background: "var(--gray-10)", borderRadius: "var(--r-pill)" }}>
+                    <div style={{ width: `${p.progress}%`, height: "100%", background: p.status === "ON_HOLD" ? "var(--warn-60)" : p.progress === 100 ? "var(--ok-60)" : "var(--brand-60)", borderRadius: "var(--r-pill)" }} />
+                  </div>
+                  <span style={{ fontSize: "var(--fs-12)", fontWeight: 600, fontVariantNumeric: "tabular-nums", minWidth: 32, textAlign: "right" }}>{p.progress}%</span>
+                </div>
+              </div>
+              <div><Badge tone={STATUS_MAP[p.status].tone}>{STATUS_MAP[p.status].label}</Badge></div>
+              <div style={{ color: "var(--gray-80)", fontSize: "var(--fs-14)" }}>{p.lead}</div>
+            </div>
+          ))}
+          {filtered.length === 0 && (
+            <div style={{ padding: 48, textAlign: "center", color: "var(--gray-60)" }}>
+              該当する案件がありません
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function SafetyPage() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>安全 · 品質</h1>
+        <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>KY活動 · 安全チェック · 品質検査記録 · 建災防ガイドライン準拠</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <StatTile label="本日の KY 活動" value="7 / 7" delta="100% 実施" tone="ok" icon={<Icons.Shield size={20} />} />
+        <StatTile label="ヒヤリハット（今月）" value="3" delta="−2 前月比" deltaTone="ok" tone="safety" icon={<Icons.Alert size={20} />} />
+        <StatTile label="無災害記録" value="284日" tone="ok" icon={<Icons.Check size={20} />} />
+        <StatTile label="品質検査 未完" value="2" deltaTone="warn" delta="期限 4/20" tone="warn" icon={<Icons.FileText size={20} />} />
+      </div>
+
+      <Card padding={24}>
+        <h3 style={{ margin: "0 0 16px", fontSize: "var(--fs-18)", fontWeight: 600 }}>本日の KY（危険予知）活動</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          {[
+            { title: "新宿A棟 3F 外壁作業", leader: "鈴木 一郎", members: 6, status: "done", hazards: ["高所落下", "飛来物", "工具落下"] },
+            { title: "川崎現場 資材搬入", leader: "田中 美咲", members: 4, status: "done", hazards: ["重機接触", "転倒", "粉塵"] },
+            { title: "横浜 コンクリ打設", leader: "山本 良太", members: 8, status: "done", hazards: ["熱中症", "圧送配管破損"] },
+            { title: "大手町 内装搬入", leader: "佐藤 健一", members: 3, status: "pending", hazards: ["開梱時の切創", "腰痛"] },
+          ].map((k, i) => (
+            <div key={i} style={{
+              border: "1px solid var(--line)", borderRadius: "var(--r-md)",
+              padding: 16, display: "flex", flexDirection: "column", gap: 10,
+              background: k.status === "pending" ? "var(--warn-10)" : "#fff",
+              borderColor: k.status === "pending" ? "var(--warn-20)" : "var(--line)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ fontWeight: 600 }}>{k.title}</div>
+                <Badge tone={k.status === "done" ? "ok" : "warn"} size="sm">{k.status === "done" ? "✓ 実施済" : "未実施"}</Badge>
+              </div>
+              <div style={{ fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>
+                リーダー: <strong style={{ color: "var(--gray-100)" }}>{k.leader}</strong> · 参加 {k.members} 名
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {k.hazards.map((h, j) => (
+                  <span key={j} style={{
+                    fontSize: "var(--fs-12)", padding: "3px 10px",
+                    background: "var(--gray-10)", color: "var(--gray-80)",
+                    borderRadius: "var(--r-pill)", border: "1px solid var(--line)", fontWeight: 500,
+                  }}>{h}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function PhotosPage() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>写真 · 電子小黒板</h1>
+        <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>i-Construction 準拠 · 工種 / 工程 / 検査種別で自動分類</p>
+      </div>
+
+      <Card padding={0}>
+        <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {["すべて", "出来形", "使用材料", "施工状況", "安全管理", "品質管理"].map((f, i) => (
+              <button key={f} style={{
+                minHeight: 36, padding: "0 14px",
+                background: i === 0 ? "var(--gray-100)" : "transparent",
+                color: i === 0 ? "#fff" : "var(--gray-80)",
+                border: "1px solid " + (i === 0 ? "var(--gray-100)" : "var(--line)"),
+                borderRadius: "var(--r-md)",
+                fontSize: "var(--fs-14)", fontWeight: 500, cursor: "pointer",
+              }}>{f}</button>
+            ))}
+          </div>
+          <Button variant="primary" leftIcon={<Icons.Camera2 size={16} />}>電子小黒板で撮影</Button>
+        </div>
+
+        <div style={{ padding: 24, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+          {[
+            { title: "A棟 3F 外壁タイル貼付", cat: "出来形", date: "2026-04-18 09:24", w: "#4a5568" },
+            { title: "川崎 地中梁配筋検査", cat: "品質管理", date: "2026-04-17 14:12", w: "#718096" },
+            { title: "横浜 型枠建込み", cat: "施工状況", date: "2026-04-17 10:48", w: "#a0aec0" },
+            { title: "KY活動ボード確認", cat: "安全管理", date: "2026-04-17 07:30", w: "#2d3748" },
+            { title: "鉄筋 D16 SD345", cat: "使用材料", date: "2026-04-16 15:02", w: "#4a5568" },
+            { title: "コンクリ強度試験", cat: "品質管理", date: "2026-04-16 11:22", w: "#718096" },
+            { title: "足場組立完了", cat: "施工状況", date: "2026-04-15 16:45", w: "#a0aec0" },
+            { title: "避難経路表示確認", cat: "安全管理", date: "2026-04-15 08:12", w: "#2d3748" },
+          ].map((p, i) => (
+            <div key={i} style={{
+              border: "1px solid var(--line)", borderRadius: "var(--r-md)",
+              overflow: "hidden", background: "#fff",
+              cursor: "pointer", transition: "box-shadow 0.12s, transform 0.12s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "var(--e2)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}
+            >
+              {/* Photo placeholder with 電子小黒板 overlay */}
+              <div style={{ position: "relative", aspectRatio: "4 / 3", background: p.w, overflow: "hidden" }}>
+                <div style={{
+                  position: "absolute", inset: 0,
+                  background: "repeating-linear-gradient(45deg, transparent, transparent 30px, rgba(255,255,255,0.04) 30px, rgba(255,255,255,0.04) 60px)",
+                }} />
+                {/* 電子小黒板 */}
+                <div style={{
+                  position: "absolute", left: 10, bottom: 10, right: 10,
+                  background: "rgba(11, 37, 69, 0.92)", color: "#fff",
+                  padding: "8px 12px", borderRadius: 4,
+                  fontSize: 11, fontFamily: "var(--font-mono)", lineHeight: 1.4,
+                  borderLeft: "3px solid var(--safety-50)",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>工種: {p.cat}</span>
+                    <span>{p.date.slice(0, 10)}</span>
+                  </div>
+                  <div style={{ marginTop: 2, fontSize: 10, opacity: 0.75 }}>ServiceHub · 電子小黒板 v2</div>
+                </div>
+              </div>
+              <div style={{ padding: 12 }}>
+                <div style={{ fontSize: "var(--fs-14)", fontWeight: 500, color: "var(--gray-100)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                  <Badge tone="info" size="sm">{p.cat}</Badge>
+                  <span style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", fontVariantNumeric: "tabular-nums" }}>{p.date.slice(11)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function ReportsPage() {
+  const days = ["月", "火", "水", "木", "金", "土", "日"];
+  const hours = ["9", "10", "11", "12", "13", "14", "15", "16", "17"];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>工程表 · 日報</h1>
+        <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>2026年4月 第3週 · ガントチャート表示</p>
+      </div>
+
+      <Card padding={0}>
+        <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ minHeight: 36, padding: "0 12px", border: "1px solid var(--line)", background: "#fff", borderRadius: "var(--r-md)", cursor: "pointer", fontSize: "var(--fs-14)" }}>← 前週</button>
+            <button style={{ minHeight: 36, padding: "0 14px", border: "1px solid var(--line)", background: "#fff", borderRadius: "var(--r-md)", cursor: "pointer", fontSize: "var(--fs-14)", fontWeight: 600 }}>今週</button>
+            <button style={{ minHeight: 36, padding: "0 12px", border: "1px solid var(--line)", background: "#fff", borderRadius: "var(--r-md)", cursor: "pointer", fontSize: "var(--fs-14)" }}>次週 →</button>
+          </div>
+          <Button variant="primary" leftIcon={<Icons.Plus size={16} />}>日報を作成</Button>
+        </div>
+
+        {/* Gantt-like view */}
+        <div style={{ padding: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "220px repeat(7, 1fr)", alignItems: "center", gap: 2, marginBottom: 10, fontSize: "var(--fs-12)", color: "var(--gray-60)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div />
+            {[13, 14, 15, 16, 17, 18, 19].map((d, i) => (
+              <div key={d} style={{ textAlign: "center" }}>4/{d} ({days[i]})</div>
+            ))}
+          </div>
+          {[
+            { name: "新宿A棟 改修工事", bars: [[0, 6, "brand", "足場組立 → 外壁タイル"]] },
+            { name: "川崎駅前 複合ビル",   bars: [[1, 5, "safety", "基礎配筋 → 打設"]] },
+            { name: "横浜みなとみらい",   bars: [[0, 3, "warn", "型枠（保留）"]] },
+            { name: "大手町 内装リノベ",   bars: [[4, 7, "ok", "搬入準備"]] },
+          ].map((row, ri) => (
+            <div key={ri} style={{ display: "grid", gridTemplateColumns: "220px repeat(7, 1fr)", alignItems: "center", height: 44, position: "relative", borderTop: ri === 0 ? "1px solid var(--line)" : "none", borderBottom: "1px solid var(--line)" }}>
+              <div style={{ fontSize: "var(--fs-14)", color: "var(--gray-100)", fontWeight: 500, paddingRight: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.name}</div>
+              {[0,1,2,3,4,5,6].map((c) => (
+                <div key={c} style={{ height: 44, borderLeft: "1px dashed var(--gray-20)", position: "relative" }}>
+                  {row.bars.map((b, bi) => b[0] === c && (
+                    <div key={bi} style={{
+                      position: "absolute", top: 12, left: 4, height: 20,
+                      width: `calc(${(b[1] - b[0]) * 100}% - 8px)`,
+                      background: b[2] === "brand" ? "var(--brand-60)" : b[2] === "safety" ? "var(--safety-60)" : b[2] === "warn" ? "var(--warn-60)" : "var(--ok-60)",
+                      color: "#fff", borderRadius: 4,
+                      fontSize: "var(--fs-12)", fontWeight: 500,
+                      padding: "0 10px", display: "flex", alignItems: "center",
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>{b[3]}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   社内ポータル — みらい建設 MIRAI PORTAL 風
+   ═══════════════════════════════════════════════════════════════ */
+function PortalPage({ tab = "top" }) {
+  // 本体のブランドトーン（ブルー系）に統一
+  const PORTAL_BRAND = "#13315c";  // var(--brand-80)
+  const PORTAL_ACCENT = "#2458a6"; // var(--brand-60)
+  const PORTAL_LIGHT = "#eaf2fb";  // var(--brand-10)
+
+  const notices = [
+    { id: 1, pinned: true,  cat: "重要",   title: "2026年度 安全衛生大会のご案内（6/12 開催）", date: "2026-04-17", by: "安全衛生委員会" },
+    { id: 2, pinned: true,  cat: "人事",   title: "新入社員 23名 配属発表 — 各部署へのご協力お願いします", date: "2026-04-15", by: "人事部" },
+    { id: 3, pinned: false, cat: "ITSM",   title: "ServiceHub v2.3 リリース — 電子小黒板の新機能について", date: "2026-04-14", by: "情報システム部" },
+    { id: 4, pinned: false, cat: "福利厚生", title: "健康診断 2026年春 予約受付開始（〜5/20）", date: "2026-04-12", by: "総務部" },
+    { id: 5, pinned: false, cat: "規程",   title: "出張旅費規程の改定について（5/1 施行）", date: "2026-04-10", by: "経理部" },
+    { id: 6, pinned: false, cat: "安全",   title: "熱中症予防キャンペーン実施（5月〜9月）", date: "2026-04-08", by: "安全衛生委員会" },
+  ];
+
+  const events = [
+    { date: "04/22", day: "火", title: "月次安全パトロール", loc: "新宿A棟現場", color: PORTAL_ACCENT },
+    { date: "04/24", day: "木", title: "工程レビュー会議", loc: "本社 会議室A", color: "var(--brand-60)" },
+    { date: "04/30", day: "水", title: "月末報告会", loc: "オンライン", color: "var(--safety-60)" },
+    { date: "05/12", day: "火", title: "新入社員研修（合同）", loc: "研修センター", color: PORTAL_ACCENT },
+    { date: "05/20", day: "水", title: "健康診断 締切", loc: "—", color: "var(--warn-60)" },
+  ];
+
+  const links = [
+    { label: "就業規則・規程集", icon: Icons.Book },
+    { label: "経費精算",        icon: Icons.Coins },
+    { label: "勤怠入力",        icon: Icons.Clock },
+    { label: "有給申請",        icon: Icons.Calendar },
+    { label: "社内電話帳",      icon: Icons.Users },
+    { label: "備品予約",        icon: Icons.Settings },
+    { label: "研修カタログ",    icon: Icons.Book },
+    { label: "よくある質問",    icon: Icons.FileText },
+  ];
+
+  const catTone = { "重要": "err", "人事": "info", "ITSM": "neutral", "福利厚生": "ok", "規程": "warn", "安全": "err" };
+
+  /* ── Subpage header (shared across 社内 tabs) ───────────── */
+  const SubHeader = ({ eyebrow, title, desc }) => (
+    <Card padding={0} style={{ overflow: "hidden", border: "none" }}>
+      <div style={{
+        padding: "28px 32px", color: "#fff",
+        background: `linear-gradient(120deg, ${PORTAL_BRAND} 0%, #1a6b41 80%)`,
+      }}>
+        <div style={{ fontSize: "var(--fs-12)", fontWeight: 600, letterSpacing: "0.18em", opacity: 0.75, marginBottom: 6 }}>{eyebrow}</div>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-24)", fontWeight: 700 }}>{title}</h1>
+        {desc && <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", opacity: 0.85 }}>{desc}</p>}
+      </div>
+    </Card>
+  );
+
+  /* ── お知らせ・掲示板（全件） ───────────────────────────── */
+  if (tab === "notices") {
+    const filters = ["すべて", "重要", "人事", "ITSM", "福利厚生", "規程", "安全"];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <SubHeader eyebrow="MIRAI PORTAL · 社内" title="お知らせ・社内掲示板" desc="全社向けのお知らせ、各部門からの通達、掲示板投稿を集約します。" />
+        <Card padding={0}>
+          <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {filters.map((f, i) => (
+                <button key={f} style={{
+                  padding: "6px 14px", fontSize: "var(--fs-13)", fontWeight: 500,
+                  background: i === 0 ? PORTAL_BRAND : "transparent",
+                  color: i === 0 ? "#fff" : "var(--gray-70)",
+                  border: `1px solid ${i === 0 ? PORTAL_BRAND : "var(--line)"}`,
+                  borderRadius: "var(--r-pill)", cursor: "pointer",
+                }}>{f}</button>
+              ))}
+            </div>
+            <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+              <Button variant="secondary" size="sm" leftIcon={<Icons.Search size={14} />}>検索</Button>
+              <Button variant="primary" size="sm" leftIcon={<Icons.Plus size={14} />}>新規投稿</Button>
+            </div>
+          </div>
+          {notices.map((n, i) => (
+            <div key={n.id} style={{
+              padding: "18px 24px",
+              background: n.pinned ? PORTAL_LIGHT : "transparent",
+              borderBottom: i < notices.length - 1 ? "1px solid var(--line)" : "none",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                {n.pinned && <span style={{ fontSize: 14 }}>📌</span>}
+                <Badge tone={catTone[n.cat] || "neutral"} size="sm">{n.cat}</Badge>
+                <span style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", fontVariantNumeric: "tabular-nums" }}>{n.date}</span>
+                <span style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)" }}>· {n.by}</span>
+                <span style={{ marginLeft: "auto", fontSize: "var(--fs-12)", color: "var(--gray-60)" }}>既読 42 / 127</span>
+              </div>
+              <div style={{ fontSize: "var(--fs-15)", fontWeight: 600, color: "var(--gray-100)", marginBottom: 6 }}>{n.title}</div>
+              <div style={{ fontSize: "var(--fs-13)", color: "var(--gray-70)", lineHeight: 1.6 }}>
+                詳細は添付資料をご確認ください。ご不明な点は担当部署までお問い合わせください。
+              </div>
+            </div>
+          ))}
+        </Card>
+      </div>
+    );
+  }
+
+  /* ── 人事・勤怠 ───────────────────────────────────────── */
+  if (tab === "hr") {
+    const kpis = [
+      { label: "今月の勤務日数", value: "14 / 21日", sub: "残 7営業日" },
+      { label: "残業時間（今月）", value: "18.5h",  sub: "上限 45h", tone: PORTAL_ACCENT },
+      { label: "有給残",          value: "12.5日", sub: "うち時季指定 5日", tone: "#c97a2b" },
+      { label: "次回給与支給日",   value: "04/25", sub: "振込予定" },
+    ];
+    const menus = [
+      { icon: Icons.Clock,    label: "勤怠打刻",     desc: "出退勤・休憩時間の記録" },
+      { icon: Icons.Calendar, label: "有給・休暇申請", desc: "有給・特別休暇・代休の申請" },
+      { icon: Icons.FileText, label: "勤務表確認",    desc: "月次勤務表・36協定チェック" },
+      { icon: Icons.Coins,    label: "給与明細",      desc: "毎月の明細・年末調整" },
+      { icon: Icons.Users,    label: "組織・異動",    desc: "組織図・人事発令" },
+      { icon: Icons.Shield,   label: "安全衛生・健診", desc: "健康診断・ストレスチェック" },
+    ];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <SubHeader eyebrow="MIRAI PORTAL · 社内" title="人事・勤怠" desc="勤怠打刻・休暇申請・給与明細・人事情報をまとめて確認できます。" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          {kpis.map((k, i) => (
+            <Card key={i} padding={20}>
+              <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-70)", marginBottom: 6 }}>{k.label}</div>
+              <div style={{ fontSize: "var(--fs-24)", fontWeight: 700, color: k.tone || "var(--gray-100)", fontVariantNumeric: "tabular-nums", letterSpacing: "-0.01em" }}>{k.value}</div>
+              <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", marginTop: 4 }}>{k.sub}</div>
+            </Card>
+          ))}
+        </div>
+        <Card padding={24}>
+          <h3 style={{ margin: "0 0 16px", fontSize: "var(--fs-16)", fontWeight: 600 }}>各種手続き</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+            {menus.map((m, i) => {
+              const IC = m.icon;
+              return (
+                <button key={i} style={{
+                  display: "flex", alignItems: "flex-start", gap: 12,
+                  padding: "16px 18px", background: "#fff", border: "1px solid var(--line)",
+                  borderRadius: "var(--r-md)", cursor: "pointer", textAlign: "left",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = PORTAL_ACCENT; e.currentTarget.style.background = PORTAL_LIGHT; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
+                >
+                  <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: "var(--r-sm)", background: PORTAL_LIGHT, color: PORTAL_BRAND, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <IC size={18} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "var(--fs-14)", fontWeight: 600, color: "var(--gray-100)" }}>{m.label}</div>
+                    <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-70)", marginTop: 2 }}>{m.desc}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+        <Card padding={24}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <h3 style={{ margin: 0, fontSize: "var(--fs-16)", fontWeight: 600 }}>申請中の届出</h3>
+            <a href="#" style={{ fontSize: "var(--fs-13)", color: PORTAL_BRAND, fontWeight: 500 }}>すべて見る →</a>
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--fs-13)" }}>
+            <thead>
+              <tr style={{ background: "var(--gray-10)", color: "var(--gray-70)", fontWeight: 600 }}>
+                <th style={{ padding: "10px 12px", textAlign: "left" }}>種別</th>
+                <th style={{ padding: "10px 12px", textAlign: "left" }}>期間</th>
+                <th style={{ padding: "10px 12px", textAlign: "left" }}>申請日</th>
+                <th style={{ padding: "10px 12px", textAlign: "left" }}>承認者</th>
+                <th style={{ padding: "10px 12px", textAlign: "left" }}>ステータス</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { k: "有給休暇",  p: "05/02",       d: "04/15", a: "佐藤 部長", s: "承認待ち", tone: "warn" },
+                { k: "直行直帰",  p: "04/19",       d: "04/17", a: "山田 課長", s: "承認済",   tone: "ok" },
+                { k: "時間外労働", p: "04/22 2.0h", d: "04/16", a: "山田 課長", s: "承認済",   tone: "ok" },
+                { k: "慶弔休暇",  p: "05/10〜12",   d: "04/10", a: "佐藤 部長", s: "差戻し",   tone: "err" },
+              ].map((r, i) => (
+                <tr key={i} style={{ borderTop: "1px solid var(--line)" }}>
+                  <td style={{ padding: "12px", fontWeight: 500 }}>{r.k}</td>
+                  <td style={{ padding: "12px", fontVariantNumeric: "tabular-nums" }}>{r.p}</td>
+                  <td style={{ padding: "12px", fontVariantNumeric: "tabular-nums", color: "var(--gray-70)" }}>{r.d}</td>
+                  <td style={{ padding: "12px", color: "var(--gray-70)" }}>{r.a}</td>
+                  <td style={{ padding: "12px" }}><Badge tone={r.tone} size="sm">{r.s}</Badge></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      </div>
+    );
+  }
+
+  /* ── 規程・手続き ─────────────────────────────────────── */
+  if (tab === "rules") {
+    const cats = [
+      { icon: Icons.Book,     label: "就業規則",       count: 12, desc: "就業時間・休暇・服務" },
+      { icon: Icons.Shield,   label: "安全衛生規程",   count: 18, desc: "安全管理・KY・健康管理" },
+      { icon: Icons.Coins,    label: "経理・旅費規程", count: 9,  desc: "精算・出張・福利厚生" },
+      { icon: Icons.Building, label: "工事施工規程",   count: 24, desc: "品質・検査・引渡し" },
+      { icon: Icons.Users,    label: "人事・賃金規程", count: 15, desc: "評価・昇格・退職" },
+      { icon: Icons.Alert,    label: "BCP・情報管理",  count: 7,  desc: "情報セキュリティ・災害" },
+    ];
+    const recent = [
+      { title: "出張旅費規程",     ver: "v4.2", date: "2026-04-10", diff: "宿泊費上限を改定" },
+      { title: "在宅勤務取扱要領", ver: "v2.1", date: "2026-03-28", diff: "対象職種を拡大" },
+      { title: "安全衛生管理規程", ver: "v5.0", date: "2026-03-15", diff: "熱中症対策を追加" },
+      { title: "情報セキュリティ規程", ver: "v3.3", date: "2026-02-20", diff: "クラウド利用基準を整備" },
+    ];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <SubHeader eyebrow="MIRAI PORTAL · 社内" title="規程・手続き" desc="就業規則・各種規程集・社内手続きの雛形を閲覧できます。" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+          {cats.map((c, i) => {
+            const IC = c.icon;
+            return (
+              <button key={i} style={{
+                display: "flex", alignItems: "center", gap: 14,
+                padding: "18px 20px", background: "#fff",
+                border: "1px solid var(--line)", borderRadius: "var(--r-md)",
+                cursor: "pointer", textAlign: "left",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = PORTAL_ACCENT; e.currentTarget.style.background = PORTAL_LIGHT; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
+              >
+                <div style={{ width: 44, height: 44, flexShrink: 0, borderRadius: "var(--r-md)", background: PORTAL_BRAND, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <IC size={20} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <div style={{ fontSize: "var(--fs-15)", fontWeight: 600, color: "var(--gray-100)" }}>{c.label}</div>
+                    <div style={{ fontSize: "var(--fs-12)", color: PORTAL_ACCENT, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{c.count}件</div>
+                  </div>
+                  <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-70)", marginTop: 2 }}>{c.desc}</div>
+                </div>
+                <Icons.ChevronR size={16} />
+              </button>
+            );
+          })}
+        </div>
+        <Card padding={0}>
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h3 style={{ margin: 0, fontSize: "var(--fs-16)", fontWeight: 600 }}>最近改定された規程</h3>
+            <a href="#" style={{ fontSize: "var(--fs-13)", color: PORTAL_BRAND, fontWeight: 500 }}>改定履歴一覧 →</a>
+          </div>
+          {recent.map((r, i) => (
+            <div key={i} style={{ padding: "14px 24px", borderBottom: i < recent.length - 1 ? "1px solid var(--line)" : "none", display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                  <span style={{ fontSize: "var(--fs-14)", fontWeight: 600, color: "var(--gray-100)" }}>{r.title}</span>
+                  <span style={{ padding: "2px 8px", background: PORTAL_LIGHT, color: PORTAL_BRAND, borderRadius: "var(--r-pill)", fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)" }}>{r.ver}</span>
+                </div>
+                <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-70)" }}>{r.diff}</div>
+              </div>
+              <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", fontVariantNumeric: "tabular-nums" }}>{r.date}</div>
+              <Button variant="ghost" size="sm">PDF</Button>
+            </div>
+          ))}
+        </Card>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <Card padding={22}>
+            <h3 style={{ margin: "0 0 12px", fontSize: "var(--fs-15)", fontWeight: 600 }}>よく使う書式</h3>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+              {["経費精算書テンプレート", "稟議書テンプレート", "出張申請書", "誓約書（秘密保持）", "退職届テンプレート"].map((t, i) => (
+                <li key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: "var(--r-sm)" }}>
+                  <Icons.FileText size={14} />
+                  <span style={{ fontSize: "var(--fs-13)", flex: 1 }}>{t}</span>
+                  <a href="#" style={{ fontSize: "var(--fs-12)", color: PORTAL_BRAND, fontWeight: 500 }}>DL</a>
+                </li>
+              ))}
+            </ul>
+          </Card>
+          <Card padding={22} style={{ background: PORTAL_LIGHT, border: `1px solid ${PORTAL_ACCENT}33` }}>
+            <h3 style={{ margin: "0 0 10px", fontSize: "var(--fs-15)", fontWeight: 600, color: PORTAL_BRAND }}>💡 ご利用ガイド</h3>
+            <p style={{ margin: "0 0 12px", fontSize: "var(--fs-13)", color: "var(--gray-80)", lineHeight: 1.65 }}>
+              規程の解釈や手続きで迷ったら、まず各部署担当者へご相談ください。
+              全社共通の質問は総務部まで。
+            </p>
+            <Button variant="secondary" size="sm">総務部に問い合わせ</Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── ポータルTOP (default) ─────────────────────────────── */
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Hero — みらい建設ブランド */}
+      <Card padding={0} style={{ overflow: "hidden", border: "none" }}>
+        <div style={{
+          padding: "36px 40px", color: "#fff",
+          background: `linear-gradient(135deg, ${PORTAL_BRAND} 0%, #1a6b41 60%, ${PORTAL_ACCENT} 100%)`,
+          position: "relative",
+        }}>
+          <div style={{ position: "absolute", right: 40, top: 36, width: 96, height: 96, borderRadius: 20,
+            background: "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04))",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 54, fontWeight: 900, border: "1px solid rgba(255,255,255,0.2)",
+          }}>み</div>
+          <div style={{ fontSize: "var(--fs-12)", fontWeight: 600, letterSpacing: "0.2em", opacity: 0.75, marginBottom: 8 }}>
+            MIRAI PORTAL · みらい建設株式会社
+          </div>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-32)", fontWeight: 700, letterSpacing: "-0.02em" }}>
+            社内ポータル
+          </h1>
+          <p style={{ margin: "10px 0 0", fontSize: "var(--fs-16)", opacity: 0.88, maxWidth: 640 }}>
+            お知らせ・社内掲示板・各種申請・規程集を一元化。現場と本社の情報共有を円滑にします。
+          </p>
+          <div style={{ marginTop: 20, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ padding: "6px 14px", background: "rgba(255,255,255,0.15)", borderRadius: "var(--r-pill)", fontSize: "var(--fs-12)", fontWeight: 600, backdropFilter: "blur(4px)" }}>未読 4件</span>
+            <span style={{ padding: "6px 14px", background: "rgba(255,255,255,0.15)", borderRadius: "var(--r-pill)", fontSize: "var(--fs-12)", fontWeight: 600 }}>今月の誕生日 3名</span>
+            <span style={{ padding: "6px 14px", background: "rgba(255,255,255,0.15)", borderRadius: "var(--r-pill)", fontSize: "var(--fs-12)", fontWeight: 600 }}>勤続表彰 1名</span>
+          </div>
+        </div>
+      </Card>
+
+      {/* Main grid: notices (left) + events/quick links (right) */}
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+        {/* Notice board */}
+        <Card padding={0}>
+          <div style={{ padding: "18px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--line)" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600 }}>お知らせ · 社内掲示板</h3>
+              <p style={{ margin: "2px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>ピン留め {notices.filter(n=>n.pinned).length} 件 · 全 {notices.length} 件</p>
+            </div>
+            <Button variant="secondary" size="sm" leftIcon={<Icons.Plus size={14} />}>投稿</Button>
+          </div>
+          <div>
+            {notices.map((n, i) => (
+              <button key={n.id} style={{
+                display: "block", width: "100%", textAlign: "left",
+                padding: "16px 24px", background: n.pinned ? PORTAL_LIGHT : "transparent",
+                border: 0, borderBottom: i < notices.length - 1 ? "1px solid var(--line)" : "none",
+                cursor: "pointer", transition: "background 0.12s",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = n.pinned ? "#dcebe2" : "var(--gray-10)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = n.pinned ? PORTAL_LIGHT : "transparent"}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                  {n.pinned && <span style={{ color: PORTAL_BRAND, fontSize: 14 }} aria-label="ピン留め">📌</span>}
+                  <Badge tone={catTone[n.cat] || "neutral"} size="sm">{n.cat}</Badge>
+                  <span style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", fontVariantNumeric: "tabular-nums", marginLeft: "auto" }}>{n.date}</span>
+                </div>
+                <div style={{ fontSize: "var(--fs-14)", fontWeight: 600, color: "var(--gray-100)", marginBottom: 4, lineHeight: 1.5 }}>{n.title}</div>
+                <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)" }}>投稿者: {n.by}</div>
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        {/* Right column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Upcoming events */}
+          <Card padding={0}>
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--line)" }}>
+              <h3 style={{ margin: 0, fontSize: "var(--fs-16)", fontWeight: 600 }}>今後の予定</h3>
+            </div>
+            <div style={{ padding: "8px 12px" }}>
+              {events.map((e, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 8px", borderBottom: i < events.length - 1 ? "1px solid var(--line)" : "none" }}>
+                  <div style={{
+                    width: 48, flexShrink: 0, textAlign: "center",
+                    padding: "6px 0", borderRadius: "var(--r-sm)",
+                    background: e.color, color: "#fff",
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, opacity: 0.85, lineHeight: 1 }}>{e.date.split("/")[0]}月</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.1 }}>{e.date.split("/")[1]}</div>
+                    <div style={{ fontSize: 10, opacity: 0.85, lineHeight: 1 }}>({e.day})</div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: "var(--fs-14)", fontWeight: 500, color: "var(--gray-100)", lineHeight: 1.35 }}>{e.title}</div>
+                    <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-60)", marginTop: 2 }}>📍 {e.loc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Quick links */}
+          <Card padding={20}>
+            <h3 style={{ margin: "0 0 14px", fontSize: "var(--fs-16)", fontWeight: 600 }}>クイックリンク</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {links.map((l, i) => {
+                const IC = l.icon;
+                return (
+                  <button key={i} style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    minHeight: 44, padding: "0 12px",
+                    background: "transparent", border: "1px solid var(--line)",
+                    borderRadius: "var(--r-md)", cursor: "pointer",
+                    fontSize: "var(--fs-14)", color: "var(--gray-80)", fontWeight: 500,
+                    textAlign: "left",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = PORTAL_LIGHT; e.currentTarget.style.borderColor = PORTAL_ACCENT; e.currentTarget.style.color = PORTAL_BRAND; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.color = "var(--gray-80)"; }}
+                  >
+                    <IC size={16} /><span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Bottom: birthday / welcome section */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Card padding={24} style={{ background: PORTAL_LIGHT, border: `1px solid ${PORTAL_ACCENT}33` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <span style={{ fontSize: 20 }}>🎉</span>
+            <h3 style={{ margin: 0, fontSize: "var(--fs-16)", fontWeight: 600, color: PORTAL_BRAND }}>今月の誕生日</h3>
+          </div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {[{n:"鈴木 一郎", d:"4/19", dept:"現場事務所"}, {n:"田中 美咲", d:"4/23", dept:"川崎現場"}, {n:"山本 良太", d:"4/28", dept:"横浜現場"}].map((p, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#fff", borderRadius: "var(--r-md)", border: "1px solid rgba(255,255,255,0.8)" }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: PORTAL_ACCENT, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "var(--fs-14)" }}>{p.n.slice(0,1)}</div>
+                <div>
+                  <div style={{ fontSize: "var(--fs-14)", fontWeight: 600 }}>{p.n}</div>
+                  <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-70)" }}>{p.d} · {p.dept}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card padding={24}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <span style={{ fontSize: 20 }}>🌱</span>
+            <h3 style={{ margin: 0, fontSize: "var(--fs-16)", fontWeight: 600 }}>新入社員紹介</h3>
+          </div>
+          <p style={{ margin: "0 0 12px", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>2026年度、23名の新しい仲間を迎えました。</p>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {["技術職 12名", "事務職 6名", "設計職 3名", "総合職 2名"].map((t, i) => (
+              <span key={i} style={{ padding: "4px 12px", background: "var(--gray-10)", borderRadius: "var(--r-pill)", fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-80)" }}>{t}</span>
+            ))}
+          </div>
+          <a href="#" style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 16, fontSize: "var(--fs-14)", fontWeight: 500, color: PORTAL_BRAND }}>配属一覧を見る <Icons.ChevronR size={14} /></a>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   原価管理
+   ═══════════════════════════════════════════════════════════════ */
+function CostPage() {
+  const cats = [
+    { name: "労務費",   budget: 12400, actual: 11280, color: "var(--brand-60)" },
+    { name: "材料費",   budget: 18600, actual: 17940, color: "var(--safety-60)" },
+    { name: "外注費",   budget: 9200,  actual: 8650,  color: "var(--ok-60)" },
+    { name: "機械経費", budget: 4100,  actual: 4320,  color: "var(--warn-60)" },
+    { name: "一般管理", budget: 2800,  actual: 2610,  color: "var(--gray-60)" },
+  ];
+  const totalB = cats.reduce((s, c) => s + c.budget, 0);
+  const totalA = cats.reduce((s, c) => s + c.actual, 0);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>原価管理</h1>
+          <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>予実対比・カテゴリ別集計・案件横断分析（FY2026 Q1）</p>
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <Button variant="secondary" leftIcon={<Icons.Download size={16} />}>Excel 出力</Button>
+          <Button variant="primary" leftIcon={<Icons.Plus size={16} />}>経費入力</Button>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <StatTile label="予算 総額" value={`¥${(totalB/100).toFixed(1)}M`} tone="brand" icon={<Icons.Coins size={20} />} />
+        <StatTile label="実績 総額" value={`¥${(totalA/100).toFixed(1)}M`} delta={`達成率 ${(totalA/totalB*100).toFixed(1)}%`} tone="ok" icon={<Icons.TrendUp size={20} />} />
+        <StatTile label="残予算" value={`¥${((totalB-totalA)/100).toFixed(1)}M`} tone="ok" icon={<Icons.Check size={20} />} />
+        <StatTile label="要注意カテゴリ" value="1" delta="機械経費が超過" deltaTone="warn" tone="warn" icon={<Icons.Alert size={20} />} />
+      </div>
+
+      <Card padding={24}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
+          <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600 }}>カテゴリ別 予実対比</h3>
+          <span style={{ fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>単位: 万円</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          {cats.map((c, i) => {
+            const rate = (c.actual / c.budget) * 100;
+            const over = rate > 100;
+            return (
+              <div key={i}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: "var(--fs-14)" }}>
+                  <span style={{ fontWeight: 600, color: "var(--gray-100)" }}>{c.name}</span>
+                  <span style={{ color: "var(--gray-70)", fontVariantNumeric: "tabular-nums" }}>
+                    <strong style={{ color: over ? "var(--err-60)" : "var(--gray-100)" }}>¥{c.actual.toLocaleString()}</strong>
+                    <span style={{ color: "var(--gray-50)" }}> / ¥{c.budget.toLocaleString()}</span>
+                    <span style={{ marginLeft: 12, fontWeight: 600, color: over ? "var(--err-60)" : "var(--ok-60)" }}>{rate.toFixed(1)}%</span>
+                  </span>
+                </div>
+                <div style={{ position: "relative", height: 10, background: "var(--gray-10)", borderRadius: "var(--r-pill)", overflow: "hidden" }}>
+                  <div style={{ width: `${Math.min(rate, 100)}%`, height: "100%", background: over ? "var(--err-60)" : c.color, borderRadius: "var(--r-pill)", transition: "width 0.6s" }} />
+                  {over && <div style={{ position: "absolute", right: 0, top: 0, width: `${rate - 100}%`, height: "100%", background: "repeating-linear-gradient(45deg, var(--err-60), var(--err-60) 4px, #a50b24 4px, #a50b24 8px)", borderRadius: "0 var(--r-pill) var(--r-pill) 0", maxWidth: "100%" }} />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      <Card padding={0}>
+        <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--line)" }}>
+          <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600 }}>案件別 損益</h3>
+        </div>
+        <div role="table">
+          <div role="row" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", padding: "10px 24px", background: "var(--gray-10)", fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid var(--line)" }}>
+            <span>案件</span><span style={{ textAlign: "right" }}>予算</span><span style={{ textAlign: "right" }}>実績</span><span style={{ textAlign: "right" }}>差異</span><span style={{ textAlign: "right" }}>達成率</span>
+          </div>
+          {PROJECTS.filter(p => p.budget > 0).map((p, i, arr) => {
+            const diff = p.budget - p.actual;
+            const rate = p.actual / p.budget * 100;
+            return (
+              <div key={p.id} role="row" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", padding: "14px 24px", fontSize: "var(--fs-14)", borderBottom: i < arr.length - 1 ? "1px solid var(--line)" : "none", alignItems: "center", fontVariantNumeric: "tabular-nums" }}>
+                <span style={{ fontWeight: 500 }}>{p.name}</span>
+                <span style={{ textAlign: "right", color: "var(--gray-70)" }}>¥{p.budget.toLocaleString()}</span>
+                <span style={{ textAlign: "right", fontWeight: 600 }}>¥{p.actual.toLocaleString()}</span>
+                <span style={{ textAlign: "right", color: diff >= 0 ? "var(--ok-60)" : "var(--err-60)", fontWeight: 600 }}>{diff >= 0 ? "+" : ""}¥{diff.toLocaleString()}</span>
+                <span style={{ textAlign: "right" }}><Badge tone={rate > 100 ? "err" : rate > 95 ? "warn" : "ok"} size="sm">{rate.toFixed(1)}%</Badge></span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ITSM 運用管理
+   ═══════════════════════════════════════════════════════════════ */
+function ITSMPage() {
+  const tickets = [
+    { id: "INC-2026-0342", type: "インシデント", title: "A棟 3F 足場の一部に緩み、巡回中に発見", priority: "HIGH", status: "IN_PROGRESS", assignee: "鈴木 一郎", updated: "2h前" },
+    { id: "INC-2026-0341", type: "インシデント", title: "川崎現場 資材搬入トラックの進入経路変更要望", priority: "MEDIUM", status: "OPEN", assignee: "田中 美咲", updated: "4h前" },
+    { id: "CHG-2026-0087", type: "変更要求", title: "横浜 基礎コンクリート配合の仕様変更", priority: "MEDIUM", status: "REVIEW", assignee: "山本 良太", updated: "6h前" },
+    { id: "PRB-2026-0031", type: "問題", title: "電子小黒板アプリのオフライン同期が不安定", priority: "LOW", status: "OPEN", assignee: "IT 運用チーム", updated: "1d前" },
+    { id: "INC-2026-0338", type: "インシデント", title: "横浜 基礎コンクリート打設 — 養生期間延長", priority: "MEDIUM", status: "RESOLVED", assignee: "山本 良太", updated: "2d前" },
+  ];
+  const statusMap = { OPEN: { label: "未対応", tone: "err" }, IN_PROGRESS: { label: "対応中", tone: "warn" }, REVIEW: { label: "レビュー中", tone: "info" }, RESOLVED: { label: "解決済", tone: "ok" } };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>ITSM 運用管理</h1>
+          <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>インシデント · 変更要求 · 問題管理 — ITIL v4 準拠</p>
+        </div>
+        <Button variant="primary" leftIcon={<Icons.Plus size={16} />}>チケット起票</Button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <StatTile label="未対応" value="2" tone="safety" icon={<Icons.Alert size={20} />} />
+        <StatTile label="対応中" value="1" tone="warn" icon={<Icons.Clock size={20} />} />
+        <StatTile label="今月 SLA 達成率" value="96.4%" delta="+1.8pt" tone="ok" icon={<Icons.TrendUp size={20} />} />
+        <StatTile label="平均解決時間" value="4.2h" delta="−30分" tone="brand" icon={<Icons.Check size={20} />} />
+      </div>
+
+      <Card padding={0}>
+        <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)", display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {["すべて", "インシデント", "変更要求", "問題", "サービス要求"].map((f, i) => (
+            <button key={f} style={{ minHeight: 36, padding: "0 14px", background: i === 0 ? "var(--brand-60)" : "transparent", color: i === 0 ? "#fff" : "var(--gray-80)", border: `1px solid ${i === 0 ? "var(--brand-60)" : "var(--line)"}`, borderRadius: "var(--r-md)", fontSize: "var(--fs-14)", fontWeight: 500, cursor: "pointer" }}>{f}</button>
+          ))}
+        </div>
+        <div role="table">
+          <div role="row" style={{ display: "grid", gridTemplateColumns: "140px 100px 2fr 100px 120px 140px 80px", padding: "10px 24px", background: "var(--gray-10)", fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid var(--line)" }}>
+            <span>ID</span><span>種別</span><span>タイトル</span><span>優先度</span><span>ステータス</span><span>担当</span><span>更新</span>
+          </div>
+          {tickets.map((t, i) => (
+            <div key={t.id} role="row" style={{ display: "grid", gridTemplateColumns: "140px 100px 2fr 100px 120px 140px 80px", padding: "14px 24px", fontSize: "var(--fs-14)", borderBottom: i < tickets.length - 1 ? "1px solid var(--line)" : "none", alignItems: "center", cursor: "pointer" }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "var(--brand-10)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-12)", color: "var(--brand-60)", fontWeight: 600 }}>{t.id}</span>
+              <span style={{ fontSize: "var(--fs-12)", color: "var(--gray-70)" }}>{t.type}</span>
+              <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</span>
+              <span><Badge tone={PRIORITY_MAP[t.priority].tone} size="sm">{PRIORITY_MAP[t.priority].label}</Badge></span>
+              <span><Badge tone={statusMap[t.status].tone} size="sm">{statusMap[t.status].label}</Badge></span>
+              <span style={{ color: "var(--gray-80)" }}>{t.assignee}</span>
+              <span style={{ color: "var(--gray-60)", fontSize: "var(--fs-12)" }}>{t.updated}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AI ナレッジ
+   ═══════════════════════════════════════════════════════════════ */
+function KnowledgePage() {
+  const articles = [
+    { cat: "安全管理", title: "高所作業における墜落防止の最新ガイドライン", views: 2840, date: "2026-04-12", author: "建災防 監修" },
+    { cat: "法令", title: "改正建設業法 2025年10月施行ポイント解説", views: 1920, date: "2026-04-08", author: "法務チーム" },
+    { cat: "施工技術", title: "コンクリート養生期間の判断基準と温度管理", views: 1560, date: "2026-04-05", author: "技術部" },
+    { cat: "ICT", title: "電子小黒板の正しい運用と写真管理ルール", views: 1240, date: "2026-03-28", author: "IT推進室" },
+    { cat: "原価", title: "歩掛り見直しによる労務費削減の事例", views: 980, date: "2026-03-22", author: "原価企画" },
+    { cat: "品質", title: "鉄筋ガス圧接継手の外観検査チェックリスト", views: 720, date: "2026-03-15", author: "品質管理" },
+  ];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>AI ナレッジ</h1>
+        <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>現場ノウハウ・法令・技術記事を AI 検索で即時参照</p>
+      </div>
+
+      {/* AI Ask box */}
+      <Card padding={24} style={{ background: "linear-gradient(135deg, var(--brand-10), var(--safety-10))", border: "1px solid var(--brand-20)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <div style={{ width: 36, height: 36, borderRadius: "var(--r-md)", background: "var(--brand-60)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icons.Book size={18} />
+          </div>
+          <h3 style={{ margin: 0, fontSize: "var(--fs-18)", fontWeight: 600 }}>AI アシスタントに質問</h3>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <input placeholder="例: 雨天時のコンクリート打設の可否判断は？"
+            style={{ flex: 1, height: "var(--touch)", padding: "0 16px", border: "1px solid var(--gray-30)", borderRadius: "var(--r-md)", fontSize: "var(--fs-14)", background: "#fff" }} />
+          <Button variant="primary" leftIcon={<Icons.Search size={16} />}>質問する</Button>
+        </div>
+        <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: "var(--fs-12)", color: "var(--gray-70)" }}>候補:</span>
+          {["足場の組立作業主任者の要件", "RC造スラブ厚の設計基準", "熱中症対策（WBGT値）"].map((s, i) => (
+            <button key={i} style={{ fontSize: "var(--fs-12)", padding: "3px 10px", background: "#fff", border: "1px solid var(--line)", borderRadius: "var(--r-pill)", cursor: "pointer", color: "var(--brand-60)" }}>{s}</button>
+          ))}
+        </div>
+      </Card>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+        {articles.map((a, i) => (
+          <Card key={i} padding={20} style={{ cursor: "pointer", transition: "box-shadow 0.12s, transform 0.12s" }}
+            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "var(--e2)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
+            <Badge tone="info" size="sm">{a.cat}</Badge>
+            <h4 style={{ margin: "12px 0 8px", fontSize: "var(--fs-16)", fontWeight: 600, color: "var(--gray-100)", lineHeight: 1.4 }}>{a.title}</h4>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--fs-12)", color: "var(--gray-60)", marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
+              <span>{a.author}</span>
+              <span>{a.views.toLocaleString()} views · {a.date.slice(5)}</span>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ユーザー管理
+   ═══════════════════════════════════════════════════════════════ */
+function UsersPage() {
+  const users = [
+    { name: "佐藤 健一", email: "k.sato@example.co.jp", role: "ADMIN", dept: "工事管理部", status: "active", last: "今" },
+    { name: "鈴木 一郎", email: "i.suzuki@example.co.jp", role: "MANAGER", dept: "第一現場事務所", status: "active", last: "10分前" },
+    { name: "田中 美咲", email: "m.tanaka@example.co.jp", role: "FIELD", dept: "川崎現場", status: "active", last: "1h前" },
+    { name: "山本 良太", email: "r.yamamoto@example.co.jp", role: "FIELD", dept: "横浜現場", status: "active", last: "3h前" },
+    { name: "高橋 太郎", email: "t.takahashi@example.co.jp", role: "VIEWER", dept: "経営企画", status: "inactive", last: "14d前" },
+  ];
+  const roleMap = { ADMIN: { label: "管理者", tone: "err" }, MANAGER: { label: "マネージャ", tone: "info" }, FIELD: { label: "現場担当", tone: "ok" }, VIEWER: { label: "閲覧者", tone: "neutral" } };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>ユーザー管理</h1>
+          <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>ロール・権限設定 · IdP (SAML / OIDC) 連携対応</p>
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <Button variant="secondary" leftIcon={<Icons.Download size={16} />}>監査ログ</Button>
+          <Button variant="primary" leftIcon={<Icons.Plus size={16} />}>ユーザー追加</Button>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <StatTile label="総ユーザー数" value="48" tone="brand" icon={<Icons.Users size={20} />} />
+        <StatTile label="アクティブ" value="42" delta="+3 今月" tone="ok" icon={<Icons.Check size={20} />} />
+        <StatTile label="管理者権限" value="3" tone="safety" icon={<Icons.Shield size={20} />} />
+        <StatTile label="招待中" value="2" tone="warn" icon={<Icons.Clock size={20} />} />
+      </div>
+
+      <Card padding={0}>
+        <div role="table">
+          <div role="row" style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr 1.4fr 100px 100px 80px", padding: "12px 24px", background: "var(--gray-10)", fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid var(--line)" }}>
+            <span>名前</span><span>メール</span><span>ロール</span><span>部署</span><span>状態</span><span>最終操作</span><span></span>
+          </div>
+          {users.map((u, i) => (
+            <div key={u.email} role="row" style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr 1.4fr 100px 100px 80px", padding: "14px 24px", fontSize: "var(--fs-14)", borderBottom: i < users.length - 1 ? "1px solid var(--line)" : "none", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--brand-60)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "var(--fs-12)", fontWeight: 700 }}>{u.name.slice(0, 2)}</div>
+                <span style={{ fontWeight: 500 }}>{u.name}</span>
+              </div>
+              <span style={{ color: "var(--gray-70)", fontFamily: "var(--font-mono)", fontSize: "var(--fs-12)" }}>{u.email}</span>
+              <span><Badge tone={roleMap[u.role].tone} size="sm">{roleMap[u.role].label}</Badge></span>
+              <span style={{ color: "var(--gray-80)" }}>{u.dept}</span>
+              <span><Badge tone={u.status === "active" ? "ok" : "neutral"} size="sm">{u.status === "active" ? "有効" : "無効"}</Badge></span>
+              <span style={{ color: "var(--gray-60)", fontSize: "var(--fs-12)" }}>{u.last}</span>
+              <button style={{ minHeight: 32, padding: "0 10px", background: "transparent", border: "1px solid var(--line)", borderRadius: "var(--r-sm)", fontSize: "var(--fs-12)", cursor: "pointer", color: "var(--gray-80)" }}>編集</button>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   通知設定
+   ═══════════════════════════════════════════════════════════════ */
+function NotifPage() {
+  const [settings, setSettings] = useState({
+    incident_high: { email: true, push: true, slack: true },
+    incident_med:  { email: true, push: false, slack: true },
+    daily_report:  { email: false, push: true, slack: false },
+    ky_reminder:   { email: false, push: true, slack: false },
+    cost_alert:    { email: true, push: false, slack: true },
+    approval_req:  { email: true, push: true, slack: false },
+  });
+  const rows = [
+    { key: "incident_high", label: "重大インシデント", desc: "優先度「重大」「高」のインシデント発生時" },
+    { key: "incident_med",  label: "通常インシデント", desc: "優先度「中」「低」のインシデント発生時" },
+    { key: "daily_report",  label: "日報リマインダー", desc: "未提出の日報がある場合、17:00 に通知" },
+    { key: "ky_reminder",   label: "KY 活動リマインダー", desc: "朝礼前 7:30 に KY 活動未実施を通知" },
+    { key: "cost_alert",    label: "原価超過アラート", desc: "予算達成率 95% を超えた時点で通知" },
+    { key: "approval_req",  label: "承認依頼", desc: "日報・経費精算・変更要求の承認依頼" },
+  ];
+  const Toggle = ({ on, onClick }) => (
+    <button onClick={onClick} role="switch" aria-checked={on} style={{
+      width: 44, height: 24, borderRadius: 12, border: 0, cursor: "pointer",
+      background: on ? "var(--brand-60)" : "var(--gray-30)", position: "relative", transition: "background 0.15s",
+    }}>
+      <span style={{ position: "absolute", top: 2, left: on ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 0.15s" }} />
+    </button>
+  );
+  const toggle = (key, channel) => setSettings(s => ({ ...s, [key]: { ...s[key], [channel]: !s[key][channel] } }));
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>通知設定</h1>
+        <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>メール · プッシュ通知 · Slack / Teams 配信をイベント別に制御</p>
+      </div>
+
+      <Card padding={0}>
+        <div role="table">
+          <div role="row" style={{ display: "grid", gridTemplateColumns: "2.5fr 90px 90px 90px", padding: "14px 24px", background: "var(--gray-10)", fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid var(--line)" }}>
+            <span>イベント</span><span style={{ textAlign: "center" }}>メール</span><span style={{ textAlign: "center" }}>プッシュ</span><span style={{ textAlign: "center" }}>Slack</span>
+          </div>
+          {rows.map((r, i) => (
+            <div key={r.key} role="row" style={{ display: "grid", gridTemplateColumns: "2.5fr 90px 90px 90px", padding: "18px 24px", borderBottom: i < rows.length - 1 ? "1px solid var(--line)" : "none", alignItems: "center" }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: "var(--fs-14)" }}>{r.label}</div>
+                <div style={{ color: "var(--gray-70)", fontSize: "var(--fs-14)", marginTop: 3 }}>{r.desc}</div>
+              </div>
+              <div style={{ textAlign: "center" }}><Toggle on={settings[r.key].email} onClick={() => toggle(r.key, "email")} /></div>
+              <div style={{ textAlign: "center" }}><Toggle on={settings[r.key].push} onClick={() => toggle(r.key, "push")} /></div>
+              <div style={{ textAlign: "center" }}><Toggle on={settings[r.key].slack} onClick={() => toggle(r.key, "slack")} /></div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card padding={24}>
+        <h3 style={{ margin: "0 0 16px", fontSize: "var(--fs-18)", fontWeight: 600 }}>配信チャネル設定</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          {[
+            { label: "メール", value: "k.sato@example.co.jp", status: "verified" },
+            { label: "Slack Webhook", value: "#servicehub-alerts", status: "verified" },
+            { label: "Teams Webhook", value: "未連携", status: "pending" },
+          ].map((c, i) => (
+            <div key={i} style={{ border: "1px solid var(--line)", borderRadius: "var(--r-md)", padding: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div style={{ fontSize: "var(--fs-14)", fontWeight: 600 }}>{c.label}</div>
+                <Badge tone={c.status === "verified" ? "ok" : "warn"} size="sm">{c.status === "verified" ? "✓ 接続済" : "未設定"}</Badge>
+              </div>
+              <div style={{ fontSize: "var(--fs-12)", color: "var(--gray-70)", fontFamily: "var(--font-mono)" }}>{c.value}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   設定
+   ═══════════════════════════════════════════════════════════════ */
+function SettingsPage() {
+  const [tab, setTab] = useState("profile");
+  const tabs = [
+    { key: "profile", label: "プロフィール" },
+    { key: "security", label: "セキュリティ" },
+    { key: "org", label: "組織情報" },
+    { key: "integration", label: "外部連携" },
+    { key: "appearance", label: "表示設定" },
+  ];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-28)", fontWeight: 700, letterSpacing: "-0.02em" }}>設定</h1>
+        <p style={{ margin: "6px 0 0", fontSize: "var(--fs-14)", color: "var(--gray-70)" }}>プロフィール · セキュリティ · 組織 · 連携</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, alignItems: "flex-start" }}>
+        <nav style={{ display: "flex", flexDirection: "column", gap: 2, background: "#fff", border: "1px solid var(--line)", borderRadius: "var(--r-lg)", padding: 8 }}>
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              textAlign: "left", minHeight: 40, padding: "0 14px",
+              background: tab === t.key ? "var(--brand-10)" : "transparent",
+              color: tab === t.key ? "var(--brand-70)" : "var(--gray-80)",
+              border: 0, borderRadius: "var(--r-md)", cursor: "pointer",
+              fontSize: "var(--fs-14)", fontWeight: tab === t.key ? 600 : 500,
+            }}>{t.label}</button>
+          ))}
+        </nav>
+
+        <div>
+          {tab === "profile" && (
+            <Card padding={24}>
+              <h3 style={{ margin: "0 0 20px", fontSize: "var(--fs-18)", fontWeight: 600 }}>プロフィール</h3>
+              <div style={{ display: "flex", gap: 20, alignItems: "center", marginBottom: 24, paddingBottom: 24, borderBottom: "1px solid var(--line)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--brand-60)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "var(--fs-24)", fontWeight: 700 }}>佐藤</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: "var(--fs-16)" }}>佐藤 健一</div>
+                  <div style={{ color: "var(--gray-70)", fontSize: "var(--fs-14)", marginTop: 2 }}>現場監督 · 管理者権限</div>
+                </div>
+                <Button variant="secondary">写真を変更</Button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {[
+                  { label: "氏名", value: "佐藤 健一" },
+                  { label: "メールアドレス", value: "k.sato@example.co.jp" },
+                  { label: "電話番号", value: "090-1234-5678" },
+                  { label: "部署", value: "工事管理部" },
+                  { label: "役職", value: "主任" },
+                  { label: "言語", value: "日本語 (ja-JP)" },
+                ].map((f, i) => (
+                  <div key={i}>
+                    <label style={{ fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{f.label}</label>
+                    <input defaultValue={f.value} style={{ width: "100%", height: "var(--touch)", padding: "0 14px", border: "1px solid var(--gray-30)", borderRadius: "var(--r-md)", fontSize: "var(--fs-14)", background: "#fff" }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 24, display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <Button variant="secondary">キャンセル</Button>
+                <Button variant="primary">保存</Button>
+              </div>
+            </Card>
+          )}
+          {tab === "security" && (
+            <Card padding={24}>
+              <h3 style={{ margin: "0 0 20px", fontSize: "var(--fs-18)", fontWeight: 600 }}>セキュリティ</h3>
+              {[
+                { label: "パスワード", desc: "最終更新: 45 日前 · 90 日ごとの変更を推奨", action: "変更" },
+                { label: "二要素認証 (2FA)", desc: "認証アプリで有効化済み", action: "設定" },
+                { label: "ログインセッション", desc: "3 デバイスでアクティブ", action: "管理" },
+                { label: "API トークン", desc: "1 件発行済み", action: "発行" },
+              ].map((s, i, arr) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 0", borderBottom: i < arr.length - 1 ? "1px solid var(--line)" : "none" }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "var(--fs-14)" }}>{s.label}</div>
+                    <div style={{ color: "var(--gray-70)", fontSize: "var(--fs-14)", marginTop: 2 }}>{s.desc}</div>
+                  </div>
+                  <Button variant="secondary">{s.action}</Button>
+                </div>
+              ))}
+            </Card>
+          )}
+          {tab === "org" && (
+            <Card padding={24}>
+              <h3 style={{ margin: "0 0 20px", fontSize: "var(--fs-18)", fontWeight: 600 }}>組織情報</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {[
+                  ["会社名", "株式会社 サンプル建設"],
+                  ["法人番号", "1234567890123"],
+                  ["建設業許可番号", "国土交通大臣許可(特-3)第12345号"],
+                  ["本社所在地", "東京都千代田区大手町 1-1-1"],
+                  ["代表者", "山田 太郎"],
+                  ["資本金", "¥5,000,000,000"],
+                ].map(([l, v], i) => (
+                  <div key={i}>
+                    <label style={{ fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>{l}</label>
+                    <div style={{ padding: "10px 14px", background: "var(--gray-10)", borderRadius: "var(--r-md)", fontSize: "var(--fs-14)" }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+          {tab === "integration" && (
+            <Card padding={24}>
+              <h3 style={{ margin: "0 0 20px", fontSize: "var(--fs-18)", fontWeight: 600 }}>外部連携</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { name: "Microsoft 365", status: "connected", desc: "SSO · カレンダー · Teams 通知" },
+                  { name: "Slack", status: "connected", desc: "#servicehub-alerts へ通知配信" },
+                  { name: "ANDPAD", status: "available", desc: "工程・写真データの双方向同期" },
+                  { name: "freee 会計", status: "available", desc: "経費精算・仕訳連携" },
+                  { name: "国土交通省 CCUS", status: "available", desc: "建設キャリアアップシステム連携" },
+                ].map((s, i, arr) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 16px", border: "1px solid var(--line)", borderRadius: "var(--r-md)" }}>
+                    <div style={{ width: 40, height: 40, borderRadius: "var(--r-md)", background: "var(--gray-10)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--gray-80)" }}>{s.name[0]}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: "var(--fs-14)" }}>{s.name}</div>
+                      <div style={{ color: "var(--gray-70)", fontSize: "var(--fs-12)", marginTop: 2 }}>{s.desc}</div>
+                    </div>
+                    {s.status === "connected"
+                      ? <><Badge tone="ok" size="sm">✓ 接続済</Badge><Button variant="secondary" size="sm">設定</Button></>
+                      : <Button variant="primary" size="sm">接続</Button>}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+          {tab === "appearance" && (
+            <Card padding={24}>
+              <h3 style={{ margin: "0 0 20px", fontSize: "var(--fs-18)", fontWeight: 600 }}>表示設定</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div>
+                  <label style={{ fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>テーマ</label>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    {["ライト", "ダーク", "システム"].map((t, i) => (
+                      <button key={t} style={{ flex: 1, minHeight: 48, border: `2px solid ${i === 0 ? "var(--brand-60)" : "var(--line)"}`, borderRadius: "var(--r-md)", background: "#fff", cursor: "pointer", fontSize: "var(--fs-14)", fontWeight: i === 0 ? 600 : 500 }}>{t}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>文字サイズ</label>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    {[{s:"小", f:14}, {s:"標準", f:16}, {s:"大", f:18}].map((x, i) => (
+                      <button key={x.s} style={{ flex: 1, minHeight: 48, border: `2px solid ${i === 1 ? "var(--brand-60)" : "var(--line)"}`, borderRadius: "var(--r-md)", background: "#fff", cursor: "pointer", fontSize: x.f, fontWeight: i === 1 ? 600 : 500 }}>{x.s} ({x.f}px)</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: "var(--fs-12)", fontWeight: 600, color: "var(--gray-70)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>言語</label>
+                  <select style={{ width: "100%", height: "var(--touch)", padding: "0 14px", border: "1px solid var(--gray-30)", borderRadius: "var(--r-md)", fontSize: "var(--fs-14)", background: "#fff" }}>
+                    <option>日本語 (ja-JP)</option><option>English (en-US)</option><option>中文 (zh-CN)</option>
+                  </select>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP SHELL
+   ═══════════════════════════════════════════════════════════════ */
+function App() {
+  const [active, setActive] = useState(() => localStorage.getItem("sh2:page") || "dashboard");
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const [online] = useState(true);
+
+  useEffect(() => { localStorage.setItem("sh2:page", active); }, [active]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCmdOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const pageInfo = {
+    dashboard: { crumb: ["ServiceHub", "ダッシュボード"], render: () => <DashboardPage onNavigate={setActive} /> },
+    projects:  { crumb: ["ServiceHub", "業務", "工事案件"], render: () => <ProjectsPage /> },
+    reports:   { crumb: ["ServiceHub", "業務", "日報 · 工程表"], render: () => <ReportsPage /> },
+    photos:    { crumb: ["ServiceHub", "業務", "写真 · 電子小黒板"], render: () => <PhotosPage /> },
+    safety:    { crumb: ["ServiceHub", "運用", "安全 · 品質"], render: () => <SafetyPage /> },
+    portal:    { crumb: ["ServiceHub", "社内", "ポータルTOP"],      render: () => <PortalPage tab="top" /> },
+    notices:   { crumb: ["ServiceHub", "社内", "お知らせ・掲示板"],  render: () => <PortalPage tab="notices" /> },
+    hr:        { crumb: ["ServiceHub", "社内", "人事・勤怠"],        render: () => <PortalPage tab="hr" /> },
+    rules:     { crumb: ["ServiceHub", "社内", "規程・手続き"],      render: () => <PortalPage tab="rules" /> },
+    cost:      { crumb: ["ServiceHub", "運用", "原価管理"], render: () => <CostPage /> },
+    itsm:      { crumb: ["ServiceHub", "運用", "ITSM"], render: () => <ITSMPage /> },
+    knowledge: { crumb: ["ServiceHub", "運用", "ナレッジ"], render: () => <KnowledgePage /> },
+    users:     { crumb: ["ServiceHub", "管理", "ユーザー管理"], render: () => <UsersPage /> },
+    notif:     { crumb: ["ServiceHub", "管理", "通知設定"], render: () => <NotifPage /> },
+    settings:  { crumb: ["ServiceHub", "管理", "設定"], render: () => <SettingsPage /> },
+  };
+  const current = pageInfo[active] || pageInfo.dashboard;
+
+  return (
+    <>
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <Sidebar active={active} onNavigate={setActive} />
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+          <TopBar breadcrumb={current.crumb} onOpenSearch={() => setCmdOpen(true)} online={online} />
+          <main id="main-content" style={{ flex: 1, padding: "32px 32px 64px", maxWidth: 1440, width: "100%", margin: "0 auto" }}>
+            {current.render()}
+          </main>
+        </div>
+      </div>
+      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} onNavigate={setActive} />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
