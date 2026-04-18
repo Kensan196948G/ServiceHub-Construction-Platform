@@ -5,13 +5,46 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Primary — mapped to canonical brand tokens (docs/design/ServiceHub-WebUI.html)
         primary: {
-          50: "#eff6ff",
-          100: "#dbeafe",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
-          900: "#1e3a8a",
+          10:  "var(--brand-10)",
+          20:  "var(--brand-20)",
+          50:  "var(--brand-50)",
+          500: "var(--brand-50)",
+          600: "var(--brand-60)",
+          700: "var(--brand-70)",
+          800: "var(--brand-80)",
+          900: "var(--brand-90)",
+        },
+        brand: {
+          10:  "var(--brand-10)",
+          20:  "var(--brand-20)",
+          50:  "var(--brand-50)",
+          60:  "var(--brand-60)",
+          70:  "var(--brand-70)",
+          80:  "var(--brand-80)",
+          90:  "var(--brand-90)",
+        },
+        safety: {
+          10:  "var(--safety-10)",
+          20:  "var(--safety-20)",
+          50:  "var(--safety-50)",
+          60:  "var(--safety-60)",
+        },
+        ok: {
+          10:  "var(--ok-10)",
+          20:  "var(--ok-20)",
+          60:  "var(--ok-60)",
+        },
+        warn: {
+          10:  "var(--warn-10)",
+          20:  "var(--warn-20)",
+          60:  "var(--warn-60)",
+        },
+        err: {
+          10:  "var(--err-10)",
+          20:  "var(--err-20)",
+          60:  "var(--err-60)",
         },
         construction: {
           orange: "#f97316",
