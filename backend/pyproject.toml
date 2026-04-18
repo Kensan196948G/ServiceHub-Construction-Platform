@@ -18,6 +18,9 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 addopts = "-v --cov=app --cov-report=term-missing --benchmark-disable"
+markers = [
+    "redis: tests that require a running Redis instance (deselect with -m 'not redis')",
+]
 
 [tool.coverage.run]
 concurrency = ["greenlet", "thread"]

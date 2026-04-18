@@ -76,5 +76,5 @@ jobs:
           cache: pip
       - run: |
           cd backend
-          pip install -r requirements.txt mypy
+          pip install -r requirements.txt
           mypy app --ignore-missing-imports
