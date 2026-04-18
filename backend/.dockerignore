@@ -1,0 +1,55 @@
+# Python bytecode / caches
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtualenvs
+.venv
+venv
+env
+ENV
+
+# Build artifacts
+build
+dist
+*.egg-info
+.eggs
+
+# Test / coverage artifacts
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov
+.coverage
+coverage.xml
+*.cover
+.tox
+
+# Editor / OS
+.DS_Store
+._*
+Thumbs.db
+*.swp
+*.swo
+.vscode
+.idea
+
+# Version control / CI metadata
+.git
+.gitignore
+.github
+
+# Env files (secrets must not leak into image layers)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs
+
+# Docker itself
+Dockerfile
+.dockerignore

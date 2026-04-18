@@ -1,0 +1,46 @@
+# Dependencies — rebuilt in the `deps` stage
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output — regenerated in the `builder` stage
+dist
+build
+.next
+out
+.cache
+.parcel-cache
+.vite
+
+# Tests / coverage
+coverage
+.nyc_output
+test-results
+playwright-report
+blob-report
+/playwright/.cache
+
+# Editor / OS
+.DS_Store
+._*
+Thumbs.db
+*.swp
+*.swo
+.vscode
+.idea
+
+# Version control / CI metadata
+.git
+.gitignore
+.github
+
+# Env files (secrets must not leak into image layers)
+.env
+.env.local
+.env.*.local
+
+# Misc
+*.log
+*.tsbuildinfo
