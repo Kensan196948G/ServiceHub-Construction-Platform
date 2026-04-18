@@ -105,10 +105,10 @@ graph TB
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 Backend テスト | **162 件**（pytest / coverage **85%** / 通知 Phase 2 全完了） |
+| 🧪 Backend テスト | **316 件**（pytest / coverage **95%** / Phase 5c AuthService+TemplateRenderer +23 件 / 2 モジュール 100%） |
 | 🧪 Frontend テスト | **270 件**（vitest / 42 テストファイル / coverage **88%** / Phase 3c ThemeContext +7） |
 | 🎭 E2E テスト | **202 件**（Playwright / 27 テストファイル / Phase 4c 通知バッジ・パネル +11 +ダークモード+5） |
-| 📊 総テスト数 | **634 件**（Backend + Frontend + E2E） |
+| 📊 総テスト数 | **788 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **13 ページ**（通知管理 ADMIN ページ追加） |
 | 🧩 共通 UI コンポーネント | **14 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / NotificationBadge / NotificationPanel / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **12/12 ページ**（全ページ統一完了） |
@@ -122,7 +122,7 @@ graph TB
 | ✅ CI チェック数 | **15 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115 / Phase 4a PR#119 / 4b PR#121 / 4c PR#123 全 merge 済み） |
+| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115 / Phase 4a PR#119 / 4b PR#121 / 4c PR#123 / Phase 5a PR#129 Docker / Phase 5c PR#130 coverage 95% 全 merge 済み） |
 
 ### 🏗️ Backend アーキテクチャ
 
