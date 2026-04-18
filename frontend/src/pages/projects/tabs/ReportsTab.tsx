@@ -131,7 +131,7 @@ export function ReportsTab({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-gray-900">日報一覧</h4>
+        <h4 className="font-semibold text-gray-900 dark:text-white">日報一覧</h4>
         <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setOpen(true)}>
           新規作成
         </Button>
@@ -146,7 +146,7 @@ export function ReportsTab({ projectId }: { projectId: string }) {
       ) : reports.length === 0 ? (
         <Card className="text-center py-12">
           <p className="text-4xl mb-3">📋</p>
-          <p className="text-gray-500 mb-4">日報がまだありません</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">日報がまだありません</p>
           <Button variant="primary" size="sm" onClick={() => setOpen(true)}>追加する</Button>
         </Card>
       ) : (
@@ -155,33 +155,33 @@ export function ReportsTab({ projectId }: { projectId: string }) {
             <Card key={r.id} className="hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">{r.report_date}</p>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="font-medium text-gray-900 dark:text-white">{r.report_date}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {r.weather ? (WEATHER_LABELS[r.weather] ?? r.weather) : "—"} ／ 作業員: {r.worker_count}名
                   </p>
                   {r.work_content && (
-                    <p className="text-sm text-gray-700 mt-2 line-clamp-2">{r.work_content}</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 line-clamp-2">{r.work_content}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-1 ml-4 shrink-0">
                   {r.progress_rate != null && (
                     <div className="text-right mr-2">
-                      <p className="text-xs text-gray-500">進捗</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">進捗</p>
                       <p className="text-lg font-bold text-primary-600">{r.progress_rate}%</p>
-                      <div className="w-20 h-2 bg-gray-200 rounded-full mt-1">
+                      <div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full mt-1">
                         <div className="h-full bg-primary-600 rounded-full" style={{ width: `${r.progress_rate}%` }} />
                       </div>
                     </div>
                   )}
                   <button
-                    className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
                     onClick={() => startEdit(r)}
                     title="編集"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                     onClick={() => handleDelete(r)}
                     title="削除"
                     disabled={deleteMutation.isPending}
@@ -191,9 +191,9 @@ export function ReportsTab({ projectId }: { projectId: string }) {
                 </div>
               </div>
               {r.issues && (
-                <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
-                  <p className="text-xs font-medium text-yellow-700">課題</p>
-                  <p className="text-sm text-yellow-800 mt-0.5">{r.issues}</p>
+                <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <p className="text-xs font-medium text-yellow-700 dark:text-yellow-400">課題</p>
+                  <p className="text-sm text-yellow-800 dark:text-yellow-300 mt-0.5">{r.issues}</p>
                 </div>
               )}
             </Card>

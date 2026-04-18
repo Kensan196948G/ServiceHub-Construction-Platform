@@ -155,23 +155,23 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">設定</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white">設定</h1>
 
       {/* Profile card */}
-      <section className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">プロフィール</h2>
+      <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">プロフィール</h2>
         <dl className="space-y-3">
           <div className="flex gap-4">
-            <dt className="w-28 text-sm text-gray-500 shrink-0">氏名</dt>
-            <dd className="text-sm text-gray-900 font-medium">{user?.full_name ?? "—"}</dd>
+            <dt className="w-28 text-sm text-gray-500 dark:text-gray-400 shrink-0">氏名</dt>
+            <dd className="text-sm text-gray-900 dark:text-gray-100 font-medium">{user?.full_name ?? "—"}</dd>
           </div>
           <div className="flex gap-4">
-            <dt className="w-28 text-sm text-gray-500 shrink-0">メールアドレス</dt>
-            <dd className="text-sm text-gray-900">{user?.email ?? "—"}</dd>
+            <dt className="w-28 text-sm text-gray-500 dark:text-gray-400 shrink-0">メールアドレス</dt>
+            <dd className="text-sm text-gray-900 dark:text-gray-100">{user?.email ?? "—"}</dd>
           </div>
           <div className="flex gap-4">
-            <dt className="w-28 text-sm text-gray-500 shrink-0">権限</dt>
-            <dd className="text-sm text-gray-900">
+            <dt className="w-28 text-sm text-gray-500 dark:text-gray-400 shrink-0">権限</dt>
+            <dd className="text-sm text-gray-900 dark:text-gray-100">
               {user?.role ? (ROLE_LABELS[user.role] ?? user.role) : "—"}
             </dd>
           </div>
@@ -179,16 +179,16 @@ export default function SettingsPage() {
       </section>
 
       {/* Password change */}
-      <section className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">パスワード変更</h2>
+      <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">パスワード変更</h2>
 
         {successMsg && (
-          <div role="status" className="mb-4 p-3 rounded bg-green-50 text-green-700 text-sm">
+          <div role="status" className="mb-4 p-3 rounded bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm">
             {successMsg}
           </div>
         )}
         {errorMsg && (
-          <div role="alert" className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">
+          <div role="alert" className="mb-4 p-3 rounded bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
             {errorMsg}
           </div>
         )}
@@ -205,7 +205,7 @@ export default function SettingsPage() {
               required
               value={form.current_password}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div>
@@ -219,7 +219,7 @@ export default function SettingsPage() {
               required
               value={form.new_password}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div>
@@ -233,7 +233,7 @@ export default function SettingsPage() {
               required
               value={form.confirm_password}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div className="flex gap-3 pt-2">
@@ -247,7 +247,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               キャンセル
             </button>
@@ -257,15 +257,15 @@ export default function SettingsPage() {
 
       {/* Notification preferences */}
       <section
-        className="bg-white rounded-lg border border-gray-200 p-6"
+        className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
         data-testid="notification-preferences-section"
       >
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">通知設定</h2>
+        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">通知設定</h2>
 
         {prefsSuccessMsg && (
           <div
             role="status"
-            className="mb-4 p-3 rounded bg-green-50 text-green-700 text-sm"
+            className="mb-4 p-3 rounded bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm"
           >
             {prefsSuccessMsg}
           </div>
@@ -273,14 +273,14 @@ export default function SettingsPage() {
         {prefsErrorMsg && (
           <div
             role="alert"
-            className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm"
+            className="mb-4 p-3 rounded bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm"
           >
             {prefsErrorMsg}
           </div>
         )}
 
         {prefsLoading ? (
-          <p className="text-sm text-gray-500">読み込み中…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">読み込み中…</p>
         ) : prefs ? (
           <div className="space-y-6">
             {/* Channel master switches */}
@@ -293,7 +293,7 @@ export default function SettingsPage() {
                   className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
                   aria-label="メール通知を有効にする"
                 />
-                <span className="text-sm text-gray-800">
+                <span className="text-sm text-gray-800 dark:text-gray-200">
                   メール通知を有効にする
                 </span>
               </label>
@@ -305,7 +305,7 @@ export default function SettingsPage() {
                   className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
                   aria-label="Slack 通知を有効にする"
                 />
-                <span className="text-sm text-gray-800">
+                <span className="text-sm text-gray-800 dark:text-gray-200">
                   Slack 通知を有効にする
                 </span>
               </label>
@@ -316,7 +316,7 @@ export default function SettingsPage() {
               <div>
                 <label
                   htmlFor="slack_webhook_url"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Slack Webhook URL
                 </label>
@@ -328,9 +328,9 @@ export default function SettingsPage() {
                     updatePref("slack_webhook_url", e.target.value || null)
                   }
                   placeholder="https://hooks.slack.com/services/..."
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Slack Incoming Webhook の URL を入力してください
                 </p>
               </div>
@@ -338,25 +338,25 @@ export default function SettingsPage() {
 
             {/* Per-event settings */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
                 イベント別通知
               </h3>
-              <div className="border border-gray-200 rounded-md overflow-hidden">
+              <div className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th className="text-left px-3 py-2 font-medium text-gray-600">
+                      <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-300">
                         イベント
                       </th>
-                      <th className="text-center px-3 py-2 font-medium text-gray-600 w-20">
+                      <th className="text-center px-3 py-2 font-medium text-gray-600 dark:text-gray-300 w-20">
                         メール
                       </th>
-                      <th className="text-center px-3 py-2 font-medium text-gray-600 w-20">
+                      <th className="text-center px-3 py-2 font-medium text-gray-600 dark:text-gray-300 w-20">
                         Slack
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {Object.entries(EVENT_LABELS).map(([key, label]) => {
                       const channels = prefs.events[key] ?? {
                         email: false,
@@ -364,7 +364,7 @@ export default function SettingsPage() {
                       };
                       return (
                         <tr key={key}>
-                          <td className="px-3 py-2 text-gray-800">{label}</td>
+                          <td className="px-3 py-2 text-gray-800 dark:text-gray-200">{label}</td>
                           <td className="px-3 py-2 text-center">
                             <input
                               type="checkbox"
@@ -404,7 +404,7 @@ export default function SettingsPage() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-gray-500">通知設定を表示できません</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">通知設定を表示できません</p>
         )}
       </section>
     </div>

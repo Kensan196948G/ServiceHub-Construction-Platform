@@ -35,7 +35,7 @@ export function InfoTab({ project, projectId }: { project: Project; projectId: s
     };
     return (
       <Card className="space-y-4">
-        <h4 className="font-semibold text-gray-900">基本情報を編集</h4>
+        <h4 className="font-semibold text-gray-900 dark:text-white">基本情報を編集</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {(["project_code", "name", "client_name", "site_address"] as const).map((key) => (
             <FormField key={key} label={fieldLabels[key]} htmlFor={`edit-${key}`}>
@@ -110,7 +110,7 @@ export function InfoTab({ project, projectId }: { project: Project; projectId: s
   return (
     <Card className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-gray-900">基本情報</h4>
+        <h4 className="font-semibold text-gray-900 dark:text-white">基本情報</h4>
         <Button variant="secondary" size="sm" leftIcon={<Pencil className="w-4 h-4" />} onClick={startEdit}>
           編集
         </Button>
@@ -123,8 +123,8 @@ export function InfoTab({ project, projectId }: { project: Project; projectId: s
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
         {fields.map(({ label, value }) => (
           <div key={label}>
-            <dt className="text-xs font-medium text-gray-500 uppercase">{label}</dt>
-            <dd className="mt-1 text-sm text-gray-900">{value}</dd>
+            <dt className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{label}</dt>
+            <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{value}</dd>
           </div>
         ))}
       </dl>

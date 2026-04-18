@@ -108,7 +108,7 @@ export default function CostPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <DollarSign className="w-7 h-7 text-primary-600" />
           原価管理
         </h2>
@@ -122,7 +122,7 @@ export default function CostPage() {
       </div>
 
       <Card>
-        <label className="block text-sm font-medium text-gray-700 mb-1">プロジェクト選択</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">プロジェクト選択</label>
         <select
           className="input w-64"
           value={selectedProjectId}
@@ -155,26 +155,26 @@ export default function CostPage() {
           {summary && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
-                <p className="text-xs font-medium text-gray-500 mb-1">予算合計</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">予算合計</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {formatCurrency(Number(summary.total_budgeted))}
                 </p>
               </Card>
               <Card>
-                <p className="text-xs font-medium text-gray-500 mb-1">実績合計</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">実績合計</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {formatCurrency(Number(summary.total_actual))}
                 </p>
               </Card>
               <Card>
-                <p className="text-xs font-medium text-gray-500 mb-1">差異</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">差異</p>
                 <p className={`text-xl font-bold flex items-center gap-1 ${isOver ? "text-red-600" : "text-green-600"}`}>
                   {isOver ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
                   {formatCurrency(Math.abs(Number(summary.variance)))}
                 </p>
               </Card>
               <Card>
-                <p className="text-xs font-medium text-gray-500 mb-1">達成率</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">達成率</p>
                 <p className={`text-xl font-bold ${achieveRate > 100 ? "text-red-600" : "text-green-600"}`}>
                   {achieveRate}%
                 </p>
@@ -191,25 +191,25 @@ export default function CostPage() {
             <Card padding="none" className="overflow-hidden">
               <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                   <tr>
                     {["日付", "カテゴリ", "説明", "予算", "実績", "差異", "操作"].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                      <th key={h} className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {records.map((r) => {
                     const variance = Number(r.budgeted_amount) - Number(r.actual_amount);
                     return (
-                      <tr key={r.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">{r.record_date}</td>
+                      <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-200">{r.record_date}</td>
                         <td className="px-4 py-3">
                           <Badge variant="info" size="sm">{CATEGORY_LABEL[r.category] ?? r.category}</Badge>
                         </td>
-                        <td className="px-4 py-3 max-w-xs truncate">{r.description}</td>
-                        <td className="px-4 py-3 text-right">{formatCurrency(Number(r.budgeted_amount))}</td>
-                        <td className="px-4 py-3 text-right">{formatCurrency(Number(r.actual_amount))}</td>
+                        <td className="px-4 py-3 max-w-xs truncate text-gray-900 dark:text-gray-200">{r.description}</td>
+                        <td className="px-4 py-3 text-right text-gray-900 dark:text-gray-200">{formatCurrency(Number(r.budgeted_amount))}</td>
+                        <td className="px-4 py-3 text-right text-gray-900 dark:text-gray-200">{formatCurrency(Number(r.actual_amount))}</td>
                         <td className={`px-4 py-3 text-right font-medium ${variance < 0 ? "text-red-600" : "text-green-600"}`}>
                           {variance < 0 ? "▲" : "▼"}{formatCurrency(Math.abs(variance))}
                         </td>

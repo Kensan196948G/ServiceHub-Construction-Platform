@@ -39,7 +39,7 @@ export function SafetyTab({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-gray-900">安全チェック一覧</h4>
+        <h4 className="font-semibold text-gray-900 dark:text-white">安全チェック一覧</h4>
         <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setOpen(true)}>
           新規作成
         </Button>
@@ -54,7 +54,7 @@ export function SafetyTab({ projectId }: { projectId: string }) {
       ) : checks.length === 0 ? (
         <Card className="text-center py-12">
           <p className="text-4xl mb-3">🦺</p>
-          <p className="text-gray-500 mb-4">安全チェックがまだありません</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">安全チェックがまだありません</p>
           <Button variant="primary" size="sm" onClick={() => setOpen(true)}>追加する</Button>
         </Card>
       ) : (
@@ -64,13 +64,13 @@ export function SafetyTab({ projectId }: { projectId: string }) {
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-gray-900">{c.check_date}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{c.check_date}</p>
                     <Badge variant="info" size="sm">{c.check_type}</Badge>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     全{c.items_total}項目 ／ OK: {c.items_ok} ／ NG: {c.items_ng}
                   </p>
-                  {c.notes && <p className="text-sm text-gray-700 mt-2">{c.notes}</p>}
+                  {c.notes && <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">{c.notes}</p>}
                 </div>
                 <div className="ml-4 shrink-0 flex items-center gap-2">
                   {c.overall_result === "PASS" || c.overall_result === "OK" ? (
@@ -79,7 +79,7 @@ export function SafetyTab({ projectId }: { projectId: string }) {
                     <><XCircle className="w-5 h-5 text-red-500" /><span className="text-sm font-medium text-red-600">不合格</span></>
                   )}
                   <button
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                     onClick={() => handleDelete(c)}
                     title="削除"
                     disabled={deleteMutation.isPending}

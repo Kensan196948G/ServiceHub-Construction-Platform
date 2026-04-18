@@ -120,7 +120,7 @@ function EditUserModal({
 
   return (
     <Modal open={true} onClose={onClose} title="ユーザー編集" size="sm">
-      <p className="text-sm text-gray-500 -mt-2 mb-4">{user.email}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 -mt-2 mb-4">{user.email}</p>
       <div className="space-y-4">
         <FormField label="ロール" htmlFor="edit-role">
           <Select
@@ -138,7 +138,7 @@ function EditUserModal({
             onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
             className="w-4 h-4 text-primary-600 rounded border-gray-300"
           />
-          <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+          <label htmlFor="is_active" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             アクティブ
           </label>
         </div>
@@ -214,7 +214,7 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">ユーザー管理</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">ユーザー管理</h2>
         <Button variant="primary" onClick={() => setShowCreate(true)} leftIcon={<Plus className="w-4 h-4" />}>
           新規ユーザー作成
         </Button>
@@ -234,33 +234,33 @@ export default function UsersPage() {
         <>
           <Card padding="none" className="overflow-hidden">
             <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                     氏名 / メール
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                     ロール
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden md:table-cell">
                     ステータス
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden lg:table-cell">
                     最終ログイン
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden lg:table-cell">
                     作成日
                   </th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {(data?.data ?? []).map((u: User) => (
-                  <tr key={u.id} className="hover:bg-gray-50">
+                  <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-gray-900">{u.full_name}</p>
-                      <p className="text-xs text-gray-500">{u.email}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{u.full_name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{u.email}</p>
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant={ROLE_BADGE_VARIANT[u.role] ?? "default"} size="sm">
@@ -272,12 +272,12 @@ export default function UsersPage() {
                         {u.is_active ? "有効" : "無効"}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 hidden lg:table-cell">
+                    <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                       {u.last_login_at
                         ? new Date(u.last_login_at).toLocaleString("ja-JP")
                         : "—"}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 hidden lg:table-cell">
+                    <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                       {new Date(u.created_at).toLocaleDateString("ja-JP")}
                     </td>
                     <td className="px-4 py-3 text-right">

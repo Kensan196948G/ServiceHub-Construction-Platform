@@ -169,7 +169,7 @@ export default function DailyReportsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <FileText className="w-7 h-7 text-primary-600" />
           日報管理
         </h2>
@@ -183,7 +183,7 @@ export default function DailyReportsPage() {
       </div>
 
       <Card>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           プロジェクト選択
         </label>
         <select
@@ -223,22 +223,22 @@ export default function DailyReportsPage() {
         <Card padding="none" className="overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
               <tr>
                 {["報告日", "天気", "作業員数", "進捗率", "安全確認", "ステータス", ""].map((h, i) => (
-                  <th key={i} className="px-4 py-3 text-left font-medium text-gray-600">
+                  <th key={i} className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {reports.map((r) => {
                 const isExpanded = expandedReportId === r.id;
                 return (
                   <React.Fragment key={r.id}>
                     <tr
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                       onClick={() => setExpandedReportId(isExpanded ? null : r.id)}
                     >
                       <td className="px-4 py-3">{r.report_date}</td>
@@ -246,7 +246,7 @@ export default function DailyReportsPage() {
                       <td className="px-4 py-3">{r.worker_count}名</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                             <div
                               className="bg-primary-600 h-2 rounded-full"
                               style={{ width: `${r.progress_rate ?? 0}%` }}
@@ -272,29 +272,29 @@ export default function DailyReportsPage() {
                       </td>
                     </tr>
                     {isExpanded && (
-                      <tr className="bg-blue-50">
+                      <tr className="bg-blue-50 dark:bg-blue-900/20">
                         <td colSpan={7} className="px-6 py-4">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
-                              <p className="font-medium text-gray-700 mb-1">作業内容</p>
-                              <p className="text-gray-600 whitespace-pre-wrap">
+                              <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">作業内容</p>
+                              <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                                 {r.work_content || "—"}
                               </p>
                             </div>
                             <div>
-                              <p className="font-medium text-gray-700 mb-1">安全メモ</p>
-                              <p className="text-gray-600 whitespace-pre-wrap">
+                              <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">安全メモ</p>
+                              <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                                 {r.safety_notes || "—"}
                               </p>
                             </div>
                             <div>
-                              <p className="font-medium text-gray-700 mb-1">課題・特記事項</p>
-                              <p className="text-gray-600 whitespace-pre-wrap">
+                              <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">課題・特記事項</p>
+                              <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                                 {r.issues || "—"}
                               </p>
                             </div>
                           </div>
-                          <div className="flex gap-3 mt-3 pt-3 border-t border-blue-200">
+                          <div className="flex gap-3 mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
                             <button
                               className="text-blue-600 hover:text-blue-800 text-sm"
                               onClick={(e) => openEditModal(r, e)}
@@ -323,16 +323,16 @@ export default function DailyReportsPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
-              <h3 className="text-lg font-semibold">新規日報作成</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b dark:border-gray-600 sticky top-0 bg-white dark:bg-gray-800">
+              <h3 className="text-lg font-semibold dark:text-white">新規日報作成</h3>
               <button onClick={() => setShowModal(false)}>
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">報告日</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">報告日</label>
                 <input
                   type="date"
                   className="input"
@@ -342,7 +342,7 @@ export default function DailyReportsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">天気</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">天気</label>
                 <select
                   className="input"
                   value={form.weather ?? "SUNNY"}
@@ -354,7 +354,7 @@ export default function DailyReportsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">作業員数</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">作業員数</label>
                 <input
                   type="number"
                   className="input"
@@ -365,7 +365,7 @@ export default function DailyReportsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   進捗率: {form.progress_rate ?? 0}%
                 </label>
                 <input
@@ -384,7 +384,7 @@ export default function DailyReportsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">作業内容</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">作業内容</label>
                 <textarea
                   className="input"
                   rows={3}
@@ -399,12 +399,12 @@ export default function DailyReportsPage() {
                   checked={form.safety_check ?? false}
                   onChange={(e) => setForm({ ...form, safety_check: e.target.checked })}
                 />
-                <label htmlFor="safety_check" className="text-sm font-medium text-gray-700">
+                <label htmlFor="safety_check" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   安全確認済
                 </label>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">安全メモ</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">安全メモ</label>
                 <textarea
                   className="input"
                   rows={2}
@@ -413,7 +413,7 @@ export default function DailyReportsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">課題・特記事項</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">課題・特記事項</label>
                 <textarea
                   className="input"
                   rows={2}
@@ -439,16 +439,16 @@ export default function DailyReportsPage() {
 
       {showEditModal && editingReport && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
-              <h3 className="text-lg font-semibold">日報編集</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b dark:border-gray-600 sticky top-0 bg-white dark:bg-gray-800">
+              <h3 className="text-lg font-semibold dark:text-white">日報編集</h3>
               <button onClick={() => { setShowEditModal(false); setEditingReport(null); }}>
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">報告日</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">報告日</label>
                 <input
                   type="date"
                   className="input"
@@ -458,7 +458,7 @@ export default function DailyReportsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">天気</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">天気</label>
                 <select
                   className="input"
                   value={editForm.weather ?? "SUNNY"}
@@ -470,7 +470,7 @@ export default function DailyReportsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">作業員数</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">作業員数</label>
                 <input
                   type="number"
                   className="input"
@@ -481,7 +481,7 @@ export default function DailyReportsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   進捗率: {editForm.progress_rate ?? 0}%
                 </label>
                 <input
@@ -500,7 +500,7 @@ export default function DailyReportsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">作業内容</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">作業内容</label>
                 <textarea
                   className="input"
                   rows={3}
@@ -515,12 +515,12 @@ export default function DailyReportsPage() {
                   checked={editForm.safety_check ?? false}
                   onChange={(e) => setEditForm({ ...editForm, safety_check: e.target.checked })}
                 />
-                <label htmlFor="edit_safety_check" className="text-sm font-medium text-gray-700">
+                <label htmlFor="edit_safety_check" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   安全確認済
                 </label>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">安全メモ</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">安全メモ</label>
                 <textarea
                   className="input"
                   rows={2}
@@ -529,7 +529,7 @@ export default function DailyReportsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">課題・特記事項</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">課題・特記事項</label>
                 <textarea
                   className="input"
                   rows={2}

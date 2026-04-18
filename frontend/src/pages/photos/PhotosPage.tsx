@@ -93,8 +93,8 @@ export default function PhotosPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">🖼️ 写真・資料管理</h1>
-        <span className="text-sm text-gray-500">{photos.length} 件</span>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">🖼️ 写真・資料管理</h1>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{photos.length} 件</span>
       </div>
 
       {/* プロジェクト選択 */}
@@ -115,7 +115,7 @@ export default function PhotosPage() {
         <>
           {/* アップロードフォーム */}
           <Card padding="sm" className="space-y-3">
-            <h2 className="text-sm font-semibold text-gray-700">📤 写真アップロード</h2>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">📤 写真アップロード</h2>
             <div className="flex flex-wrap gap-3 items-end">
               <FormField label="カテゴリ" htmlFor="category-select">
                 <Select
@@ -232,7 +232,7 @@ export default function PhotosPage() {
                   className="w-full h-40 object-cover"
                 />
               ) : (
-                <div className="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-400">
+                <div className="w-full h-40 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500">
                   <span className="text-3xl">📄</span>
                 </div>
               )}
@@ -250,11 +250,11 @@ export default function PhotosPage() {
                     削除
                   </Button>
                 </div>
-                <p className="text-xs text-gray-600 truncate">{photo.original_filename}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300 truncate">{photo.original_filename}</p>
                 {photo.description && (
-                  <p className="text-xs text-gray-400 truncate">{photo.description}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{photo.description}</p>
                 )}
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 dark:text-gray-500">
                   {(photo.file_size / 1024).toFixed(0)} KB ·{" "}
                   {new Date(photo.created_at).toLocaleDateString("ja-JP")}
                 </p>
