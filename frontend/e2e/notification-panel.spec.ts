@@ -31,11 +31,24 @@ async function mockSSEEmpty(page: import("@playwright/test").Page) {
   });
 }
 
-/** Mock SSE stream to inject one notification event. */
+/** Mock SSE stream to inject one notification event (first request only). */
 async function mockSSEWithNotification(
   page: import("@playwright/test").Page,
 ) {
+  let sent = false;
   await page.route("**/api/v1/notifications/stream**", (route) => {
+    if (sent) {
+      route.fulfill({
+        status: 200,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+        },
+        body: "",
+      });
+      return;
+    }
+    sent = true;
     const payload = JSON.stringify(SSE_NOTIFICATION);
     route.fulfill({
       status: 200,
@@ -161,8 +174,14 @@ test.describe("Notification Badge + Panel (Phase 4c)", () => {
 
     await page.getByTestId("notification-clear-all").click();
 
-    // Panel closes and notification list is empty
+    // Panel closes
     await expect(page.getByTestId("notification-panel")).not.toBeVisible();
+
+    // Re-open to verify notifications are actually cleared
+    await page.getByTestId("notification-badge").click();
+    await expect(page.getByTestId("notification-panel")).toBeVisible();
+    await expect(page.getByTestId("notification-empty")).toBeVisible();
+    await expect(page.getByTestId("unread-count")).not.toBeVisible();
   });
 
   test("パネルに role=dialog と aria-modal 属性がある", async ({ page }) => {
