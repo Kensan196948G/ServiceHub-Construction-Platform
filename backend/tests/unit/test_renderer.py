@@ -20,7 +20,6 @@ from app.services.notification_templates.renderer import (
     TemplateRenderer,
 )
 
-
 # ── Default template dir (ping event_key) ────────────────────────────────────
 
 
@@ -33,7 +32,7 @@ def _ping_context() -> dict:
 
 
 def test_render_email_ping_returns_all_fields():
-    """ping テンプレは subject / txt / html すべて揃っているため全フィールドが埋まる。"""
+    """ping テンプレは subject/txt/html が全て揃っており全フィールドが埋まる。"""
     renderer = TemplateRenderer()
     result = renderer.render_email("ping", _ping_context())
     assert isinstance(result, RenderedEmail)
@@ -55,7 +54,7 @@ def test_render_email_strips_subject():
 
 
 def test_render_email_missing_event_raises():
-    """存在しない event_key を渡すと TemplateNotFoundError が LookupError サブクラスとして上がる。"""
+    """存在しない event_key は TemplateNotFoundError (LookupError サブクラス)。"""
     renderer = TemplateRenderer()
     with pytest.raises(TemplateNotFoundError) as exc:
         renderer.render_email("nonexistent_event", _ping_context())
