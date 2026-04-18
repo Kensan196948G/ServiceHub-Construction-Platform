@@ -413,3 +413,80 @@ def test_should_send_slack_returns_true_with_webhook_url():
 
     pref = _FakePref()
     assert NotificationDispatcher._should_send(pref, "evt", "slack") is True
+
+
+# ── SSE push integration (Phase 4b) ──────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_dispatch_pushes_sse_event(db_session_with_users):
+    """dispatch() は購読設定にかかわらず対象ユーザーへ SSE push する。"""
+    from unittest.mock import AsyncMock, patch
+
+    await _set_pref(
+        db_session_with_users,
+        ADMIN_USER_ID,
+        email_enabled=True,
+        event_key="daily_report_submitted",
+        subscribed_to_email=True,
+    )
+    fake_sender = _FakeEmailSender(result=SendResult(ok=True))
+    dispatcher = NotificationDispatcher(
+        db_session_with_users,
+        email_sender=fake_sender,  # type: ignore[arg-type]
+        template_renderer=_FakeRenderer(),  # type: ignore[arg-type]
+    )
+
+    mock_push = AsyncMock()
+    with patch(
+        "app.services.notification_dispatcher.sse_manager.push",
+        new=mock_push,
+    ):
+        await dispatcher.dispatch(
+            event_key="daily_report_submitted",
+            user_ids=[ADMIN_USER_ID],
+            context={"title": "日報提出", "message": "テスト本文"},
+        )
+
+    mock_push.assert_awaited_once()
+    call_args = mock_push.call_args
+    pushed_user_id, event = call_args[0]
+    assert pushed_user_id == ADMIN_USER_ID
+    assert event["type"] == "notification"
+    assert event["event_key"] == "daily_report_submitted"
+    assert event["title"] == "日報提出"
+
+
+@pytest.mark.asyncio
+async def test_dispatch_pushes_sse_even_without_email_subscription(db_session_with_users):
+    """メール購読なしでも SSE push は発生する。"""
+    from unittest.mock import AsyncMock, patch
+
+    await _set_pref(
+        db_session_with_users,
+        PM_USER_ID,
+        email_enabled=False,
+        event_key="project_status_changed",
+        subscribed_to_email=False,
+    )
+    fake_sender = _FakeEmailSender()
+    dispatcher = NotificationDispatcher(
+        db_session_with_users,
+        email_sender=fake_sender,  # type: ignore[arg-type]
+        template_renderer=_FakeRenderer(),  # type: ignore[arg-type]
+    )
+
+    mock_push = AsyncMock()
+    with patch(
+        "app.services.notification_dispatcher.sse_manager.push",
+        new=mock_push,
+    ):
+        await dispatcher.dispatch(
+            event_key="project_status_changed",
+            user_ids=[PM_USER_ID],
+            context={},
+        )
+
+    # Email was not sent but SSE push should still be called
+    assert len(fake_sender.sent) == 0
+    mock_push.assert_awaited_once()
