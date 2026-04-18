@@ -109,10 +109,10 @@ export default function Layout() {
         to={to}
         onClick={() => setSidebarOpen(false)}
         className={clsx(
-          "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+          "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-60",
           active
-            ? "bg-primary-700 text-white"
-            : "text-primary-100 hover:bg-primary-700 hover:text-white",
+            ? "bg-brand-10 text-brand-70 font-semibold shadow-[inset_3px_0_0_theme(colors.brand.60)]"
+            : "text-gray-700 font-medium hover:bg-gray-100 hover:text-gray-900",
         )}
         aria-current={active ? "page" : undefined}
       >
@@ -145,25 +145,28 @@ export default function Layout() {
       <aside
         aria-label="サイドバーナビゲーション"
         className={clsx(
-          "fixed top-0 left-0 h-full w-64 bg-primary-900 dark:bg-gray-900 text-white z-30 flex flex-col transition-transform duration-200",
+          "fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-30 flex flex-col transition-transform duration-200",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <div className="flex items-center gap-2 px-4 h-16 border-b border-primary-700 dark:border-gray-700">
-          <HardHat className="w-7 h-7 text-construction-orange" aria-hidden="true" />
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-gray-700">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-50 to-construction-orange flex items-center justify-center flex-shrink-0">
+            <HardHat className="w-5 h-5 text-white" aria-hidden="true" />
+          </div>
           <div>
-            <p className="text-sm font-bold leading-tight">ServiceHub</p>
-            <p className="text-xs text-primary-300 dark:text-gray-400 leading-tight">工事管理</p>
+            <p className="text-sm font-bold leading-tight text-gray-900 dark:text-white">ServiceHub</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">工事管理</p>
           </div>
         </div>
 
         <nav id="sidebar-nav" aria-label="メインナビゲーション" className="flex-1 px-3 py-4 overflow-y-auto">
           {navGroups.map((group, gi) => (
-            <div key={group.label} className={gi > 0 ? "mt-4" : ""}>
-              <div className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-primary-300 dark:text-gray-500">
+            <div key={group.label} className={gi > 0 ? "mt-6" : ""}>
+              <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                 {group.label}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {group.items.map((item) => (
                   <NavLink key={item.to} {...item} />
                 ))}
@@ -172,14 +175,15 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="px-3 py-4 border-t border-primary-700 dark:border-gray-700">
-          <div className="px-3 py-2 text-xs text-primary-300 dark:text-gray-400 truncate">
+        {/* User / Logout */}
+        <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <div className="px-2 py-1 text-xs text-gray-500 dark:text-gray-400 truncate mb-1">
             {user?.full_name ?? user?.email}
-            <span className="ml-1 text-primary-400 dark:text-gray-500">({user?.role})</span>
+            <span className="ml-1 text-gray-400 dark:text-gray-500">({user?.role})</span>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm text-primary-100 hover:bg-primary-700 dark:hover:bg-gray-700 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-60"
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />
             ログアウト

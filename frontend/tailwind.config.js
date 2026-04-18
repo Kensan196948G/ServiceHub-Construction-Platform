@@ -46,6 +46,16 @@ export default {
           20:  "var(--err-20)",
           60:  "var(--err-60)",
         },
+        // Brand tokens aligned with canonical design (ServiceHub-WebUI.html)
+        brand: {
+          10:  "#eaf2fb", // --brand-10: light tint for active bg
+          20:  "#d6e4f5", // --brand-20: subtle border
+          50:  "#3b7dd8", // --brand-50
+          60:  "#2458a6", // --brand-60: primary brand, active left-border
+          70:  "#1b4079", // --brand-70: active text
+          80:  "#13315c", // --brand-80
+          90:  "#0b2545", // --brand-90
+        },
         construction: {
           orange: "#f97316",
           yellow: "#eab308",
