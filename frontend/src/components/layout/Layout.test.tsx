@@ -43,25 +43,30 @@ describe("Layout", () => {
 
   it("アプリケーション名が表示される", () => {
     renderLayout();
-    expect(screen.getByText("ServiceHub")).toBeInTheDocument();
+    // "ServiceHub" appears in both sidebar logo and breadcrumb; verify at least one exists
+    expect(screen.getAllByText("ServiceHub").length).toBeGreaterThan(0);
     expect(screen.getByText("工事管理")).toBeInTheDocument();
   });
 
-  it("ヘッダータイトルが表示される", () => {
+  it("サイドバーロゴが表示される", () => {
     renderLayout();
-    expect(screen.getByText("ServiceHub 工事管理プラットフォーム")).toBeInTheDocument();
+    // Sidebar logo text is in <p> elements inside the sidebar
+    const sidebar = screen.getByRole("complementary", { name: "サイドバーナビゲーション" });
+    expect(sidebar).toHaveTextContent("ServiceHub");
+    expect(sidebar).toHaveTextContent("工事管理");
   });
 
   it("ナビゲーション項目が表示される", () => {
     renderLayout();
-    expect(screen.getByText("ダッシュボード")).toBeInTheDocument();
-    expect(screen.getByText("工事案件")).toBeInTheDocument();
-    expect(screen.getByText("日報")).toBeInTheDocument();
-    expect(screen.getByText("安全品質")).toBeInTheDocument();
-    expect(screen.getByText("原価管理")).toBeInTheDocument();
-    expect(screen.getByText("写真管理")).toBeInTheDocument();
-    expect(screen.getByText("ITSM")).toBeInTheDocument();
-    expect(screen.getByText("ナレッジ")).toBeInTheDocument();
+    const nav = screen.getByRole("navigation", { name: "メインナビゲーション" });
+    expect(nav).toHaveTextContent("ダッシュボード");
+    expect(nav).toHaveTextContent("工事案件");
+    expect(nav).toHaveTextContent("日報");
+    expect(nav).toHaveTextContent("安全品質");
+    expect(nav).toHaveTextContent("原価管理");
+    expect(nav).toHaveTextContent("写真管理");
+    expect(nav).toHaveTextContent("ITSM");
+    expect(nav).toHaveTextContent("ナレッジ");
   });
 
   it("ADMINユーザーの場合、ユーザー管理が表示される", () => {
@@ -76,7 +81,8 @@ describe("Layout", () => {
 
   it("ログアウトボタンをクリックすると logout が呼ばれる", () => {
     renderLayout();
-    fireEvent.click(screen.getByText("ログアウト"));
+    // Logout button is icon-only with aria-label
+    fireEvent.click(screen.getByRole("button", { name: "ログアウト" }));
     expect(mockLogout).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith("/login");
   });
