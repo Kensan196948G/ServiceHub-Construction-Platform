@@ -98,6 +98,8 @@ graph TB
 | 🚨 `ErrorBanner` | APIエラー表示 | `role="alert"` / デフォルトメッセージ / children 対応 |
 | 📝 `ErrorText` | フォーム内エラー | インラインテキスト / `role="alert"` |
 | 🛡️ `ErrorBoundary` | レンダーエラー捕捉 | React class component / カスタム fallback 対応 / 再試行ボタン |
+| 🔔 `NotificationBadge` | 通知ベルアイコン | SSE 接続状態表示 / 未読カウントバッジ / Phase 4a |
+| 🗂️ `NotificationPanel` | 通知スライドオーバー | role=dialog / Escape キー / バックドロップ / すべてクリア / Phase 4b |
 
 ### 📊 品質メトリクス
 
@@ -105,10 +107,10 @@ graph TB
 | :--- | :--- |
 | 🧪 Backend テスト | **162 件**（pytest / coverage **85%** / 通知 Phase 2 全完了） |
 | 🧪 Frontend テスト | **270 件**（vitest / 42 テストファイル / coverage **88%** / Phase 3c ThemeContext +7） |
-| 🎭 E2E テスト | **188 件**（Playwright / 26 テストファイル / Phase 3c dark-mode +5） |
-| 📊 総テスト数 | **620 件**（Backend + Frontend + E2E） |
+| 🎭 E2E テスト | **202 件**（Playwright / 27 テストファイル / Phase 4c 通知バッジ・パネル +11 +ダークモード+5） |
+| 📊 総テスト数 | **634 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **13 ページ**（通知管理 ADMIN ページ追加） |
-| 🧩 共通 UI コンポーネント | **12 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / Pagination / Skeleton / StatCard / Table） |
+| 🧩 共通 UI コンポーネント | **14 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / NotificationBadge / NotificationPanel / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **12/12 ページ**（全ページ統一完了） |
 | 🌙 ダークモード | **全ページ対応完了**（ThemeContext / localStorage 永続化 / prefers-color-scheme フォールバック / Phase 3c PR#113 + Phase 3d PR#115 — 全16ページに dark: クラス適用） |
 | 🔗 API エンドポイント | **53 エンドポイント**（Phase 3a: `/metrics` Prometheus エンドポイント追加） |
@@ -120,7 +122,7 @@ graph TB
 | ✅ CI チェック数 | **15 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / Phase 3b PR#111 / Phase 3c PR#113 / Phase 3d PR#115 全 merge 済み） |
+| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115 / Phase 4a PR#119 / 4b PR#121 / 4c PR#123 全 merge 済み） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -255,7 +257,8 @@ graph LR
 | `settings.spec.ts` | 8 | 設定ページ プロフィール表示・パスワード変更・エラー |
 | `error-boundary.spec.ts` | 5 | ErrorBoundary フォールバックUI・再試行・ナビゲーション |
 | `notification-settings.spec.ts` | 6 | 通知設定 UI (マスタースイッチ・イベント別・保存) |
-| **合計** | **165** | **全12ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定** |
+| `notification-panel.spec.ts` | 11 | 通知バッジ表示・パネル開閉・SSE 受信・未読カウント・すべてクリア・アクセシビリティ |
+| **合計** | **202** | **全12ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル(Phase 4c)** |
 
 ---
 
@@ -285,7 +288,9 @@ gantt
     section Phase 3: UX改善
     レスポンシブ・アクセシビリティ    :s3, 2026-04-19, 14d
     section Phase 4: 高度機能
-    リアルタイム通知・WebSocket       :s4, 2026-05-03, 14d
+    SSE通知 useSSE hook (PR#119)       :done, s4a, 2026-04-17, 1d
+    NotificationBadge/Panel (PR#121)   :done, s4b, 2026-04-17, 1d
+    E2E 通知パネルテスト (PR#123)       :done, s4c, 2026-04-18, 1d
     section Phase 5: リリース準備
     本番環境構築・パフォーマンス      :s5, 2026-05-17, 21d
     section Phase 6: リリース
@@ -297,7 +302,7 @@ gantt
 | 🔵 Phase 1 基盤安定化 | 4月 Week 1 | 3層アーキテクチャ100%・E2E基盤・CI安定 | ✅ 完了 |
 | 🟡 Phase 2 機能強化 | 4月〜5月 | UI統一・フォーム改善・E2E拡充・通知機能 Phase2a〜Phase2g 完了 | ✅ 完了 |
 | 🟠 Phase 3 UX改善 | 5月〜6月 | レスポンシブ・アクセシビリティ・パフォーマンス・ダークモード | ✅ 完了（3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115） |
-| 🔴 Phase 4 高度機能 | 6月〜7月 | リアルタイム通知・AI強化 | ⏳ 予定 |
+| 🔴 Phase 4 高度機能 | 4月 | SSE リアルタイム通知・NotificationBadge・NotificationPanel・E2E 202件 | ✅ 完了（4a PR#119 / 4b PR#121 / 4c PR#123） |
 | 🟣 Phase 5 リリース準備 | 7月〜9月 | 本番環境・セキュリティ監査・ドキュメント整備 | ⏳ 予定 |
 | 🟢 Phase 6 リリース | 2026-10-03 | **社内公開** 🎉 | ⏳ 予定 |
 
