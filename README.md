@@ -107,12 +107,12 @@ graph TB
 | :--- | :--- |
 | 🧪 Backend テスト | **316 件**（pytest / coverage **95%** / Phase 5c AuthService+TemplateRenderer +23 件 / 2 モジュール 100%） |
 | 🧪 Frontend テスト | **270 件**（vitest / 42 テストファイル / coverage **88%** / Phase 3c ThemeContext +7） |
-| 🎭 E2E テスト | **202 件**（Playwright / 27 テストファイル / Phase 4c 通知バッジ・パネル +11 +ダークモード+5） |
-| 📊 総テスト数 | **788 件**（Backend + Frontend + E2E） |
-| 🖥️ フロントエンドページ | **13 ページ**（通知管理 ADMIN ページ追加） |
+| 🎭 E2E テスト | **206 件**（Playwright / 28 テストファイル / Phase 4c 通知バッジ・パネル +11 +ダークモード+5 / Phase 5e-1 社内 4 ページ smoke +4） |
+| 📊 総テスト数 | **792 件**（Backend + Frontend + E2E） |
+| 🖥️ フロントエンドページ | **17 ページ**（Phase 5e-1 社内グループ新設: Portal / Notices / HR / Rules +4） |
 | 🧩 共通 UI コンポーネント | **14 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / NotificationBadge / NotificationPanel / Pagination / Skeleton / StatCard / Table） |
-| 🎨 共通 UI 適用率 | **12/12 ページ**（全ページ統一完了） |
-| 🌙 ダークモード | **全ページ対応完了**（ThemeContext / localStorage 永続化 / prefers-color-scheme フォールバック / Phase 3c PR#113 + Phase 3d PR#115 — 全16ページに dark: クラス適用） |
+| 🎨 共通 UI 適用率 | **12/12 既存ページ**（全ページ統一完了 / Phase 5e-1 新設 4 ページは fixture ベースの reference 実装） |
+| 🌙 ダークモード | **全ページ対応完了**（ThemeContext / localStorage 永続化 / prefers-color-scheme フォールバック / Phase 3c PR#113 + Phase 3d PR#115 + Phase 5e-1 新設 4 ページ — 全17ページに dark: クラス適用） |
 | 🔗 API エンドポイント | **53 エンドポイント**（Phase 3a: `/metrics` Prometheus エンドポイント追加） |
 | 🏗️ Repository クラス | **10 クラス**（NotificationDelivery / AuditLog 追加） |
 | 🔧 Service クラス | **13 クラス**（NotificationDispatcher + 関連 Sender 追加） |
@@ -258,7 +258,8 @@ graph LR
 | `error-boundary.spec.ts` | 5 | ErrorBoundary フォールバックUI・再試行・ナビゲーション |
 | `notification-settings.spec.ts` | 6 | 通知設定 UI (マスタースイッチ・イベント別・保存) |
 | `notification-panel.spec.ts` | 11 | 通知バッジ表示・パネル開閉・SSE 受信・未読カウント・すべてクリア・アクセシビリティ |
-| **合計** | **202** | **全12ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル(Phase 4c)** |
+| `phase5e1-internal-pages.spec.ts` | 4 | 社内ポータル / お知らせ / 人事・勤怠 / 社内規程 — 見出し・セクション・フィルタ smoke (Phase 5e-1) |
+| **合計** | **206** | **全16ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル(Phase 4c) + 社内グループ(Phase 5e-1)** |
 
 ---
 
