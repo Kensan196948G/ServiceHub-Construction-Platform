@@ -41,7 +41,7 @@ test.describe("Phase 5e-1: 社内グループ 4 ページ smoke", () => {
     await expect(page.getByRole("heading", { name: "最近の改訂", level: 2 })).toBeVisible();
 
     await page.getByPlaceholder("規程カテゴリを検索").fill("安全");
-    await expect(page.getByText("安全衛生規程")).toBeVisible();
-    await expect(page.getByText("就業規則")).not.toBeVisible();
+    await expect(page.getByRole("button", { name: /安全衛生規程/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^就業規則/ })).not.toBeVisible();
   });
 });
