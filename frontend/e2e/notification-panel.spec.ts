@@ -31,34 +31,44 @@ async function mockSSEEmpty(page: import("@playwright/test").Page) {
   });
 }
 
-/** Mock SSE stream to inject one notification event (first request only). */
+/** Mock SSE stream to inject one notification event (first request only).
+ *
+ * Uses Playwright's { times: 1 } route option so the first-request handler is
+ * consumed atomically by the framework, avoiding any closure-based race with
+ * React 18 Strict Mode's double-effect invocation.
+ */
 async function mockSSEWithNotification(
   page: import("@playwright/test").Page,
 ) {
-  let sent = false;
+  const payload = JSON.stringify(SSE_NOTIFICATION);
+
+  // Low-priority fallback: all requests beyond the first return empty body
   await page.route("**/api/v1/notifications/stream**", (route) => {
-    if (sent) {
-      route.fulfill({
-        status: 200,
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-        },
-        body: "",
-      });
-      return;
-    }
-    sent = true;
-    const payload = JSON.stringify(SSE_NOTIFICATION);
     route.fulfill({
       status: 200,
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
       },
-      body: `data: ${payload}\n\n`,
+      body: "",
     });
   });
+
+  // High-priority, one-shot: deliver exactly one notification (consumed once by Playwright)
+  await page.route(
+    "**/api/v1/notifications/stream**",
+    (route) => {
+      route.fulfill({
+        status: 200,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+        },
+        body: `data: ${payload}\n\n`,
+      });
+    },
+    { times: 1 },
+  );
 }
 
 test.describe("Notification Badge + Panel (Phase 4c)", () => {
@@ -180,7 +190,7 @@ test.describe("Notification Badge + Panel (Phase 4c)", () => {
     // Re-open to verify notifications are actually cleared
     await page.getByTestId("notification-badge").click();
     await expect(page.getByTestId("notification-panel")).toBeVisible();
-    await expect(page.getByTestId("notification-empty")).toBeVisible();
+    await expect(page.getByTestId("notification-empty")).toBeVisible({ timeout: 5000 });
     await expect(page.getByTestId("unread-count")).not.toBeVisible();
   });
 
