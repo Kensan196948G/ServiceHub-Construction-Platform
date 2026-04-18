@@ -9,6 +9,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Preserve class/function names so E2E tests can find React fiber nodes by name
+  esbuild: {
+    keepNames: true,
+  },
   build: {
     rollupOptions: {
       output: {
