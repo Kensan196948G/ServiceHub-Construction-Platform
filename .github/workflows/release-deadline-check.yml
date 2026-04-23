@@ -1,0 +1,109 @@
+name: Release Deadline Check
+
+# Purpose: Read state.json.project.release_deadline and emit days-remaining
+#          into the workflow summary every day. Warn within 7 days, fail when exceeded.
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "state.json"
+      - ".github/workflows/release-deadline-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-deadline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute days remaining
+        id: days
+        shell: bash
+        run: |
+          set -euo pipefail
+          REGISTERED_AT="$(jq -r '.project.registered_at // empty' state.json)"
+          RELEASE_DEADLINE="$(jq -r '.project.release_deadline // empty' state.json)"
+          DURATION_MONTHS="$(jq -r '.project.duration_months // empty' state.json)"
+
+          if [[ -z "${RELEASE_DEADLINE}" ]]; then
+            echo "::error file=state.json::project.release_deadline is not set"
+            exit 1
+          fi
+
+          TODAY="$(date -u +%Y-%m-%d)"
+          DEADLINE_EPOCH="$(date -u -d "${RELEASE_DEADLINE}" +%s)"
+          TODAY_EPOCH="$(date -u -d "${TODAY}" +%s)"
+          DAYS_REMAINING=$(( (DEADLINE_EPOCH - TODAY_EPOCH) / 86400 ))
+
+          {
+            echo "registered_at=${REGISTERED_AT}"
+            echo "release_deadline=${RELEASE_DEADLINE}"
+            echo "duration_months=${DURATION_MONTHS}"
+            echo "today=${TODAY}"
+            echo "days_remaining=${DAYS_REMAINING}"
+          } | tee -a "$GITHUB_OUTPUT"
+
+      - name: Emit job summary
+        shell: bash
+        env:
+          REGISTERED_AT: ${{ steps.days.outputs.registered_at }}
+          RELEASE_DEADLINE: ${{ steps.days.outputs.release_deadline }}
+          DURATION_MONTHS: ${{ steps.days.outputs.duration_months }}
+          TODAY: ${{ steps.days.outputs.today }}
+          DAYS: ${{ steps.days.outputs.days_remaining }}
+        run: |
+          set -euo pipefail
+          STATUS_ICON="GREEN"
+          STATUS_LABEL="Normal operation"
+          if (( DAYS <= 0 )); then
+            STATUS_ICON="STOP"
+            STATUS_LABEL="Deadline exceeded - halt all work / escalate to CTO"
+          elif (( DAYS <= 7 )); then
+            STATUS_ICON="RED"
+            STATUS_LABEL="Release prep only (CHANGELOG / tag / rollback)"
+          elif (( DAYS <= 14 )); then
+            STATUS_ICON="ORANGE"
+            STATUS_LABEL="No new features - bug fixes and stabilization only"
+          elif (( DAYS <= 30 )); then
+            STATUS_ICON="YELLOW"
+            STATUS_LABEL="Improvement reduced - prioritize Verify / release prep"
+          fi
+
+          {
+            echo "# Release Deadline Check"
+            echo ""
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Registered | \`${REGISTERED_AT}\` |"
+            echo "| Release deadline | \`${RELEASE_DEADLINE}\` |"
+            echo "| Duration | ${DURATION_MONTHS} months |"
+            echo "| Today (UTC) | \`${TODAY}\` |"
+            echo "| Days remaining | **${DAYS}** |"
+            echo "| Status [${STATUS_ICON}] | ${STATUS_LABEL} |"
+            echo ""
+            echo "Source of truth: \`state.json.project.release_deadline\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Warn if deadline within 7 days
+        if: ${{ fromJSON(steps.days.outputs.days_remaining) >= 0 && fromJSON(steps.days.outputs.days_remaining) <= 7 }}
+        shell: bash
+        env:
+          DAYS: ${{ steps.days.outputs.days_remaining }}
+        run: |
+          echo "::warning::Release deadline in ${DAYS} day(s). Release prep only."
+
+      - name: Fail if deadline exceeded
+        if: ${{ fromJSON(steps.days.outputs.days_remaining) < 0 }}
+        shell: bash
+        env:
+          DAYS: ${{ steps.days.outputs.days_remaining }}
+        run: |
+          echo "::error::Release deadline exceeded (${DAYS} day(s)). CTO escalation required."
+          exit 1

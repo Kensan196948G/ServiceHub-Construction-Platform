@@ -1,9 +1,19 @@
 {
+  "project": {
+    "name": "ServiceHub Construction Platform",
+    "mode": "autonomous",
+    "registered_at": "2026-04-03",
+    "release_deadline": "2026-10-03",
+    "duration_months": 6,
+    "execution_method": "Linux Cron (Mon-Sat, 5h/session)",
+    "release_policy": "半年後の本番リリース絶対厳守。残日数による自動縮退: <=30日 Improvement縮退 / <=14日 新機能開発禁止 / <=7日 リリース準備のみ",
+    "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
+  },
   "phase": "Phase 5 完全完了 (5a/5b/5c/5d/5e-1〜5e-5 all merged) → Phase 6 移行準備",
   "loop": "Day23-Phase5-Complete-Sync",
   "loop_count": 136,
   "status": "active",
-  "last_updated": "2026-04-23T20:45:00+09:00",
+  "last_updated": "2026-04-23T21:29:28+09:00",
   "execution": {
     "start_time": "2026-04-18T13:57:32+09:00",
     "max_duration_minutes": 300,
@@ -11,9 +21,9 @@
     "phase": "Verify + Improvement (並行)",
     "auto_stop_threshold": 5,
     "graceful_shutdown": true,
-    "current_session_start_at": "2026-04-23T20:26:18+09:00",
+    "current_session_start_at": "2026-04-23T21:29:28+09:00",
     "last_trigger": "cron",
-    "last_cron_session_id": "20260423-202618-ServiceHub-Construction-Platform"
+    "last_cron_session_id": "20260423-212928-ServiceHub-Construction-Platform"
   },
   "goal": {
     "title": "自律開発最適化 — Phase 5 リリース品質"

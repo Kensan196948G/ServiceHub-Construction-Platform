@@ -35,6 +35,59 @@
 
 ---
 
+## ⏰ プロジェクト期間・リリース方針
+
+> 本プロジェクトは **6 ヶ月の期間限定開発** であり、**本番リリース期限は絶対厳守** です。
+
+| 🗂️ 項目 | 📌 値 |
+|---|---|
+| 🗓️ 開発開始日 | **2026-04-03** |
+| 🚀 本番リリース期限 | **2026-10-03（半年後・絶対厳守）** |
+| ⏳ プロジェクト期間 | **6 ヶ月（26 週）** |
+| ⚙️ 実行方式 | **Linux Cron 固定**（月〜土 自動実行） |
+| ⏱️ 1 セッション上限 | **5 時間厳守** |
+| 🔀 フェーズ配分 | 進捗に応じて CTO 判断で自由変更 OK（リリース期限制約下） |
+
+### 🗓️ 6 ヶ月タイムライン
+
+```mermaid
+gantt
+    title ServiceHub v1.0 リリースまでの 6 ヶ月
+    dateFormat  YYYY-MM-DD
+    axisFormat  %m月
+    section 基盤
+    Month 1-2 基盤・主要機能        :m12, 2026-04-03, 60d
+    section 品質
+    Month 3-4 テスト・品質向上      :m34, after m12, 60d
+    section 統合
+    Month 5 統合テスト・バグ修正    :m5,  after m34, 30d
+    section 出荷
+    Month 6 リリース準備・本番移行  :m6,  after m5,  30d
+    section 🎯
+    本番リリース                    :milestone, rel, 2026-10-03, 1d
+```
+
+### ⚠️ 残日数による自動縮退ルール
+
+> Monitor フェーズで毎回 `state.json.project.release_deadline` を参照して判定します。
+
+| 残日数 | 強制制約 |
+|---|---|
+| 🟢 残 30 日超 | 通常運用（Monitor → Dev → Verify → Improve） |
+| 🟡 残 30 日以内 | Improvement 縮退、Verify / リリース準備を優先 |
+| 🟠 残 14 日以内 | **新機能開発禁止**、バグ修正・安定化のみ |
+| 🔴 残 7 日以内 | **リリース準備のみ**（CHANGELOG / README / タグ付け / 切り戻し手順） |
+| ⛔ 残 0 日超過 | **全作業停止**、CTO エスカレーション（Security blocker 相当） |
+
+機械可読ソース:
+- `state.json.project.registered_at` = `2026-04-03`
+- `state.json.project.release_deadline` = `2026-10-03`
+- `state.json.project.duration_months` = `6`
+
+関連 workflow: [`.github/workflows/release-deadline-check.yml`](.github/workflows/release-deadline-check.yml) が毎日残日数を job summary に出力します。
+
+---
+
 ## 🏛️ アーキテクチャ図
 
 ```mermaid
