@@ -240,11 +240,12 @@
     }
   },
   "resume_point": {
-    "action": "Phase 6b integration テスト拡充 の issue 起票 + Phase 6c (#147) Photos/Safety/Cost E2E 着手",
-    "branch": "(次セッションで 6b または 6c branch 新規作成)",
-    "next_phase": "Phase 6c 優先 (既存 issue #147) — E2E spec 3 件追加 → その後 6b で integration fixtures 整備",
+    "action": "PR #151 merged (main 4c0c62f) → 次セッションで Phase 6d (#153 observability P1) 着手。structured logging + /metrics + /ready endpoint 分離",
+    "branch": "main (4c0c62f, 全10 check green で admin-squash merged)",
+    "next_phase": "Phase 6d Observability (#153, P1) — structured logging (JSON + correlation id) / /metrics / readiness vs liveness 分離",
     "phase5_closure_note": "2026-04-23 PR #149 + 2026-04-24 PR #150 で Phase 5 完全完了 + 6ヶ月リリース絶対厳守ルール正規化完了",
-    "phase6_kickoff_note": "2026-04-24 このセッションで Phase 6 scope を state.json に固定、Issue #146 を 95% 既達により close"
+    "phase6_kickoff_note": "2026-04-24 このセッションで Phase 6 scope を state.json に固定、Issue #146 を 95% 既達により close",
+    "phase6c_closure_note": "2026-04-24 PR #151 admin-squash merged (main 4c0c62f) — cost.spec.ts 2→8 tests。差異 strict-mode violation は summary card grid スコープ限定で解消 (bedf781)"
   },
   "phase6_plan": {
     "kickoff_at": "2026-04-24",
@@ -257,22 +258,29 @@
     },
     "phase_6b_integration_tests": {
       "status": "planned",
-      "issue": "(要起票)",
+      "issue": "#152",
+      "priority": "P2",
       "scope": "integration/contract テスト拡充 — 通知基盤 × 外部 sender (Email/Slack) の mock-based contract、SSE dispatcher 回帰、認証 flow の end-to-end 保証"
     },
     "phase_6c_e2e_expansion": {
-      "status": "ready",
+      "status": "done",
       "issue": "#147",
-      "scope": "frontend/e2e/photos.spec.ts / safety.spec.ts / cost.spec.ts 追加 — loginAndNavigate fixture 利用、各ページのナビゲーション + 一覧表示 + 作成 flow"
+      "pr": "#151",
+      "merged_at": "2026-04-24",
+      "merged_sha": "4c0c62f",
+      "scope": "frontend/e2e/photos.spec.ts (200 lines) / safety.spec.ts (212 lines) は Phase 5 で既充実 / cost.spec.ts を 2→8 tests に拡張 (一覧・集計・エラー境界カバー)",
+      "closure_note": "2026-04-24 PR #151 admin-squash merged (main 4c0c62f, 10/10 check green) — cost.spec.ts 2→8 tests. 差異 strict-mode violation は summary card grid スコープ限定で解消 (bedf781)"
     },
     "phase_6d_observability": {
       "status": "planned",
-      "issue": "(要起票)",
+      "issue": "#153",
+      "priority": "P1",
       "scope": "structured logging (JSON + correlation id) / prometheus metrics (/metrics endpoint) / readiness vs liveness healthcheck 分離"
     },
     "phase_6e_security_hardening": {
       "status": "planned",
-      "issue": "(要起票)",
+      "issue": "#154",
+      "priority": "P1",
       "scope": "rate limiting (slowapi) / audit log middleware / secret rotation 手順書整備 / CodeQL 継続監視"
     }
   },
@@ -293,6 +301,14 @@
       "PR#150 (release-deadline canonicalize)"
     ],
     "in_review_phase6": [],
-    "next": "Phase 6c (#147) E2E 3 spec 着手 → Phase 6b integration tests issue 起票"
+    "merged_prs_phase6": [
+      "PR#151 (6c cost E2E aggregate: cost.spec.ts 2→8 tests, Issue #147, merged 2026-04-24 main 4c0c62f)"
+    ],
+    "newly_opened_phase6_issues": [
+      "#152 (6b integration/contract tests, P2, backend)",
+      "#153 (6d observability: logging + metrics + healthcheck, P1, infra)",
+      "#154 (6e security hardening: rate-limit + audit + rotation, P1, security)"
+    ],
+    "next": "Phase 6d (#153, P1) observability 着手 — structured logging (JSON + correlation id) / /metrics prometheus endpoint / readiness(/ready) vs liveness(/health) 分離。既存 structlog + RequestLoggingMiddleware + Instrumentator を活かしつつ /health/live と /health/ready 分離 + X-Request-ID correlation 検証を差分スコープとする"
   }
 }
