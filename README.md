@@ -345,10 +345,21 @@ gantt
     SSE通知 useSSE hook (PR#119)       :done, s4a, 2026-04-17, 1d
     NotificationBadge/Panel (PR#121)   :done, s4b, 2026-04-17, 1d
     E2E 通知パネルテスト (PR#123)       :done, s4c, 2026-04-18, 1d
-    section Phase 5: リリース準備
-    本番環境構築・パフォーマンス      :s5, 2026-05-17, 21d
-    section Phase 6: リリース
-    社内公開                          :milestone, m1, 2026-10-03, 0d
+    section Phase 5: リリース準備 (Docker/Lighthouse/Coverage/Codegen)
+    Phase 5a Docker 本番構成 (PR#129)      :done, s5a, 2026-04-18, 1d
+    Phase 5b Lighthouse (PR#139)           :done, s5b, 2026-04-18, 1d
+    Phase 5c Coverage 85→95% (PR#130)      :done, s5c, 2026-04-18, 1d
+    Phase 5d OpenAPI codegen (PR#148)      :done, s5d, 2026-04-23, 1d
+    Phase 5e WebUI 刷新 (PR#136-#144)       :done, s5e, 2026-04-18, 6d
+    section Phase 6: 品質強化 + リリース準備
+    Phase 6a Backend coverage (#146 closed) :done, s6a, 2026-04-24, 1d
+    Phase 6c E2E Photos/Safety/Cost (#147)  :s6c, 2026-04-24, 30d
+    Phase 6b Integration/Contract tests     :s6b, after s6c, 30d
+    Phase 6d Observability (logging/metrics):s6d, after s6b, 21d
+    Phase 6e Security hardening             :s6e, after s6d, 14d
+    section Phase 7: リリース
+    統合テスト・本番移行                   :s7, 2026-09-03, 21d
+    社内公開                              :milestone, m1, 2026-10-03, 0d
 ```
 
 | フェーズ | 期間 | 目標 | 状態 |
@@ -357,8 +368,9 @@ gantt
 | 🟡 Phase 2 機能強化 | 4月〜5月 | UI統一・フォーム改善・E2E拡充・通知機能 Phase2a〜Phase2g 完了 | ✅ 完了 |
 | 🟠 Phase 3 UX改善 | 5月〜6月 | レスポンシブ・アクセシビリティ・パフォーマンス・ダークモード | ✅ 完了（3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115） |
 | 🔴 Phase 4 高度機能 | 4月 | SSE リアルタイム通知・NotificationBadge・NotificationPanel・E2E 202件 | ✅ 完了（4a PR#119 / 4b PR#121 / 4c PR#123） |
-| 🟣 Phase 5 リリース準備 | 7月〜9月 | 本番環境・セキュリティ監査・ドキュメント整備 | ⏳ 予定 |
-| 🟢 Phase 6 リリース | 2026-10-03 | **社内公開** 🎉 | ⏳ 予定 |
+| 🟣 Phase 5 リリース準備 | 4月 PR#129-#149 | Docker 本番構成・Lighthouse・Coverage 85→95%・OpenAPI codegen・WebUI デザインシステム (5a/5b/5c/5d/5e-1〜5e-5) | ✅ 完了 |
+| 🟣 Phase 6 品質強化 + リリース準備 | 2026-05〜08 | 6a Backend coverage (#146 ✅) / 6b Integration&Contract tests / 6c E2E Photos/Safety/Cost (#147) / 6d Observability / 6e Security hardening | 🔄 進行中 |
+| 🟢 Phase 7 リリース | 2026-09〜10 | 統合テスト・本番移行・**社内公開** 🎉 | ⏳ 予定 |
 
 ---
 

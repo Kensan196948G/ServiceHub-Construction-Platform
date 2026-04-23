@@ -9,30 +9,33 @@
     "release_policy": "半年後の本番リリース絶対厳守。残日数による自動縮退: <=30日 Improvement縮退 / <=14日 新機能開発禁止 / <=7日 リリース準備のみ",
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
-  "phase": "Phase 5 完全完了 (5a/5b/5c/5d/5e-1〜5e-5 all merged) → Phase 6 移行準備",
-  "loop": "Day23-Phase5-Complete-Sync",
-  "loop_count": 136,
+  "phase": "Phase 6 開始 (Sprint 7) — 品質強化 + リリース準備",
+  "loop": "Day24-Phase6-Kickoff",
+  "loop_count": 137,
   "status": "active",
-  "last_updated": "2026-04-23T21:29:28+09:00",
+  "last_updated": "2026-04-24T08:30:00+09:00",
   "execution": {
-    "start_time": "2026-04-18T13:57:32+09:00",
+    "start_time": "2026-04-24T07:30:00+09:00",
     "max_duration_minutes": 300,
-    "session_deadline": "2026-04-18T18:57:32+09:00",
-    "phase": "Verify + Improvement (並行)",
+    "session_deadline": "2026-04-24T12:30:00+09:00",
+    "phase": "Monitor + Build + Verify (Phase 6 kickoff)",
     "auto_stop_threshold": 5,
     "graceful_shutdown": true,
-    "current_session_start_at": "2026-04-23T21:29:28+09:00",
+    "current_session_start_at": "2026-04-24T07:30:00+09:00",
     "last_trigger": "cron",
-    "last_cron_session_id": "20260423-212928-ServiceHub-Construction-Platform"
+    "last_cron_session_id": "20260424-073000-ServiceHub-Construction-Platform",
+    "previous_session_id": "20260423-212928-ServiceHub-Construction-Platform"
   },
   "goal": {
-    "title": "自律開発最適化 — Phase 5 リリース品質"
+    "title": "Phase 6 — 品質強化と本番リリース準備 (2026-10-03 絶対厳守)"
   },
   "kpi": {
     "success_rate_target": 0.9,
     "backend_coverage_target": 0.9,
     "backend_coverage_actual": 0.95,
-    "status": "EXCEEDED"
+    "frontend_coverage_target": 0.85,
+    "frontend_coverage_actual": 0.88,
+    "status": "EXCEEDED (Phase 5 baseline) — Phase 6 KPI は integration / E2E 拡張で再定義予定"
   },
   "automation": {
     "auto_issue_generation": true,
@@ -41,20 +44,28 @@
   "development_plan": {
     "start_date": "2026-04-03",
     "release_date": "2026-10-03",
-    "current_phase": "Phase 5 — リリース準備 (Docker + Lighthouse + Coverage + Codegen)",
-    "current_sprint": "Sprint 6",
-    "schedule": "土日 × 8時間"
+    "days_remaining": 162,
+    "current_phase": "Phase 6 — 品質強化 + 本番リリース準備",
+    "current_sprint": "Sprint 7",
+    "schedule": "Mon-Sat cron / 1 session 300min",
+    "month_breakdown": {
+      "month_1_2": "基盤整備・主要機能実装 (Phase 1〜5: 2026-04-03 〜 2026-05-03 予定) — Phase 5 完了済",
+      "month_3_4": "品質向上・テスト整備 (Phase 6: 〜 2026-08-03) — 現在開始",
+      "month_5": "統合テスト・バグ修正 (Phase 7: 〜 2026-09-03)",
+      "month_6": "リリース準備・本番移行 (Phase 8: 〜 2026-10-03)"
+    }
   },
   "priorities": {
     "high": [
-      "Phase 6 移行判断 (5 月リリース準備に向けた scope 固定)"
+      "Phase 6c (#147) E2E シナリオ追加 (Photos/Safety/Cost) — P2 だが Phase 6 主軸",
+      "Phase 6b integration/contract テスト拡充 (issue 起票予定)"
     ],
     "medium": [
-      "Issue #146 Phase 6a Backend coverage 90% (現状 95% 既達だが追跡継続)",
-      "Issue #147 Phase 6c E2E シナリオ追加 (Photos/Safety/Cost)"
+      "Phase 6d Observability (structured logging / metrics / healthcheck)",
+      "Phase 6e Security hardening (rate limit / audit log / secret rotation)"
     ],
     "low": [
-      "Playwright SIGTRAP 環境調査 (Phase 5e-1 E2E spec 実行不可)",
+      "Playwright SIGTRAP 環境調査 (Phase 5e-1 E2E spec ローカル実行不可)",
       "distroless Docker イメージ検討 (PR #129 follow-up)",
       "Trivy HIGH 0 検証 (PR #129 follow-up)"
     ]
@@ -229,13 +240,44 @@
     }
   },
   "resume_point": {
-    "action": "Phase 6 移行判断 + Open Issue (#146 Backend coverage / #147 E2E) 精査",
-    "branch": "(次セッションで新規作成)",
-    "next_phase": "Phase 6a (#146 coverage) or Phase 6c (#147 E2E) の着手順を CTO 判断で決定",
-    "phase5_closure_note": "2026-04-23 の PR #148 merge で state.json / README を Phase 5 完全完了に同期済み"
+    "action": "Phase 6b integration テスト拡充 の issue 起票 + Phase 6c (#147) Photos/Safety/Cost E2E 着手",
+    "branch": "(次セッションで 6b または 6c branch 新規作成)",
+    "next_phase": "Phase 6c 優先 (既存 issue #147) — E2E spec 3 件追加 → その後 6b で integration fixtures 整備",
+    "phase5_closure_note": "2026-04-23 PR #149 + 2026-04-24 PR #150 で Phase 5 完全完了 + 6ヶ月リリース絶対厳守ルール正規化完了",
+    "phase6_kickoff_note": "2026-04-24 このセッションで Phase 6 scope を state.json に固定、Issue #146 を 95% 既達により close"
+  },
+  "phase6_plan": {
+    "kickoff_at": "2026-04-24",
+    "target_months": "Month 3〜4 (2026-05-03 〜 2026-08-03)",
+    "phase_6a_coverage": {
+      "status": "closed",
+      "issue": "#146",
+      "closed_at": "2026-04-24",
+      "result": "backend_coverage 0.95 (target 0.90) EXCEEDED — Phase 5c PR #130 で達成済。2026-04-24 ローカル pytest で再確認 (3129 stmts / 164 missed)"
+    },
+    "phase_6b_integration_tests": {
+      "status": "planned",
+      "issue": "(要起票)",
+      "scope": "integration/contract テスト拡充 — 通知基盤 × 外部 sender (Email/Slack) の mock-based contract、SSE dispatcher 回帰、認証 flow の end-to-end 保証"
+    },
+    "phase_6c_e2e_expansion": {
+      "status": "ready",
+      "issue": "#147",
+      "scope": "frontend/e2e/photos.spec.ts / safety.spec.ts / cost.spec.ts 追加 — loginAndNavigate fixture 利用、各ページのナビゲーション + 一覧表示 + 作成 flow"
+    },
+    "phase_6d_observability": {
+      "status": "planned",
+      "issue": "(要起票)",
+      "scope": "structured logging (JSON + correlation id) / prometheus metrics (/metrics endpoint) / readiness vs liveness healthcheck 分離"
+    },
+    "phase_6e_security_hardening": {
+      "status": "planned",
+      "issue": "(要起票)",
+      "scope": "rate limiting (slowapi) / audit log middleware / secret rotation 手順書整備 / CodeQL 継続監視"
+    }
   },
   "current_sprint": {
-    "phase": "Sprint 6 Phase 5 完了 → Sprint 7 Phase 6 開始前",
+    "phase": "Sprint 7 Phase 6 Kickoff",
     "completed_prs_phase5": [
       "PR#129 (5a Docker)",
       "PR#130 (5c Coverage)",
@@ -246,9 +288,11 @@
       "PR#141 (5e-4 Sidebar colors)",
       "PR#144 (5e-5 WebUI design system)",
       "62d895b (5d codegen primary)",
-      "PR#148 (5d codegen re-sync + state sync)"
+      "PR#148 (5d codegen re-sync + state sync)",
+      "PR#149 (Phase 5 complete sync)",
+      "PR#150 (release-deadline canonicalize)"
     ],
-    "in_review_phase5": [],
-    "next": "Phase 6 scope 確定 → Issue #146 / #147 取り組み順を決定"
+    "in_review_phase6": [],
+    "next": "Phase 6c (#147) E2E 3 spec 着手 → Phase 6b integration tests issue 起票"
   }
 }
