@@ -106,9 +106,9 @@ graph TB
 | 指標 | 値 |
 | :--- | :--- |
 | 🧪 Backend テスト | **316 件**（pytest / coverage **95%** / Phase 5c AuthService+TemplateRenderer +23 件 / 2 モジュール 100%） |
-| 🧪 Frontend テスト | **270 件**（vitest / 42 テストファイル / coverage **88%** / Phase 3c ThemeContext +7） |
+| 🧪 Frontend テスト | **294 件**（vitest / 44 テストファイル / coverage **88%** / Phase 3c ThemeContext +7 / Phase 5e-3/5e-4/5e-5 実測 +24） |
 | 🎭 E2E テスト | **206 件**（Playwright / 28 テストファイル / Phase 4c 通知バッジ・パネル +11 +ダークモード+5 / Phase 5e-1 社内 4 ページ smoke +4） |
-| 📊 総テスト数 | **792 件**（Backend + Frontend + E2E） |
+| 📊 総テスト数 | **816 件**（Backend + Frontend + E2E） |
 | 🖥️ フロントエンドページ | **17 ページ**（Phase 5e-1 社内グループ新設: Portal / Notices / HR / Rules +4） |
 | 🧩 共通 UI コンポーネント | **14 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / NotificationBadge / NotificationPanel / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **12/12 既存ページ**（全ページ統一完了 / Phase 5e-1 新設 4 ページは fixture ベースの reference 実装） |
@@ -122,7 +122,7 @@ graph TB
 | ✅ CI チェック数 | **15 チェック**（ruff / mypy / pytest / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115 / Phase 4a PR#119 / 4b PR#121 / 4c PR#123 / Phase 5a PR#129 Docker / Phase 5c PR#130 coverage 95% / Phase 5e-1 PR#136 社内 4 ページ 全 merge 済み） |
+| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115 / Phase 4a PR#119 / 4b PR#121 / 4c PR#123 / Phase 5a PR#129 Docker / Phase 5b PR#139 Lighthouse / Phase 5c PR#130 coverage 95% / Phase 5d PR#148 codegen 同期 / Phase 5e-1 PR#136 社内 4 ページ / 5e-2 PR#138 サイドバー 4 グループ / 5e-3 PR#140 Tailwind tokens / 5e-4 PR#141 Sidebar 配色 / 5e-5 PR#144 WebUI デザインシステム 全 merge 済み — **Phase 5 完全完了**） |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -156,7 +156,7 @@ graph LR
 
 ```mermaid
 graph TD
-    subgraph Pages["📄 ページ (12)"]
+    subgraph Pages["📄 ページ (17)"]
         LP["🔐 LoginPage"]
         DP["📊 DashboardPage"]
         PP["🗂️ ProjectsPage"]
