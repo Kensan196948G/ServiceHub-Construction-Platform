@@ -93,18 +93,21 @@ test.describe("Cost Page", () => {
 
     await page.locator("select").first().selectOption("1");
 
-    // 4 summary cards must appear: 予算合計 / 実績合計 / 差異 / 達成率
-    await expect(page.getByText("予算合計")).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText("実績合計")).toBeVisible();
-    await expect(page.getByText("差異")).toBeVisible();
-    await expect(page.getByText("達成率")).toBeVisible();
+    // Summary card region — scope to the 4-card grid so labels don't collide
+    // with the records table header (which also has "予算"/"実績"/"差異" columns).
+    const summaryCards = page.locator("div.grid.grid-cols-2.lg\\:grid-cols-4").first();
+    await expect(summaryCards).toBeVisible({ timeout: 10_000 });
+    await expect(summaryCards.getByText("予算合計")).toBeVisible();
+    await expect(summaryCards.getByText("実績合計")).toBeVisible();
+    await expect(summaryCards.getByText("差異", { exact: true })).toBeVisible();
+    await expect(summaryCards.getByText("達成率")).toBeVisible();
 
     // Budget total = ¥10,000,000 — match digits robustly across Intl variants
-    await expect(page.getByText(/10,000,000/).first()).toBeVisible();
+    await expect(summaryCards.getByText(/10,000,000/)).toBeVisible();
     // Actual total = ¥9,200,000
-    await expect(page.getByText(/9,200,000/).first()).toBeVisible();
+    await expect(summaryCards.getByText(/9,200,000/)).toBeVisible();
     // Achievement rate = round(9_200_000 / 10_000_000 * 100) = 92%
-    await expect(page.getByText(/^92%$/)).toBeVisible();
+    await expect(summaryCards.getByText(/^92%$/)).toBeVisible();
   });
 
   test("shows records table rows after project selection", async ({ page }) => {
