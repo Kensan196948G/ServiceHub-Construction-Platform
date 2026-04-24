@@ -19,9 +19,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install "ruff==0.6.9"
-      - run: ruff check backend/app backend/tests
-      - run: ruff format --check backend/app backend/tests
+      - run: pip install "ruff==0.15.11"
+      - run: cd backend && ruff check app tests
+      - run: cd backend && ruff format --check app tests
 
   test:
     name: Test & Coverage
@@ -64,6 +64,59 @@ jobs:
         with:
           file: backend/coverage.xml
         continue-on-error: true
+
+  integration:
+    name: Integration & Contract Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+      REDIS_URL: "redis://localhost:6379/0"
+      JWT_SECRET_KEY: test-secret-key-for-ci-only-not-production
+      JWT_ALGORITHM: HS256
+      ENVIRONMENT: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install aiosqlite pytest-asyncio httpx pytest-timeout
+      - name: Run integration tests
+        run: |
+          cd backend
+          pytest tests/integration/ -v --timeout=60 -x
+      - name: Validate OpenAPI schema (contract check)
+        run: |
+          cd backend
+          python -c "
+          import asyncio, httpx
+          import app.main as m
+          async def check():
+              transport = httpx.ASGITransport(app=m.app)
+              async with httpx.AsyncClient(transport=transport, base_url='http://test') as c:
+                  r = await c.get('/api/v1/openapi.json')
+                  assert r.status_code == 200, f'Schema fetch failed: {r.status_code}'
+                  schema = r.json()
+                  assert 'paths' in schema, 'No paths in schema'
+                  assert 'openapi' in schema, 'Missing openapi version'
+                  print(f'Contract OK: {len(schema[\"paths\"])} paths validated')
+          asyncio.run(check())
+          "
 
   typecheck:
     name: Type Check (mypy)

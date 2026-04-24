@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
 from app.repositories.cost import CostRecordRepository, WorkHourRepository
+from app.repositories.project import ProjectRepository
 from app.schemas.cost import (
     CostRecordCreate,
     CostRecordResponse,
@@ -24,10 +25,13 @@ class CostService:
         self.db = db
         self.cost_repo = CostRecordRepository(db)
         self.hour_repo = WorkHourRepository(db)
+        self.project_repo = ProjectRepository(db)
 
     async def create_record(
         self, project_id: uuid.UUID, data: CostRecordCreate, created_by: uuid.UUID
     ) -> CostRecordResponse:
+        if not await self.project_repo.get_by_id(project_id):
+            raise NotFoundError(f"Project {project_id} not found")
         data.project_id = project_id
         record = await self.cost_repo.create(data, created_by=created_by)
         return CostRecordResponse.model_validate(record)

@@ -41,7 +41,20 @@ async def test_list_cost_records_unauthorized(client):
 @pytest.mark.asyncio
 async def test_create_cost_record(auth_client, admin_headers):
     """原価レコード作成 - 正常"""
-    project_id = str(uuid.uuid4())
+    prj = await auth_client.post(
+        "/api/v1/projects/",
+        json={
+            "name": "原価テスト工事A",
+            "project_code": "COST-A",
+            "status": "IN_PROGRESS",
+            "budget": 5000000.0,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "client_name": "テスト施主A",
+        },
+        headers=admin_headers,
+    )
+    project_id = prj.json()["data"]["id"]
     resp = await auth_client.post(
         f"/api/v1/projects/{project_id}/cost-records",
         json={
@@ -66,7 +79,20 @@ async def test_create_cost_record(auth_client, admin_headers):
 @pytest.mark.asyncio
 async def test_list_cost_records(auth_client, admin_headers):
     """原価レコード一覧取得"""
-    project_id = str(uuid.uuid4())
+    prj = await auth_client.post(
+        "/api/v1/projects/",
+        json={
+            "name": "原価テスト工事B",
+            "project_code": "COST-B",
+            "status": "IN_PROGRESS",
+            "budget": 5000000.0,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "client_name": "テスト施主B",
+        },
+        headers=admin_headers,
+    )
+    project_id = prj.json()["data"]["id"]
     # 2件作成
     for i, cat in enumerate(["LABOR", "MATERIAL"]):
         await auth_client.post(
@@ -121,7 +147,20 @@ async def test_get_cost_summary_empty(auth_client, admin_headers):
 @pytest.mark.asyncio
 async def test_get_cost_summary_with_data(auth_client, admin_headers):
     """原価サマリー - データあり"""
-    project_id = str(uuid.uuid4())
+    prj = await auth_client.post(
+        "/api/v1/projects/",
+        json={
+            "name": "原価テスト工事C",
+            "project_code": "COST-C",
+            "status": "IN_PROGRESS",
+            "budget": 5000000.0,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "client_name": "テスト施主C",
+        },
+        headers=admin_headers,
+    )
+    project_id = prj.json()["data"]["id"]
     # 原価データ追加
     await auth_client.post(
         f"/api/v1/projects/{project_id}/cost-records",

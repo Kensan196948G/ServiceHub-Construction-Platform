@@ -59,3 +59,4 @@ aiosqlite==0.20.0
 ruff==0.6.9
 mypy==1.11.2
 openai>=1.30.0
+schemathesis==3.38.9
