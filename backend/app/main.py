@@ -6,14 +6,31 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import structlog
-from fastapi import FastAPI
+import structlog.contextvars
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
+from sqlalchemy import text
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
+from app.db.base import engine
 from app.middleware.logging import RequestLoggingMiddleware
+
+# Configure structlog: merge contextvars (request_id etc.) into every log line.
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.stdlib.add_log_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.dev.ConsoleRenderer(),
+    ],
+    wrapper_class=structlog.make_filtering_bound_logger(20),  # INFO
+    context_class=dict,
+    logger_factory=structlog.PrintLoggerFactory(),
+    cache_logger_on_first_use=True,
+)
 
 logger = structlog.get_logger()
 
@@ -108,12 +125,49 @@ Instrumentator().instrument(app).expose(app)
 # ── ヘルスチェック ────────────────────────────────────
 @app.get("/health", tags=["System"])
 async def health_check():
-    """ヘルスチェックエンドポイント"""
+    """後方互換ヘルスチェック (liveness 相当)"""
     return {
         "status": "healthy",
         "service": "servicehub-api",
         "version": settings.APP_VERSION,
     }
+
+
+@app.get("/health/live", tags=["System"])
+async def health_live():
+    """Liveness probe — プロセス生存確認 (DB/Redis 接続不問)。
+
+    コンテナオーケストレータが失敗を検知すると pod を再起動する。
+    DB 障害では kill しないよう DB チェックは含めない。
+    """
+    return {"status": "alive", "service": "servicehub-api"}
+
+
+@app.get("/health/ready", tags=["System"])
+async def health_ready():
+    """Readiness probe — DB + Redis 接続確認。
+
+    失敗 (503) 時はトラフィックが外れるがコンテナは再起動しない。
+    DB 接続: engine.connect() + SELECT 1 (使い捨て接続で軽量)。
+    Redis 接続: get_redis().ping()。
+    """
+    # DB check
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"db_not_ready: {exc}") from exc
+
+    # Redis check
+    try:
+        from app.core.redis_client import get_redis
+
+        redis = await get_redis()
+        await redis.ping()
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"redis_not_ready: {exc}") from exc
+
+    return {"status": "ready", "service": "servicehub-api"}
 
 
 @app.get("/api/v1/status", tags=["System"])
