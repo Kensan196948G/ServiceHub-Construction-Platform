@@ -19,13 +19,14 @@
     --fs-24: 1.5rem;
     --fs-28: 1.75rem;
     --fs-32: 2rem;
+    --fs-42: 2.625rem;
 
     /* Spacing / radius */
     --touch: 44px;
     --r-sm: 4px;
-    --r-md: 8px;
-    --r-lg: 12px;
-    --r-xl: 16px;
+    --r-md: 6px;
+    --r-lg: 8px;
+    --r-xl: 12px;
     --r-pill: 9999px;
 
     /* Elevation */
@@ -33,14 +34,16 @@
     --e2: 0 4px 16px rgba(0,0,0,0.10);
     --e3: 0 8px 40px rgba(0,0,0,0.14);
 
-    /* Gray scale */
+    /* Gray scale — Carbon Gray 100, v2 追加: gray-30 / gray-90 */
     --gray-10: #f4f4f4;
     --gray-20: #e0e0e0;
+    --gray-30: #c6c6c6;
     --gray-40: #a8a8a8;
     --gray-50: #8d8d8d;
     --gray-60: #6f6f6f;
     --gray-70: #525252;
     --gray-80: #393939;
+    --gray-90: #262626;
     --gray-100: #161616;
     /* Brand colors — canonical from docs/design/ServiceHub-WebUI.html */
     --brand-90: #0b2545;
@@ -88,6 +91,38 @@
 
   code, kbd, pre, .font-mono {
     font-family: var(--font-mono);
+  }
+
+  /* v2: global focus-visible — 個別 ring ユーティリティ非適用の DOM にも
+     WCAG 2.2 SC 2.4.7 Focus Visible を保証する safety net */
+  *:focus-visible {
+    outline: 2px solid var(--brand-60);
+    outline-offset: 2px;
+    border-radius: var(--r-sm);
+  }
+
+  /* v2: placeholder のコントラスト確保 (WCAG 1.4.3) */
+  ::placeholder {
+    color: var(--gray-60);
+    opacity: 1;
+  }
+
+  /* v2: WCAG 2.4.1 Skip to main content */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    background: var(--gray-100);
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: var(--r-md);
+    font-weight: 600;
+    z-index: 9999;
+    transition: top 0.15s;
+  }
+  .skip-link:focus {
+    top: 12px;
+    text-decoration: none;
   }
 }
 

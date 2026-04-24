@@ -57,3 +57,9 @@
 
 - v1.0 (2026-04-18): 初版。4グループ構成、社内ポータル新設、ブルー系ブランドカラー統一
 - v1.1 (2026-04-18): Phase 5e-1 実装反映。社内グループ 4 ページ (Portal/Notices/HR/Rules) 実装完了、対応表を 12 → 16 行に拡張
+- v1.2 (2026-04-24): **v2 デザイン token を frontend に同期**。
+  - `frontend/src/index.css`: gray-30/gray-90 追加、`--fs-42` (2.625rem) 追加、radius を md=6/lg=8/xl=12 に調整
+  - global `*:focus-visible` / `::placeholder` / `.skip-link` を base レイヤに導入 (WCAG 2.2 SC 2.4.7 / 1.4.3 / 2.4.1)
+  - `frontend/index.html`: `<body>` 直下に skip link `<a href="#main-content" class="skip-link">` を配置
+  - `frontend/src/components/layout/Layout.tsx`: `<main>` に `id="main-content"` + `tabIndex={-1}` 付与
+  - 影響範囲: ページマークアップ変更なし (token 更新 + 2要素追加のみ)
