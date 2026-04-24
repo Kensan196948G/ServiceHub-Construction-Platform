@@ -149,7 +149,7 @@ def viewer_headers() -> dict:
 
 @pytest_asyncio.fixture(autouse=True)
 async def reset_limiter():
-    """Reset in-memory rate limit counters before each test to prevent cross-test leakage."""
+    """Reset rate limit counters before each test to prevent cross-test leakage."""
     limiter._storage.reset()
     yield
     limiter._storage.reset()
