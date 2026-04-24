@@ -65,6 +65,58 @@ jobs:
           file: backend/coverage.xml
         continue-on-error: true
 
+  integration:
+    name: Integration & Contract Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+      REDIS_URL: "redis://localhost:6379/0"
+      JWT_SECRET_KEY: test-secret-key-for-ci-only-not-production
+      JWT_ALGORITHM: HS256
+      ENVIRONMENT: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install aiosqlite pytest-asyncio httpx pytest-timeout
+      - name: Run integration tests
+        run: |
+          cd backend
+          pytest tests/integration/ -v --timeout=60 -x
+      - name: Validate OpenAPI schema (contract check)
+        run: |
+          cd backend
+          python -c "
+          import httpx
+          import app.main as m
+          transport = httpx.ASGITransport(app=m.app)
+          with httpx.Client(transport=transport, base_url='http://test') as c:
+              r = c.get('/api/v1/openapi.json')
+              assert r.status_code == 200, f'Schema fetch failed: {r.status_code}'
+              schema = r.json()
+              assert 'paths' in schema, 'No paths in schema'
+              assert 'openapi' in schema, 'Missing openapi version'
+              path_count = len(schema['paths'])
+              print(f'Contract OK: {path_count} paths validated')
+          "
+
   typecheck:
     name: Type Check (mypy)
     runs-on: ubuntu-latest

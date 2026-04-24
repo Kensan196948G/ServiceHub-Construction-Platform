@@ -75,7 +75,7 @@ async def test_ai_search_no_openai(
         json={
             "title": "品質検査手順",
             "content": (
-                "コンクリート強度試験は打設後28日で実施する。" "スランプ試験も必須。"
+                "コンクリート強度試験は打設後28日で実施する。スランプ試験も必須。"
             ),
             "category": "QUALITY",
             "tags": "品質,コンクリート",
