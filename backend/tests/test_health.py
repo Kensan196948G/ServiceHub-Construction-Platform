@@ -50,8 +50,7 @@ async def test_health_live():
 def _make_engine_mock(execute_side_effect=None):
     """AsyncEngine.connect() async context manager を模倣するモックを返す。
 
-    SQLAlchemy AsyncEngine.connect は read-only 属性のため patch("app.main.engine.connect")
-    では AttributeError になる。engine オブジェクト全体を差し替える方式を使う。
+    AsyncEngine.connect は read-only 属性のため engine オブジェクト全体を差し替える。
     """
     mock_conn = AsyncMock()
     if execute_side_effect:
