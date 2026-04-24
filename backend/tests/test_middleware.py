@@ -4,6 +4,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from app.middleware.logging import _extract_user_id
 
 
 @pytest.mark.asyncio
@@ -56,3 +57,28 @@ async def test_skip_paths_no_verbose_logging():
     # Both still get X-Request-ID even on skip paths
     assert "X-Request-ID" in live_resp.headers
     assert "X-Request-ID" in health_resp.headers
+
+
+def test_extract_user_id_no_header():
+    """Authorization ヘッダなし → None を返す"""
+    assert _extract_user_id(None) is None
+    assert _extract_user_id("") is None
+
+
+def test_extract_user_id_non_bearer():
+    """Bearer 以外の scheme → None を返す"""
+    assert _extract_user_id("Basic dXNlcjpwYXNz") is None
+
+
+def test_extract_user_id_invalid_token():
+    """不正な JWT → None を返す (auth フローを妨げない)"""
+    assert _extract_user_id("Bearer not.a.valid.jwt") is None
+
+
+def test_extract_user_id_valid_token():
+    """有効な JWT から sub クレームを取得する"""
+    from app.core.security import create_access_token
+
+    token = create_access_token("test-user-uuid", "ADMIN")
+    result = _extract_user_id(f"Bearer {token}")
+    assert result == "test-user-uuid"

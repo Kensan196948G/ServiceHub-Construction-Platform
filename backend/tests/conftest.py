@@ -16,6 +16,7 @@ from app.core.rbac import UserRole
 from app.core.security import create_access_token, get_password_hash
 from app.db.base import Base, get_db
 from app.main import app
+from app.middleware.rate_limit import limiter
 
 # SQLite インメモリDB（CI/CDテスト用）
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -144,6 +145,14 @@ def it_headers() -> dict:
 @pytest_asyncio.fixture
 def viewer_headers() -> dict:
     return {"Authorization": f"Bearer {make_token(UserRole.VIEWER, VIEWER_USER_ID)}"}
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reset_limiter():
+    """Reset rate limit counters before each test to prevent cross-test leakage."""
+    limiter._storage.reset()
+    yield
+    limiter._storage.reset()
 
 
 @pytest_asyncio.fixture(autouse=True)

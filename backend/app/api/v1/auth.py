@@ -9,11 +9,12 @@ GET  /api/v1/auth/me      - 現在ユーザー取得
 from typing import Annotated
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
 from app.db.base import get_db
+from app.middleware.rate_limit import limiter
 from app.models.user import User
 from app.schemas.auth import (
     LoginRequest,
@@ -33,11 +34,13 @@ logger = structlog.get_logger()
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     payload: LoginRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """ログイン - JWT発行"""
+    """ログイン - JWT発行 (5 回/分のレート制限あり)"""
     service = AuthService(db)
     try:
         return await service.login(payload)
@@ -54,11 +57,13 @@ async def login(
 
 
 @router.post("/refresh", response_model=TokenResponse)
+@limiter.limit("10/minute")
 async def refresh_token(
+    request: Request,
     payload: RefreshRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """リフレッシュトークンで新アクセストークンを発行"""
+    """リフレッシュトークンで新アクセストークンを発行 (10 回/分のレート制限あり)"""
     service = AuthService(db)
     try:
         return await service.refresh(payload.refresh_token)
