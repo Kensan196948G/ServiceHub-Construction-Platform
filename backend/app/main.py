@@ -9,14 +9,18 @@ import structlog
 import structlog.contextvars
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
+from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
+from starlette.requests import Request
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.db.base import engine
 from app.middleware.logging import RequestLoggingMiddleware
+from app.middleware.rate_limit import limiter
 
 # Configure structlog: merge contextvars (request_id etc.) into every log line.
 structlog.configure(
@@ -98,6 +102,26 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json",
     lifespan=lifespan,
 )
+
+# ── レートリミッター登録 ─────────────────────────────
+# app.state.limiter が必須 (slowapi がこれを参照する)
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    """レート制限超過時にプロジェクト統一エラー形式で 429 を返す。"""
+    return JSONResponse(
+        status_code=429,
+        content={
+            "success": False,
+            "error": {
+                "code": "RATE_LIMIT_EXCEEDED",
+                "message": f"レート制限超過: {exc.detail}",
+            },
+        },
+    )
+
 
 # ── ミドルウェア登録 ──────────────────────────────────
 app.add_middleware(RequestLoggingMiddleware)

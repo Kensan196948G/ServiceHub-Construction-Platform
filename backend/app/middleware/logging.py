@@ -7,12 +7,27 @@ import time
 import uuid
 
 import structlog
+from jose import JWTError, jwt
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 from structlog.contextvars import bind_contextvars, clear_contextvars
 
 logger = structlog.get_logger()
+
+
+def _extract_user_id(authorization: str | None) -> str | None:
+    """Extract user sub-claim from Bearer JWT without signature verification.
+
+    Used only for audit log context binding — actual auth validation happens in deps.py.
+    Returns None on any failure so middleware never disrupts the request flow.
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    try:
+        return jwt.get_unverified_claims(authorization[7:]).get("sub")
+    except JWTError:
+        return None
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
@@ -34,8 +49,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         # Binding to structlog contextvars ensures all downstream log calls
         # (handlers, services) automatically carry request_id without manual passing.
         request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        user_id = _extract_user_id(request.headers.get("Authorization"))
         clear_contextvars()
-        bind_contextvars(request_id=request_id)
+        bind_contextvars(request_id=request_id, user_id=user_id)
 
         if request.url.path in self.SKIP_PATHS:
             response = await call_next(request)
