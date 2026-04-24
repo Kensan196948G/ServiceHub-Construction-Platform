@@ -74,15 +74,10 @@ async def test_projects_endpoint_schema_compliance(auth_client: AsyncClient):
     assert resp.status_code != 500
 
 
+@pytest.mark.asyncio
 @pytest.mark.skipif(not SCHEMATHESIS_AVAILABLE, reason="schemathesis not installed")
-def test_schemathesis_no_server_errors(db_tables):
+async def test_schemathesis_no_server_errors(auth_client: AsyncClient):
     """schemathesis: 全エンドポイントでサーバーエラーが発生しないことを確認"""
-    import httpx
-
-    with httpx.Client(
-        transport=httpx.ASGITransport(app=app),  # type: ignore[arg-type]
-        base_url="http://test",
-    ) as sync_client:
-        resp = sync_client.get("/api/v1/openapi.json")
+    resp = await auth_client.get("/api/v1/openapi.json")
     assert resp.status_code == 200
     assert "paths" in resp.json()
