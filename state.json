@@ -9,11 +9,11 @@
     "release_policy": "半年後の本番リリース絶対厳守。残日数による自動縮退: <=30日 Improvement縮退 / <=14日 新機能開発禁止 / <=7日 リリース準備のみ",
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
-  "phase": "Phase 6 開始 (Sprint 7) — 品質強化 + リリース準備",
-  "loop": "Day24-Phase6-Kickoff",
-  "loop_count": 137,
+  "phase": "Phase 6 Sprint 7 — Phase 6d 完了 / Phase 6e Security hardening 次",
+  "loop": "Day24-Phase6d-Done",
+  "loop_count": 138,
   "status": "active",
-  "last_updated": "2026-04-24T08:30:00+09:00",
+  "last_updated": "2026-04-24T10:20:00+09:00",
   "execution": {
     "start_time": "2026-04-24T07:30:00+09:00",
     "max_duration_minutes": 300,
@@ -240,12 +240,10 @@
     }
   },
   "resume_point": {
-    "action": "PR #151 merged (main 4c0c62f) → 次セッションで Phase 6d (#153 observability P1) 着手。structured logging + /metrics + /ready endpoint 分離",
-    "branch": "main (4c0c62f, 全10 check green で admin-squash merged)",
-    "next_phase": "Phase 6d Observability (#153, P1) — structured logging (JSON + correlation id) / /metrics / readiness vs liveness 分離",
-    "phase5_closure_note": "2026-04-23 PR #149 + 2026-04-24 PR #150 で Phase 5 完全完了 + 6ヶ月リリース絶対厳守ルール正規化完了",
-    "phase6_kickoff_note": "2026-04-24 このセッションで Phase 6 scope を state.json に固定、Issue #146 を 95% 既達により close",
-    "phase6c_closure_note": "2026-04-24 PR #151 admin-squash merged (main 4c0c62f) — cost.spec.ts 2→8 tests。差異 strict-mode violation は summary card grid スコープ限定で解消 (bedf781)"
+    "action": "PR #156 merged (main ad08511) → 次セッションで Phase 6e (#154 security hardening P1) 着手",
+    "branch": "main (ad08511, 全6 check green で admin-squash merged)",
+    "next_phase": "Phase 6e Security hardening (#154, P1) — rate limiting (slowapi) / audit log middleware / secret rotation 手順書",
+    "phase6d_closure_note": "2026-04-24 PR #156 admin-squash merged (main ad08511) — /health/live + /health/ready 分離 + X-Request-ID correlation + structlog contextvars (test 10件 追加)"
   },
   "phase6_plan": {
     "kickoff_at": "2026-04-24",
@@ -272,10 +270,14 @@
       "closure_note": "2026-04-24 PR #151 admin-squash merged (main 4c0c62f, 10/10 check green) — cost.spec.ts 2→8 tests. 差異 strict-mode violation は summary card grid スコープ限定で解消 (bedf781)"
     },
     "phase_6d_observability": {
-      "status": "planned",
+      "status": "done",
       "issue": "#153",
+      "pr": "#156",
+      "merged_at": "2026-04-24",
+      "merged_sha": "ad08511",
       "priority": "P1",
-      "scope": "structured logging (JSON + correlation id) / prometheus metrics (/metrics endpoint) / readiness vs liveness healthcheck 分離"
+      "scope": "/health/live (liveness) + /health/ready (readiness DB+Redis) 分離 / X-Request-ID correlation middleware / structlog contextvars merge_contextvars 統合",
+      "closure_note": "2026-04-24 PR #156 admin-squash merged (main ad08511, 6/6 check green). test_health.py 6件 + test_middleware.py 4件 新規追加"
     },
     "phase_6e_security_hardening": {
       "status": "planned",
@@ -302,13 +304,15 @@
     ],
     "in_review_phase6": [],
     "merged_prs_phase6": [
-      "PR#151 (6c cost E2E aggregate: cost.spec.ts 2→8 tests, Issue #147, merged 2026-04-24 main 4c0c62f)"
+      "PR#151 (6c cost E2E aggregate: cost.spec.ts 2→8 tests, Issue #147, merged 2026-04-24 main 4c0c62f)",
+      "PR#155 (design-v2 tokens + a11y: gray-30/90 + fs-42 + WCAG skip-link, merged 2026-04-24 main 21f9a7d)",
+      "PR#156 (6d observability: /health/live + /health/ready + X-Request-ID + structlog, Issue #153, merged 2026-04-24 main ad08511)"
     ],
     "newly_opened_phase6_issues": [
       "#152 (6b integration/contract tests, P2, backend)",
       "#153 (6d observability: logging + metrics + healthcheck, P1, infra)",
       "#154 (6e security hardening: rate-limit + audit + rotation, P1, security)"
     ],
-    "next": "Phase 6d (#153, P1) observability 着手 — structured logging (JSON + correlation id) / /metrics prometheus endpoint / readiness(/ready) vs liveness(/health) 分離。既存 structlog + RequestLoggingMiddleware + Instrumentator を活かしつつ /health/live と /health/ready 分離 + X-Request-ID correlation 検証を差分スコープとする"
+    "next": "Phase 6e (#154, P1) Security hardening — rate limiting (slowapi) / audit log middleware 強化 / secret rotation 手順書整備 / CodeQL 継続監視"
   }
 }
