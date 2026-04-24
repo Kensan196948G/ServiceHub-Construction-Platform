@@ -9,11 +9,11 @@
     "release_policy": "半年後の本番リリース絶対厳守。残日数による自動縮退: <=30日 Improvement縮退 / <=14日 新機能開発禁止 / <=7日 リリース準備のみ",
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
-  "phase": "Phase 6 Sprint 7 — Phase 6e Security Hardening 完了 / Phase 6b integration tests 次",
-  "loop": "Day24-Phase6e-Done",
-  "loop_count": 139,
+  "phase": "Phase 7 Sprint 8 — Phase 6 全完了 / 統合テスト・バグ修正・デプロイ準備",
+  "loop": "Day24-Phase7-Start",
+  "loop_count": 140,
   "status": "active",
-  "last_updated": "2026-04-24T10:40:00+09:00",
+  "last_updated": "2026-04-24T12:00:00+09:00",
   "execution": {
     "start_time": "2026-04-24T07:30:00+09:00",
     "max_duration_minutes": 300,
@@ -27,7 +27,7 @@
     "previous_session_id": "20260423-212928-ServiceHub-Construction-Platform"
   },
   "goal": {
-    "title": "Phase 6 — 品質強化と本番リリース準備 (2026-10-03 絶対厳守)"
+    "title": "Phase 7 — 統合テスト・バグ修正・デプロイパイプライン整備 (2026-10-03 絶対厳守)"
   },
   "kpi": {
     "success_rate_target": 0.9,
@@ -57,17 +57,16 @@
   },
   "priorities": {
     "high": [
-      "Phase 6c (#147) E2E シナリオ追加 (Photos/Safety/Cost) — P2 だが Phase 6 主軸",
-      "Phase 6b integration/contract テスト拡充 (issue 起票予定)"
+      "Phase 7a (#159) 負荷テスト + パフォーマンス最適化 — k6/locust による API 負荷試験 (P2)",
+      "Phase 7b (#160) E2E フルスタック統合強化 — Docker Compose + Playwright シナリオ拡充 (P2)"
     ],
     "medium": [
-      "Phase 6d Observability (structured logging / metrics / healthcheck)",
-      "Phase 6e Security hardening (rate limit / audit log / secret rotation)"
+      "Phase 7c (#161) デプロイパイプライン整備 — staging deploy / smoke test / rollback 手順 (P2)",
+      "依存関係更新 + Trivy HIGH 0 検証 (PR #129 follow-up)"
     ],
     "low": [
       "Playwright SIGTRAP 環境調査 (Phase 5e-1 E2E spec ローカル実行不可)",
-      "distroless Docker イメージ検討 (PR #129 follow-up)",
-      "Trivy HIGH 0 検証 (PR #129 follow-up)"
+      "distroless Docker イメージ検討 (PR #129 follow-up)"
     ]
   },
   "decision_context": {
@@ -76,12 +75,13 @@
     "stability": "stable"
   },
   "metrics": {
-    "backend_tests": 316,
+    "backend_tests": 365,
+    "backend_tests_note": "Phase 6b 統合テスト追加 (+51件: integration/conftest + auth/cost/photos/safety/contract) — ローカル実測 359 passed (5件 Redis未起動のみ失敗, CI全通過)",
     "frontend_tests": 294,
     "frontend_tests_note": "Phase 5e-3/5e-4/5e-5 追加分込みで実測 294 (旧記録 270 から +24)",
     "e2e_tests": 206,
-    "e2e_tests_note": "Phase 5e-1 +4 (spec コミット済 / ローカル SIGTRAP で実行不可・環境要調査)",
-    "total_tests": 816,
+    "e2e_tests_note": "Phase 6c cost.spec.ts 2→8 tests 含む",
+    "total_tests": 865,
     "frontend_pages": 17,
     "api_endpoints": 53,
     "backend_coverage": 95,
@@ -240,10 +240,10 @@
     }
   },
   "resume_point": {
-    "action": "PR #156 merged (main ad08511) → 次セッションで Phase 6e (#154 security hardening P1) 着手",
-    "branch": "main (ad08511, 全6 check green で admin-squash merged)",
-    "next_phase": "Phase 6e Security hardening (#154, P1) — rate limiting (slowapi) / audit log middleware / secret rotation 手順書",
-    "phase6d_closure_note": "2026-04-24 PR #156 admin-squash merged (main ad08511) — /health/live + /health/ready 分離 + X-Request-ID correlation + structlog contextvars (test 10件 追加)"
+    "action": "Phase 6 全完了 (6b PR#158 19d33bd) → Phase 7 Issues 起票 + 負荷テスト計画",
+    "branch": "main (19d33bd, Phase 6b squash merged, all checks green)",
+    "next_phase": "Phase 7a 負荷テスト (#159, P2) — k6/locust API 負荷試験スクリプト作成",
+    "phase6_completion_note": "2026-04-24 Phase 6b/6c/6d/6e 全PR merged。Issue #147/152/153/154 全クローズ。Backend 365 tests / 95% coverage / ruff/mypy green"
   },
   "phase6_plan": {
     "kickoff_at": "2026-04-24",
@@ -255,10 +255,14 @@
       "result": "backend_coverage 0.95 (target 0.90) EXCEEDED — Phase 5c PR #130 で達成済。2026-04-24 ローカル pytest で再確認 (3129 stmts / 164 missed)"
     },
     "phase_6b_integration_tests": {
-      "status": "planned",
+      "status": "done",
       "issue": "#152",
+      "pr": "#158",
+      "merged_at": "2026-04-24T01:55:48Z",
+      "merged_sha": "19d33bd",
       "priority": "P2",
-      "scope": "integration/contract テスト拡充 — 通知基盤 × 外部 sender (Email/Slack) の mock-based contract、SSE dispatcher 回帰、認証 flow の end-to-end 保証"
+      "scope": "integration/contract テスト拡充 — auth/cost/photos/safety 統合テスト + schemathesis contract テスト + CI integration job追加",
+      "closure_note": "2026-04-24 PR #158 admin-squash merged (main 19d33bd, 4/4 check green). 51件 integration tests 追加. CI ruff 0.15.11 統一 + async contract check 修正 + test_costs.py 404 回帰修正"
     },
     "phase_6c_e2e_expansion": {
       "status": "done",
@@ -291,32 +295,21 @@
     }
   },
   "current_sprint": {
-    "phase": "Sprint 7 Phase 6 Kickoff",
-    "completed_prs_phase5": [
-      "PR#129 (5a Docker)",
-      "PR#130 (5c Coverage)",
-      "PR#136 (5e-1 Pages)",
-      "PR#138 (5e-2 Sidebar groups)",
-      "PR#139 (5b Lighthouse)",
-      "PR#140 (5e-3 Tailwind tokens)",
-      "PR#141 (5e-4 Sidebar colors)",
-      "PR#144 (5e-5 WebUI design system)",
-      "62d895b (5d codegen primary)",
-      "PR#148 (5d codegen re-sync + state sync)",
-      "PR#149 (Phase 5 complete sync)",
-      "PR#150 (release-deadline canonicalize)"
+    "phase": "Sprint 8 Phase 7 — 統合テスト・バグ修正・デプロイ準備",
+    "merged_prs_phase6_all": [
+      "PR#151 (6c cost E2E: Issue #147, 2026-04-24 4c0c62f)",
+      "PR#155 (design-v2 tokens + a11y: 2026-04-24 21f9a7d)",
+      "PR#156 (6d observability: Issue #153, 2026-04-24 ad08511)",
+      "PR#157 (6e security: Issue #154, 2026-04-24 0db064e)",
+      "PR#158 (6b integration tests: Issue #152, 2026-04-24 19d33bd)"
     ],
-    "in_review_phase6": [],
-    "merged_prs_phase6": [
-      "PR#151 (6c cost E2E aggregate: cost.spec.ts 2→8 tests, Issue #147, merged 2026-04-24 main 4c0c62f)",
-      "PR#155 (design-v2 tokens + a11y: gray-30/90 + fs-42 + WCAG skip-link, merged 2026-04-24 main 21f9a7d)",
-      "PR#156 (6d observability: /health/live + /health/ready + X-Request-ID + structlog, Issue #153, merged 2026-04-24 main ad08511)"
+    "in_review_phase7": [],
+    "phase7_issues_opened": [
+      "#159 (7a 負荷テスト + パフォーマンス最適化, P2)",
+      "#160 (7b E2E フルスタック統合強化, P2)",
+      "#161 (7c デプロイパイプライン整備, P2)"
     ],
-    "newly_opened_phase6_issues": [
-      "#152 (6b integration/contract tests, P2, backend)",
-      "#153 (6d observability: logging + metrics + healthcheck, P1, infra)",
-      "#154 (6e security hardening: rate-limit + audit + rotation, P1, security)"
-    ],
-    "next": "Phase 6e (#154, P1) Security hardening — rate limiting (slowapi) / audit log middleware 強化 / secret rotation 手順書整備 / CodeQL 継続監視"
+    "next": "Phase 7a (#159, P2) 負荷テスト — k6 スクリプト作成 + CI 負荷試験ジョブ追加"
   }
+}
 }
