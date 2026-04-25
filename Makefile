@@ -3,7 +3,7 @@
 # 使用方法: make <command>
 # ================================================
 
-.PHONY: help up down build logs shell-api shell-db migrate seed test lint clean
+.PHONY: help up down build logs shell-api shell-db migrate seed test lint clean monitoring-up monitoring-down monitoring-logs
 
 ## ヘルプ
 help:
@@ -95,6 +95,20 @@ clean: ## 一時ファイル削除
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.pyc" -delete 2>/dev/null || true
 	find . -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+
+## 監視スタック (Phase 9a)
+monitoring-up: ## 監視スタック起動 (Prometheus/Grafana/Alertmanager)
+	docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d prometheus alertmanager grafana node-exporter postgres-exporter redis-exporter
+	@echo "✅ 監視スタック起動完了"
+	@echo "  Grafana:      http://localhost:3001 (admin/admin)"
+	@echo "  Prometheus:   http://localhost:9090"
+	@echo "  Alertmanager: http://localhost:9093"
+
+monitoring-down: ## 監視スタック停止
+	docker compose -f docker-compose.yml -f docker-compose.monitoring.yml stop prometheus alertmanager grafana node-exporter postgres-exporter redis-exporter
+
+monitoring-logs: ## 監視スタックログ
+	docker compose -f docker-compose.yml -f docker-compose.monitoring.yml logs -f prometheus grafana alertmanager
 
 ## セットアップ
 setup: ## 初回セットアップ

@@ -178,8 +178,8 @@ graph TB
 | ✅ CI チェック数 | **19 チェック**（ruff / mypy / pytest / integration / bandit / **Trivy コンテナスキャン** / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI + **Fullstack E2E** + **weekly 負荷テスト**） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（Phase 7 全完了 / **Phase 8 進行中** — v0.8.0タグ / 本番Compose整備 / Trivy追加 / ベンチマーク修正） |
-| 🛡️ Trivy セキュリティスキャン | **追加済み** (Phase 8c — CRITICAL/HIGH 脆弱性ゼロ目標 / backend + frontend イメージをスキャン) |
+| 🔒 STABLE 判定 | **達成**（Phase 8 STABLE完了 **v0.8.1** タグ付与 / 全CVE修正 / Phase 9 監視スタック構築中） |
+| 🛡️ Trivy セキュリティスキャン | **CRITICAL/HIGH=0 達成済** (Phase 8c v0.8.1 — python-jose 3.5.0 / python-multipart 0.0.26 / starlette 0.49.1 / fastapi 0.124.4 / nginx:1.27-alpine) |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -375,7 +375,8 @@ gantt
 | 🟣 Phase 5 リリース準備 | 4月 PR#129-#149 | Docker 本番構成・Lighthouse・Coverage 85→95%・OpenAPI codegen・WebUI デザインシステム (5a/5b/5c/5d/5e-1〜5e-5) | ✅ 完了 |
 | 🟣 Phase 6 品質強化 + リリース準備 | 2026-05〜08 | 6a Backend coverage (#146 ✅) / 6c E2E Photos/Safety/Cost (#147 #151 ✅) / 6b Integration&Contract tests (#152) / 6d Observability (#153) / 6e Security hardening (#154) | ✅ 完了 |
 | 🟢 Phase 7 リリース | 2026-09〜10 | 統合テスト・本番移行・**社内公開** 🎉 E2E 221件 / CI 18チェック / Docker Compose 本番化 | ✅ 完了 |
-| 🚀 Phase 8 本番リリース準備 | 2026-04 | v0.8.0タグ / 本番Compose整備 / Trivyセキュリティスキャン / ベンチマーク修正 / CI 19チェック | 🔄 進行中 |
+| 🚀 Phase 8 本番リリース準備 | 2026-04 | v0.8.0タグ / 本番Compose整備 / Trivyセキュリティスキャン / ベンチマーク修正 / CI 19チェック — **v0.8.1 STABLE ✅ CVE CRITICAL/HIGH=0** | ✅ 完了 |
+| 🔵 Phase 9 本番運用準備 | 2026-04〜05 | 9a Prometheus/Grafana監視スタック / 9b k6拡充+SLO / 9c Kubernetes Helm chart | 🔄 進行中 |
 
 ---
 
@@ -642,6 +643,55 @@ graph TD
 | 📖 API ドキュメント   | http://localhost/api/v1/docs     |
 | 📡 ヘルスチェック     | http://localhost/health          |
 | 🪣 MinIO Console     | http://localhost:9001            |
+| 📊 Grafana           | http://localhost:3001 (monitoring stack) |
+| 🔥 Prometheus        | http://localhost:9090 (monitoring stack) |
+| 🔔 Alertmanager      | http://localhost:9093 (monitoring stack) |
+
+---
+
+## 📊 監視スタック（Phase 9a）
+
+Prometheus + Grafana + Alertmanager による本番監視基盤を提供します。
+
+```bash
+# 監視スタック起動（メインスタックが起動済みであること）
+make monitoring-up
+
+# または直接 docker compose で起動
+docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+```
+
+### 監視コンポーネント
+
+| コンポーネント          | バージョン      | 役割                              |
+| :---------------------- | :------------- | :-------------------------------- |
+| Prometheus              | v2.54.1        | メトリクス収集・保管（30日保存）    |
+| Grafana                 | 11.3.0         | ダッシュボード可視化               |
+| Alertmanager            | v0.27.0        | アラート管理・通知                 |
+| Node Exporter           | v1.8.2         | サーバーリソース監視               |
+| postgres-exporter       | v0.15.0        | PostgreSQL メトリクス              |
+| redis-exporter          | v1.62.0        | Redis メトリクス                   |
+
+### アラートルール（SLO）
+
+| アラート                  | 条件                          | 重大度     |
+| :------------------------ | :---------------------------- | :--------- |
+| APIHighErrorRate          | HTTP 5xx 率 > 2%              | critical   |
+| APIHighLatencyP95         | P95 レイテンシ > 1s           | warning    |
+| APIVeryHighLatencyP95     | P95 レイテンシ > 3s           | critical   |
+| APIDown                   | API 疎通不可 1分以上           | critical   |
+| PostgreSQLDown            | DB 疎通不可 1分以上            | critical   |
+| HighCPUUsage              | CPU > 90% 5分間               | critical   |
+| HighMemoryUsage           | メモリ > 90% 5分間             | critical   |
+| DiskSpaceLow              | ディスク > 85% 10分間          | warning    |
+
+### FastAPI メトリクス
+
+`/metrics` エンドポイント（Prometheus 形式）で以下を自動計測：
+
+- `http_requests_total` — リクエスト数（エンドポイント / ステータス別）
+- `http_request_duration_seconds` — レイテンシヒストグラム（P50/P95/P99）
+- `http_requests_in_progress` — 処理中リクエスト数
 
 ---
 
