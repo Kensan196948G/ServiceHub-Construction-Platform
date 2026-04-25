@@ -41,6 +41,12 @@ async def create_cost_record(
         ),
     ],
 ):
+    """原価記録を新規作成します。
+
+    - `category`: `materials` / `labor` / `equipment` / `subcontract` / `other`
+    - `amount`: 税込金額（円、正の整数）
+    - 権限: COST_MANAGER 以上
+    """
     svc = CostService(db)
     data = await svc.create_record(project_id, payload, created_by=current_user.id)
     return ApiResponse(data=data)
@@ -93,7 +99,11 @@ async def get_cost_summary(
         ),
     ],
 ):
-    """予実対比サマリー"""
+    """案件の予実対比サマリーを取得します。
+
+    予算総額・実績合計・差異・進捗率をカテゴリ別に集計して返します。
+    権限: COST_MANAGER 以上
+    """
     svc = CostService(db)
     summary = await svc.get_summary(project_id)
     return ApiResponse(data=summary)

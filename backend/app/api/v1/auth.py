@@ -41,7 +41,13 @@ async def login(
     payload: LoginRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """ログイン - JWT発行 (LOGIN_RATE_LIMIT 環境変数で制御、デフォルト 5 回/分)"""
+    """ログイン — JWT アクセストークンとリフレッシュトークンを発行します。
+
+    - アクセストークン有効期限: 15 分（`ACCESS_TOKEN_EXPIRE_MINUTES` で変更可）
+    - リフレッシュトークン有効期限: 7 日（`REFRESH_TOKEN_EXPIRE_DAYS` で変更可）
+    - レート制限: デフォルト 5 回/分（`LOGIN_RATE_LIMIT` 環境変数で変更可）
+    - 無効な資格情報は 401、無効なロールは 403 を返します
+    """
     service = AuthService(db)
     try:
         return await service.login(payload)
@@ -64,7 +70,11 @@ async def refresh_token(
     payload: RefreshRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """リフレッシュトークンで新アクセストークンを発行 (10 回/分のレート制限あり)"""
+    """リフレッシュトークンで新しいアクセストークンを発行します。
+
+    - 有効なリフレッシュトークンが必要です（ログアウト済みのトークンは 401）
+    - レート制限: 10 回/分（`REFRESH_RATE_LIMIT` 環境変数で変更可）
+    """
     service = AuthService(db)
     try:
         return await service.refresh(payload.refresh_token)

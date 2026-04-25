@@ -95,7 +95,47 @@ async def lifespan(app: FastAPI):  # type: ignore[override]
 
 app = FastAPI(
     title=settings.APP_NAME + " API",
-    description="建設業向けAI統合業務プラットフォーム",
+    description="""
+建設業向け AI 統合業務プラットフォーム
+
+## 認証
+
+全ての API は Bearer トークン認証が必要です（ヘルスチェック系を除く）。
+
+```
+POST /api/v1/auth/login  → { access_token, refresh_token }
+Authorization: Bearer {access_token}
+```
+
+アクセストークンの有効期限は 15 分です。
+期限切れ後は `/auth/refresh` で再取得してください。
+
+## ロール・権限
+
+| ロール | 説明 |
+|---|---|
+| `admin` | 全操作 + ユーザー管理 |
+| `project_manager` | 案件CRUD・承認 |
+| `site_supervisor` | 日報・安全確認 |
+| `cost_manager` | 原価管理 |
+| `it_operator` | ITSM・ナレッジ |
+| `viewer` | 読み取りのみ |
+
+## エラーレスポンス
+
+全エラーは以下の形式で返されます:
+
+```json
+{ "success": false, "error": { "code": "ERROR_CODE", "message": "説明" } }
+```
+
+## レート制限
+
+- ログイン: 5 回/分
+- トークンリフレッシュ: 10 回/分
+
+制限超過時は HTTP 429 が返されます。
+""",
     version=settings.APP_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",

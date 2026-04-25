@@ -45,6 +45,13 @@ async def list_projects(
     per_page: int = Query(default=20, ge=1, le=100),
     filter_status: str | None = Query(default=None, alias="status"),
 ):
+    """工事案件一覧を取得します（ページネーション付き）。
+
+    - `status` フィルター: `planning` / `active` / `on_hold` / `completed` / `cancelled`
+    - `per_page` 最大値: 100
+    - 論理削除済み案件は含まれません
+    - 権限: VIEWER 以上
+    """
     svc = ProjectService(db)
     projects, total = await svc.list_projects(page, per_page, status=filter_status)
     return PaginatedResponse(
@@ -68,6 +75,12 @@ async def create_project(
         User, Depends(require_roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER))
     ],
 ):
+    """新しい工事案件を作成します。
+
+    - `project_code` は一意である必要があります（重複時は 409）
+    - 初期ステータスは `planning` または `active` を推奨
+    - 権限: PROJECT_MANAGER 以上
+    """
     svc = ProjectService(db)
     project = await svc.create_project(payload, created_by=current_user.id)
     return ApiResponse(data=project)
