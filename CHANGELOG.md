@@ -1,5 +1,50 @@
 # CHANGELOG
 
+All notable changes to this project will be documented in this file.
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+---
+
+## [0.8.0] - 2026-04-25
+
+### Added
+
+#### Phase 7: 統合テスト・デプロイパイプライン
+- **E2E フルスタック統合テスト** — Docker Compose + Playwright 15シナリオ（`docker-compose.test.yml` + `playwright.fullstack.config.ts`）
+- **k6 負荷テスト** — `/api/v1/projects` への定常 RPS 計測 CI ワークフロー追加（`k6/load_test.js`）
+- **pytest-benchmark** — API レスポンスタイム回帰検知 CI ワークフロー追加
+- **デプロイパイプライン** — GHCR Docker push + staging smoke test + rollback 手順（`.github/workflows/deploy.yml`）
+
+#### Phase 6: 品質強化・セキュリティ
+- **slowapi レート制限** — ログイン 5 回/分・リフレッシュ 10 回/分（環境変数で設定可能）
+- **JWT 監査ログ** — 全 API 操作に `user_id` 埋め込み
+- **CodeQL セキュリティ分析** — GitHub Actions ワークフロー追加
+- **/health/live + /health/ready** — Liveness / Readiness プローブ分離
+- **X-Request-ID correlation** — 全リクエストにトレーシング ID を自動付与
+- **統合テスト 51 件追加** — auth / cost / photos / safety + schemathesis contract テスト
+- **E2E テスト拡充** — cost / photos / safety スペックを合計 206 件に拡張
+
+### Fixed
+- **E2E CI 全テスト通過** — `/health/live` レスポンス `"alive"` への regex 対応・CRUD テストに `project_code` 必須入力を追加
+- **レート制限 E2E 競合解消** — テスト環境で `LOGIN_RATE_LIMIT=1000/minute` に緩和（`docker-compose.test.yml`）
+
+### Security
+- slowapi による Brute-force 対策（ログインエンドポイント）
+- bandit 週次スキャン ワークフロー維持
+- secret rotation 手順書追加（`docs/security/secret-rotation.md`）
+
+### Metrics
+| 指標 | v0.7.x | v0.8.0 |
+|---|---|---|
+| バックエンドテスト | 314 件 | 365 件 (+51) |
+| フロントエンドテスト | 270 件 | 294 件 (+24) |
+| E2E テスト | 147 件 | 221 件 (+74) |
+| バックエンドカバレッジ | 85% | 95% |
+| フロントエンドカバレッジ | 75% | 88% |
+| CI チェック数 | 8 | 18 |
+
+---
+
 ## [1.0.0] - 2026-04-03
 
 ### Added
