@@ -5,6 +5,7 @@ SQLite(aiosqlite)をインメモリDBとして使用
 
 from __future__ import annotations
 
+import os
 import uuid
 
 import pytest_asyncio
@@ -153,6 +154,12 @@ async def reset_limiter():
     limiter._storage.reset()
     yield
     limiter._storage.reset()
+
+
+def pytest_sessionfinish(session, exitstatus):  # noqa: ARG001
+    # aiosqlite 0.22.1 creates non-daemon threads that block Python exit.
+    # Coverage XML is written before this hook fires, so os._exit() is safe.
+    os._exit(int(exitstatus))
 
 
 @pytest_asyncio.fixture(autouse=True)
