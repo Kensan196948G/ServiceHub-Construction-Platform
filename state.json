@@ -10,8 +10,8 @@
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
   "phase": "Phase 9 — 本番運用準備 (Kubernetes / 監視強化 / 負荷試験本格化)",
-  "loop": "Day25-Phase9a-MonitoringStack",
-  "loop_count": 149,
+  "loop": "Day25-Phase9b-LoadTest",
+  "loop_count": 150,
   "status": "active",
   "last_updated": "2026-04-25T17:00:00+09:00",
   "execution": {
@@ -353,9 +353,17 @@
       "note": "prometheus-fastapi-instrumentator は Phase 3a で既実装済み。api:8000/metrics をスクレイプ設定。SLO アラート 9種定義。Grafana 8パネルダッシュボード自動プロビジョニング"
     },
     "phase_9b_load_test": {
-      "status": "planned",
+      "status": "in_progress",
       "issue": "#166",
-      "scope": "k6 負荷試験シナリオ拡充 + SLO 基準明文化 (P95 < 1s@100RPS)"
+      "branch": "feat/phase9b-load-test",
+      "scope": "k6 負荷試験シナリオ拡充 + SLO 基準明文化 (P95 < 1s@100RPS)",
+      "files_created": [
+        "backend/tests/performance/k6_slo_test.js (smoke + 100VU SLO load)",
+        "backend/tests/performance/k6_spike_test.js (0→200VU spike)",
+        "backend/tests/performance/k6_endpoints_test.js (7 endpoint groups)",
+        "docs/design/slo.md (SLO定義書)",
+        ".github/workflows/performance-test.yml (k6-slo job追加)"
+      ]
     },
     "phase_9c_kubernetes": {
       "status": "planned",
