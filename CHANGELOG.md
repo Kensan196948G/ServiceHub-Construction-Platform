@@ -5,6 +5,40 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.0] - 2026-04-25
+
+### Added
+
+#### Phase 10a: CHANGELOG 整備 + バージョン履歴文書化（Issue #171）
+- **[Unreleased] セクション** — Keep a Changelog 形式に準拠した未リリース変更の集約
+- **バージョン履歴の時系列整理** — v0.x.x 開発フェーズ (v0.8.0 / v0.8.1 / v0.9.0) と v1.0.0 系列の並存構造を明文化
+
+#### Phase 10b: API・ユーザードキュメント整備（PR #174 / Issue #172）
+- **`docs/user-guide/getting-started.md`** — 5 ステップ初回セットアップガイド（Docker Compose ベース）
+- **`docs/user-guide/construction-projects.md`** — 工事案件 CRUD・ステータス遷移・日報・原価・安全確認の操作ガイド
+- **`docs/user-guide/admin-guide.md`** — 管理者向け: ロール設計・ユーザー管理・秘密情報ローテーション・ITSM 運用手順
+- **FastAPI OpenAPI description 拡充** — `app.description` に認証フロー・ロール表・エラー形式・レート制限を Markdown で追加
+- **エンドポイント docstring 詳細化** — auth / projects / costs / safety の主要エンドポイントに権限・パラメータ・制限事項を記載
+- **README ユーザードキュメントセクション追加** — `📚 ユーザードキュメント` テーブルを README に挿入
+
+#### Phase 10c: 最終セキュリティ監査 + v1.1.0 リリース（Issue #173）
+- **Trivy CRITICAL/HIGH=0 最終確認** — backend / frontend コンテナイメージの脆弱性ゼロを CI で確認
+- **OWASP Top 10 セルフチェック** — bandit / CodeQL / Dependency Review 全 pass
+- **CHANGELOG [Unreleased] → [1.1.0] 昇格** — Phase 10a/10b/10c の変更をバージョンタグへ昇格
+- **GitHub Release v1.1.0** — 全 Phase 10 成果物を含む最終リリース
+
+### Metrics
+| 指標 | v0.9.0 | v1.1.0 |
+|---|---|---|
+| バックエンドテスト | 365 件 | 365 件 |
+| E2E テスト | 206 件 | 206 件 |
+| CI チェック数 | 20 | **20** |
+| 脆弱性 (CRITICAL/HIGH) | 0 | **0 維持** |
+| ユーザードキュメント | なし | **3 ガイド** |
+| OpenAPI description | 最小限 | **完全拡充** |
+
+---
+
 ## [0.9.0] - 2026-04-25
 
 ### Added
