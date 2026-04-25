@@ -9,11 +9,11 @@
     "release_policy": "半年後の本番リリース絶対厳守。残日数による自動縮退: <=30日 Improvement縮退 / <=14日 新機能開発禁止 / <=7日 リリース準備のみ",
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
-  "phase": "Phase 9 — 本番運用準備 (Kubernetes / 監視強化 / 負荷試験本格化)",
-  "loop": "Day25-Phase9b-LoadTest",
-  "loop_count": 150,
+  "phase": "Phase 9 — 本番運用準備 (9a監視✅ / 9b負荷試験✅ / 9c Kubernetes Helm PR中)",
+  "loop": "Day25-Phase9c-Kubernetes",
+  "loop_count": 155,
   "status": "active",
-  "last_updated": "2026-04-25T17:00:00+09:00",
+  "last_updated": "2026-04-25T16:30:00+09:00",
   "execution": {
     "start_time": "2026-04-25T07:00:00+09:00",
     "max_duration_minutes": 300,
@@ -241,10 +241,10 @@
     }
   },
   "resume_point": {
-    "action": "Phase 9a 監視スタック実装完了 → feat/phase9a-monitoring PR 作成待ち",
-    "branch": "feat/phase9a-monitoring",
-    "next_phase": "Phase 9a PR merge → Phase 9b 負荷試験拡充 (Issue #166) → Phase 9c Kubernetes Helm (Issue #167)",
-    "phase9a_progress_note": "2026-04-25 prometheus/ grafana/ docker-compose.monitoring.yml Makefile README.md 全作成完了"
+    "action": "Phase 9c Kubernetes Helm chart PR #170 CI待ち → merge → README 最終更新 → Phase 9 完了",
+    "branch": "feat/phase9c-kubernetes",
+    "next_phase": "PR #170 merge → state.json / README 最終同期 → Phase 9 完了宣言 → v0.9.0 タグ検討",
+    "phase9_progress_note": "9a(監視スタック) merge済 / 9b(k6 SLO) PR#169 merge済 / 9c(Kubernetes Helm) PR#170 CI実行中"
   },
   "phase6_plan": {
     "kickoff_at": "2026-04-24",
@@ -353,9 +353,11 @@
       "note": "prometheus-fastapi-instrumentator は Phase 3a で既実装済み。api:8000/metrics をスクレイプ設定。SLO アラート 9種定義。Grafana 8パネルダッシュボード自動プロビジョニング"
     },
     "phase_9b_load_test": {
-      "status": "in_progress",
+      "status": "merged",
       "issue": "#166",
-      "branch": "feat/phase9b-load-test",
+      "pr": "#169",
+      "merged_at": "2026-04-25T07:15:26Z",
+      "merged_sha": "c387be1",
       "scope": "k6 負荷試験シナリオ拡充 + SLO 基準明文化 (P95 < 1s@100RPS)",
       "files_created": [
         "backend/tests/performance/k6_slo_test.js (smoke + 100VU SLO load)",
@@ -366,9 +368,31 @@
       ]
     },
     "phase_9c_kubernetes": {
-      "status": "planned",
+      "status": "pr_open",
       "issue": "#167",
-      "scope": "Kubernetes Helm chart 骨格 + namespace / RBAC / HPA 設定"
+      "pr": "#170",
+      "branch": "feat/phase9c-kubernetes",
+      "scope": "Kubernetes Helm chart 骨格 + namespace / RBAC / HPA 設定",
+      "files_created": [
+        "charts/servicehub/Chart.yaml",
+        "charts/servicehub/values.yaml",
+        "charts/servicehub/templates/_helpers.tpl",
+        "charts/servicehub/templates/backend-deployment.yaml",
+        "charts/servicehub/templates/backend-service.yaml",
+        "charts/servicehub/templates/frontend-deployment.yaml",
+        "charts/servicehub/templates/frontend-service.yaml",
+        "charts/servicehub/templates/hpa.yaml",
+        "charts/servicehub/templates/ingress.yaml",
+        "charts/servicehub/templates/configmap.yaml",
+        "charts/servicehub/templates/secret.yaml",
+        "charts/servicehub/templates/rbac.yaml",
+        "charts/servicehub/templates/namespace.yaml",
+        "charts/servicehub/templates/serviceaccount.yaml",
+        ".github/workflows/helm-lint.yml",
+        "docs/deployment/kubernetes.md"
+      ],
+      "local_lint_result": "1 chart(s) linted, 0 chart(s) failed",
+      "local_template_result": "14 resource kinds generated (Deployment×2, HPA×2, Service×6, Ingress×1, etc.)"
     }
   }
 }
