@@ -5,6 +5,47 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.9.0] - 2026-04-25
+
+### Added
+
+#### Phase 9a: Prometheus + Grafana 監視スタック（PR #168）
+- **prometheus-fastapi-instrumentator** — FastAPI `/metrics` エンドポイント自動計測（全ルート RED メトリクス）
+- **docker-compose.monitoring.yml** — prometheus / grafana / alertmanager / node-exporter / postgres-exporter / redis-exporter 分離構成
+- **Prometheus 設定** — `monitoring/prometheus/prometheus.yml` + アラートルール 4 件
+- **Grafana ダッシュボード** — `monitoring/grafana/dashboards/servicehub.json` (JSON provisioning)
+- **`make monitoring-up`** コマンド追加（Grafana:3001 / Prometheus:9090 / Alertmanager:9093）
+
+#### Phase 9b: k6 SLO 負荷試験拡充（PR #169）
+- **SLO 定義** (`docs/design/slo.md`) — P95 < 1s @ 100VU / エラー率 < 2% / 可用性 99.9%
+- **k6_slo_test.js** — smoke + 100VU SLO load シナリオ（P95/P99 閾値チェック）
+- **k6_spike_test.js** — 0→200VU スパイクシナリオ
+- **k6_endpoints_test.js** — 7 エンドポイントグループ（auth / projects / reports / safety / cost / photos / itsm）
+- **GitHub Actions 週次実行** — `performance-test.yml` k6-slo job（毎週月曜 09:00 JST）
+
+#### Phase 9c: Kubernetes Helm chart 骨格（PR #170）
+- **Helm v3 chart** (`charts/servicehub/`) — bitnami/postgresql 15.5.x + bitnami/redis 19.x 依存
+- **Deployment×2** — backend (FastAPI) / frontend (Next.js)、セキュリティコンテキスト完備
+  - `readOnlyRootFilesystem: true` / `runAsNonRoot: true` / `capabilities.drop: [ALL]`
+- **HPA v2** — backend 2-10pod / frontend 2-6pod（CPU 70% / scaleDown 300s stabilization）
+- **Ingress (nginx)** — path-based routing `/api` → backend / `/` → frontend
+- **RBAC** — Role + RoleBinding + ServiceAccount（最小権限: configmaps/secrets/pods のみ）
+- **Namespace + ConfigMap + Secret** (`helm.sh/resource-policy: keep`)
+- **Helm Lint CI** (`.github/workflows/helm-lint.yml`) — `helm lint --strict` + kubeconform 1.29.0
+- **Kubernetes デプロイメントガイド** (`docs/deployment/kubernetes.md`)
+
+### Metrics
+| 指標 | v0.8.1 | v0.9.0 |
+|---|---|---|
+| バックエンドテスト | 365 件 | 365 件 |
+| E2E テスト | 206 件 | 206 件 |
+| CI チェック数 | 19 | **20** (Helm Lint 追加) |
+| 脆弱性 (CRITICAL/HIGH) | 0 | **0 維持** |
+| SLO P95 目標 | 未定義 | **< 1s @ 100VU** |
+| Kubernetes 対応 | なし | **Helm chart 骨格** |
+
+---
+
 ## [0.8.1] - 2026-04-25
 
 ### Added
