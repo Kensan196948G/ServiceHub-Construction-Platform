@@ -40,6 +40,12 @@ async def create_safety_check(
         ),
     ],
 ):
+    """安全確認チェックリストを記録します。
+
+    - 1 日 1 案件につき複数回記録可能
+    - `items`: チェック項目ごとに `category`, `checked` (bool), `note` を含む配列
+    - 権限: SITE_SUPERVISOR 以上
+    """
     svc = SafetyService(db)
     data = await svc.create_safety_check(
         project_id, payload, created_by=current_user.id

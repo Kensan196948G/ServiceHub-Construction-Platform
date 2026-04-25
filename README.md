@@ -763,6 +763,20 @@ helm install servicehub charts/servicehub/ \
 
 ---
 
+## 📚 ユーザードキュメント
+
+| ガイド | 対象 |
+|---|---|
+| [はじめに（5分セットアップ）](docs/user-guide/getting-started.md) | 全ユーザー |
+| [工事案件管理ガイド](docs/user-guide/construction-projects.md) | 現場担当者・PM |
+| [管理者設定ガイド](docs/user-guide/admin-guide.md) | システム管理者 |
+| [Kubernetes デプロイメント](docs/deployment/kubernetes.md) | DevOps・インフラ担当 |
+| [SLO 定義](docs/design/slo.md) | 運用担当 |
+
+API ドキュメント（Swagger UI）: `http://localhost/api/v1/docs`
+
+---
+
 ## 🤝 コントリビューション
 
 1. `main` ブランチへの直接 push は禁止
