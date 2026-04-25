@@ -5,6 +5,31 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.8.1] - 2026-04-25
+
+### Added
+- **Trivy コンテナスキャン** — CI Security Scan ワークフローに Trivy (aquasecurity/trivy-action@v0.36.0) 追加。backend (development target) + frontend (production target) の両イメージを CRITICAL/HIGH 脆弱性ゼロ目標でスキャン
+
+### Fixed
+- **本番環境 Docker Compose** (`docker-compose.prod.yml`) — alembic マイグレーション実行コマンド追加・healthcheck 設定・欠落環境変数 (`JWT_ALGORITHM`, `MINIO_BUCKET`, `LOG_LEVEL`, `ALLOWED_ORIGINS` 等) を追加
+- **pytest-benchmark ScopeMismatch** — `bench_client` fixture を `function` スコープに変更 (pytest-asyncio 0.24 対応)
+- **ruff E501** — `config.py` 日本語コメント 90文字超を英語短縮コメントに修正
+
+### Security
+- **CVE-2024-33663** (CRITICAL) — `python-jose` 3.3.0 → 3.5.0 (algorithm confusion with OpenSSH ECDSA keys)
+- **CVE-2024-53981** (HIGH) — `python-multipart` 0.0.12 → 0.0.26 (DoS via deformation)
+- **CVE-2026-24486** (HIGH) — `python-multipart` 0.0.12 → 0.0.26 (Arbitrary file write via multipart)
+- **CVE-2024-47874** (HIGH) — `starlette` 0.38.6 → 0.46.2 (`fastapi` 0.115.0 → 0.115.14 更新で間接修正, DoS)
+- **CVE-2025-62727** (HIGH) — `starlette` 0.46.2 → 0.49.1 + `fastapi` 0.115.14 → 0.124.4 (DoS via Range header merging)
+
+### Metrics
+| 指標 | v0.8.0 | v0.8.1 |
+|---|---|---|
+| CI チェック数 | 18 | **19** (Trivy 追加) |
+| 脆弱性 (CRITICAL/HIGH) | 未スキャン | **0** 目標 |
+
+---
+
 ## [0.8.0] - 2026-04-25
 
 ### Added
