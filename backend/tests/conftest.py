@@ -5,6 +5,7 @@ SQLite(aiosqlite)をインメモリDBとして使用
 
 from __future__ import annotations
 
+import os
 import uuid
 
 import pytest_asyncio
@@ -27,29 +28,28 @@ VIEWER_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000002")
 PM_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000003")
 IT_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000004")
 
-test_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestSessionLocal = async_sessionmaker(test_engine, expire_on_commit=False)
-
 
 @pytest_asyncio.fixture
 async def db_tables():
-    """テスト用テーブル作成"""
-    async with test_engine.begin() as conn:
+    """Create tables. Fresh engine per test keeps aiosqlite on the right event loop."""
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield
-    async with test_engine.begin() as conn:
+    yield engine
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-    await test_engine.dispose()
+    await engine.dispose()
 
 
 @pytest_asyncio.fixture
 async def db_session(db_tables):
     """各テスト用DBセッション（ロールバック保証）"""
-    async with TestSessionLocal() as session:
+    session_factory = async_sessionmaker(db_tables, expire_on_commit=False)
+    async with session_factory() as session:
         yield session
         await session.rollback()
 
@@ -59,7 +59,8 @@ async def db_session_with_users(db_tables):
     """テストユーザーを含むDBセッション（統合テスト用）"""
     from app.models.user import User
 
-    async with TestSessionLocal() as session:
+    session_factory = async_sessionmaker(db_tables, expire_on_commit=False)
+    async with session_factory() as session:
         for uid, role, name in [
             (ADMIN_USER_ID, UserRole.ADMIN, "admin"),
             (VIEWER_USER_ID, UserRole.VIEWER, "viewer"),
@@ -153,6 +154,12 @@ async def reset_limiter():
     limiter._storage.reset()
     yield
     limiter._storage.reset()
+
+
+def pytest_sessionfinish(session, exitstatus):  # noqa: ARG001
+    # aiosqlite 0.22.1 creates non-daemon threads that block Python exit.
+    # Coverage XML is written before this hook fires, so os._exit() is safe.
+    os._exit(int(exitstatus))
 
 
 @pytest_asyncio.fixture(autouse=True)
