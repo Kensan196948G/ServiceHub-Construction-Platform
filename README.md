@@ -162,8 +162,9 @@ graph TB
 | 🔗 統合テスト | **51 件**（integration / Phase 6b #152 — auth / costs / safety / photos / contract / ITSM / knowledge / notifications 全ドメイン） |
 | 📜 Contract テスト | **4 件**（schemathesis OpenAPI 整合性 / 全エンドポイントでサーバーエラー 0） |
 | 🧪 Frontend テスト | **294 件**（vitest / 44 テストファイル / coverage **88%** / Phase 3c ThemeContext +7 / Phase 5e-3/5e-4/5e-5 実測 +24） |
-| 🎭 E2E テスト | **206 件**（Playwright / 28 テストファイル / Phase 4c 通知バッジ・パネル +11 +ダークモード+5 / Phase 5e-1 社内 4 ページ smoke +4） |
-| 📊 総テスト数 | **871 件**（Backend + Integration + Contract + Frontend + E2E） |
+| 🎭 E2E テスト | **221 件**（Playwright / 30 テストファイル / Phase 7b フルスタック E2E +15 件 — 認証・ページ表示・API疎通・CRUD） |
+| ⚡ 負荷テスト | **k6 スクリプト + pytest-benchmark**（Phase 7a — health 5VU 30s / API 0→20→0VU ramping / error_rate<1% / p95<500ms） |
+| 📊 総テスト数 | **886 件**（Backend + Integration + Contract + Frontend + E2E + Fullstack） |
 | 🖥️ フロントエンドページ | **17 ページ**（Phase 5e-1 社内グループ新設: Portal / Notices / HR / Rules +4） |
 | 🧩 共通 UI コンポーネント | **14 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / NotificationBadge / NotificationPanel / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **12/12 既存ページ**（全ページ統一完了 / Phase 5e-1 新設 4 ページは fixture ベースの reference 実装） |
@@ -174,10 +175,10 @@ graph TB
 | 🔀 Router | **11 本**（notifications Router 追加） |
 | 📐 OpenAPI codegen | **31 エンドポイント / 68 スキーマ**（TypeScript 型自動生成） |
 | 📚 設計ドキュメント | **7 種**（アーキテクチャ / DB / API / UI・UX / セキュリティ / モジュール / 通知機能 Phase2 完了） |
-| ✅ CI チェック数 | **16 チェック**（ruff / mypy / pytest / integration / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI） |
+| ✅ CI チェック数 | **18 チェック**（ruff / mypy / pytest / integration / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI + **Fullstack E2E** + **weekly 負荷テスト**） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（main CI 全 success / Phase 3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115 / Phase 4a PR#119 / 4b PR#121 / 4c PR#123 / Phase 5a PR#129 Docker / Phase 5b PR#139 Lighthouse / Phase 5c PR#130 coverage 95% / Phase 5d PR#148 codegen 同期 / Phase 5e-1 PR#136 社内 4 ページ / 5e-2 PR#138 サイドバー 4 グループ / 5e-3 PR#140 Tailwind tokens / 5e-4 PR#141 Sidebar 配色 / 5e-5 PR#144 WebUI デザインシステム 全 merge 済み — **Phase 5 完全完了** / Phase 6b #152 Integration & Contract Tests 51件 green） |
+| 🔒 STABLE 判定 | **達成**（... Phase 5〜6 全 PR merged / Phase 7a PR#162 k6 負荷テスト + pytest-benchmark merged (main e6cfca0) / **Phase 7b PR#163 Fullstack E2E 15件 review 中** / **Phase 7c PR#164 デプロイパイプライン review 中**） |
 
 ### 🏗️ Backend アーキテクチャ
 
