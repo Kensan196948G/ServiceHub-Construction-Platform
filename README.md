@@ -175,10 +175,11 @@ graph TB
 | 🔀 Router | **11 本**（notifications Router 追加） |
 | 📐 OpenAPI codegen | **31 エンドポイント / 68 スキーマ**（TypeScript 型自動生成） |
 | 📚 設計ドキュメント | **7 種**（アーキテクチャ / DB / API / UI・UX / セキュリティ / モジュール / 通知機能 Phase2 完了） |
-| ✅ CI チェック数 | **18 チェック**（ruff / mypy / pytest / integration / bandit / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI + **Fullstack E2E** + **weekly 負荷テスト**） |
+| ✅ CI チェック数 | **19 チェック**（ruff / mypy / pytest / integration / bandit / **Trivy コンテナスキャン** / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI + **Fullstack E2E** + **weekly 負荷テスト**） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（... Phase 5〜6 全 PR merged / Phase 7a PR#162 k6 負荷テスト + pytest-benchmark merged (main e6cfca0) / **Phase 7b PR#163 Fullstack E2E 15件 review 中** / **Phase 7c PR#164 デプロイパイプライン review 中**） |
+| 🔒 STABLE 判定 | **達成**（Phase 7 全完了 / **Phase 8 進行中** — v0.8.0タグ / 本番Compose整備 / Trivy追加 / ベンチマーク修正） |
+| 🛡️ Trivy セキュリティスキャン | **追加済み** (Phase 8c — CRITICAL/HIGH 脆弱性ゼロ目標 / backend + frontend イメージをスキャン) |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -372,8 +373,9 @@ gantt
 | 🟠 Phase 3 UX改善 | 5月〜6月 | レスポンシブ・アクセシビリティ・パフォーマンス・ダークモード | ✅ 完了（3a PR#110 / 3b PR#111 / 3c PR#113 / 3d PR#115） |
 | 🔴 Phase 4 高度機能 | 4月 | SSE リアルタイム通知・NotificationBadge・NotificationPanel・E2E 202件 | ✅ 完了（4a PR#119 / 4b PR#121 / 4c PR#123） |
 | 🟣 Phase 5 リリース準備 | 4月 PR#129-#149 | Docker 本番構成・Lighthouse・Coverage 85→95%・OpenAPI codegen・WebUI デザインシステム (5a/5b/5c/5d/5e-1〜5e-5) | ✅ 完了 |
-| 🟣 Phase 6 品質強化 + リリース準備 | 2026-05〜08 | 6a Backend coverage (#146 ✅) / 6c E2E Photos/Safety/Cost (#147 #151 ✅) / 6b Integration&Contract tests (#152) / 6d Observability (#153) / 6e Security hardening (#154) | 🔄 進行中 |
-| 🟢 Phase 7 リリース | 2026-09〜10 | 統合テスト・本番移行・**社内公開** 🎉 | ⏳ 予定 |
+| 🟣 Phase 6 品質強化 + リリース準備 | 2026-05〜08 | 6a Backend coverage (#146 ✅) / 6c E2E Photos/Safety/Cost (#147 #151 ✅) / 6b Integration&Contract tests (#152) / 6d Observability (#153) / 6e Security hardening (#154) | ✅ 完了 |
+| 🟢 Phase 7 リリース | 2026-09〜10 | 統合テスト・本番移行・**社内公開** 🎉 E2E 221件 / CI 18チェック / Docker Compose 本番化 | ✅ 完了 |
+| 🚀 Phase 8 本番リリース準備 | 2026-04 | v0.8.0タグ / 本番Compose整備 / Trivyセキュリティスキャン / ベンチマーク修正 / CI 19チェック | 🔄 進行中 |
 
 ---
 

@@ -34,7 +34,7 @@ jobs:
       - name: Build backend image for scan
         run: docker build -t servicehub-backend:scan ./backend --target development
       - name: Trivy scan — backend image
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: servicehub-backend:scan
           format: table
@@ -45,7 +45,7 @@ jobs:
       - name: Build frontend image for scan
         run: docker build -t servicehub-frontend:scan ./frontend --target production
       - name: Trivy scan — frontend image
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: servicehub-frontend:scan
           format: table
