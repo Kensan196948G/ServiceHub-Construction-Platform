@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
+from app.core.config import settings
 from app.db.base import get_db
 from app.middleware.rate_limit import limiter
 from app.models.user import User
@@ -34,13 +35,13 @@ logger = structlog.get_logger()
 
 
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit("5/minute")
+@limiter.limit(settings.LOGIN_RATE_LIMIT)
 async def login(
     request: Request,
     payload: LoginRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """ログイン - JWT発行 (5 回/分のレート制限あり)"""
+    """ログイン - JWT発行 (LOGIN_RATE_LIMIT 環境変数で制御、デフォルト 5 回/分)"""
     service = AuthService(db)
     try:
         return await service.login(payload)
@@ -57,7 +58,7 @@ async def login(
 
 
 @router.post("/refresh", response_model=TokenResponse)
-@limiter.limit("10/minute")
+@limiter.limit(settings.REFRESH_RATE_LIMIT)
 async def refresh_token(
     request: Request,
     payload: RefreshRequest,

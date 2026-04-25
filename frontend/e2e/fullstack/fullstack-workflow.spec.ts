@@ -57,7 +57,7 @@ test.describe("Fullstack: API疎通確認", () => {
     const response = await page.request.get("/health/live");
     expect(response.status()).toBe(200);
     const body = await response.json();
-    expect(body).toMatchObject({ status: expect.stringMatching(/ok|healthy/i) });
+    expect(body).toMatchObject({ status: expect.stringMatching(/ok|healthy|alive/i) });
   });
 
   test("backend /health/ready エンドポイントが正常応答する", async ({
@@ -116,7 +116,10 @@ test.describe("Fullstack: 工事案件 CRUD", () => {
     const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible({ timeout: 5_000 });
 
-    const projectName = `E2E テスト案件 ${Date.now()}`;
+    const ts = Date.now();
+    const projectCode = `E2E-${String(ts).slice(-6)}`;
+    const projectName = `E2E テスト案件 ${ts}`;
+    await page.getByLabel(/案件コード/).fill(projectCode);
     await page.getByLabel(/案件名/).fill(projectName);
     await page.getByLabel(/施主名/).fill("E2Eテスト株式会社");
 

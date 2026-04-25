@@ -40,6 +40,8 @@ services:
       JWT_ALGORITHM: HS256
       ENVIRONMENT: test
       LOG_LEVEL: WARNING
+      LOGIN_RATE_LIMIT: "1000/minute"
+      REFRESH_RATE_LIMIT: "1000/minute"
     command: >
       sh -c "alembic upgrade head &&
              python -m app.seeds.seed_test_data &&

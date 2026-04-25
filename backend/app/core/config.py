@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     # 本番環境では環境変数 NOTIFICATION_RETRY_INTERVAL_SECONDS で上書き可能。
     NOTIFICATION_RETRY_INTERVAL_SECONDS: int = 60
 
+    # レートリミット設定（テスト環境では LOGIN_RATE_LIMIT=1000/minute に設定して緩和する）
+    LOGIN_RATE_LIMIT: str = "5/minute"
+    REFRESH_RATE_LIMIT: str = "10/minute"
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
