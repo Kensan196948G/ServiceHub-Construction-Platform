@@ -315,9 +315,10 @@
         "note": "docker-compose.prod.yml — alembic migration / healthcheck / 欠落環境変数 / frontend depends_on 追加"
       },
       "8c_trivy_security": {
-        "status": "done",
-        "commit": "0cc2dca",
-        "note": "Trivy CI追加 + v0.36.0 バージョン修正。CI実行中 (CRITICAL/HIGH=0目標)"
+        "status": "STABLE",
+        "commits": ["0cc2dca","8b16deb","bbe0b00","5d6ac2b"],
+        "tag": "v0.8.1",
+        "note": "全CVE修正完了 (CRITICAL/HIGH=0達成): python-jose 3.5.0 / python-multipart 0.0.26 / starlette 0.49.1 / fastapi 0.124.4 / nginx:1.27-alpine + apk upgrade。全CI ✅ 7/7 green"
       },
       "8d_benchmark_fix": {
         "status": "done",
@@ -330,6 +331,6 @@
         "note": "README ロードマップ更新 / CI チェック数 19 / Phase 6+7 完了 / Phase 8 進行中"
       }
     },
-    "next": "CI Trivy結果確認 → CRITICAL/HIGH=0 検証 → Phase 8 完了判定 → 本番リリースゲート確認"
+    "next": "Phase 8 STABLE完了 (v0.8.1タグ付与) → Phase 9 本番運用準備 (Kubernetes / 監視 / 負荷試験本格化) または 次セッションで振り返り"
   }
 }
