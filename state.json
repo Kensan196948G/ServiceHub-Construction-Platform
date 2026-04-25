@@ -10,10 +10,10 @@
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
   "phase": "Maintenance — v1.1.0 保守フェーズ (CI強化・技術負債解消)",
-  "loop": "Day25-Maintenance-CIHardening",
-  "loop_count": 164,
-  "status": "STABLE — v1.1.0 Released / PR#178 Node.js24+ruff同期 / Issue#179 CodeQL v4移行中",
-  "last_updated": "2026-04-25T18:30:00+09:00",
+  "loop": "Day25-Maintenance-DepUpdate-Complete",
+  "loop_count": 166,
+  "status": "STABLE — v1.1.0 保守中 / PR#181 merged (90cfb3c): aiosqlite 0.22.1 CI hang fix + deps update / Open Issue 0",
+  "last_updated": "2026-04-25T19:08:00+09:00",
   "execution": {
     "start_time": "2026-04-25T07:00:00+09:00",
     "max_duration_minutes": 300,
@@ -241,12 +241,13 @@
     }
   },
   "resume_point": {
-    "action": "Maintenance: CodeQL v4移行 (Issue#179/PR#180) → 完了後はOpen Issue監視",
+    "action": "保守フェーズ継続 — Open Issue 0目標維持 / 次サイクルで React 19 / vitest 4 / vite 8 / zod 4 メジャーアップ検討",
     "branch": "main",
-    "main_head_after_pr178": "79d8a20",
+    "main_head": "90cfb3c",
     "next_phase": "保守フェーズ継続 — Open Issue 0目標維持 / 2026-10-03本番リリースまで残約161日",
-    "ci_hardening_done": "PR#178 — Node.js24明示採用 / ruff 0.15.11統一 (Issue#177 Closed)",
-    "pending_issues": ["Issue#179: CodeQL Action v3→v4 (P2 / 2026-12期限)"]
+    "pr181_merged": "PR#181 (90cfb3c): aiosqlite 0.22.1 + npm deps + pytest_sessionfinish os._exit CI hang fix — 15チェック全PASS",
+    "pending_major_upgrades": ["React 19", "vitest 4", "vite 8", "zod 4 (別PR必要 — breaking changes)"],
+    "pending_issues": []
   },
   "phase6_plan": {
     "kickoff_at": "2026-04-24",
