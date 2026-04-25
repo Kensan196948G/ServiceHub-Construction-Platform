@@ -9,11 +9,11 @@
     "release_policy": "半年後の本番リリース絶対厳守。残日数による自動縮退: <=30日 Improvement縮退 / <=14日 新機能開発禁止 / <=7日 リリース準備のみ",
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
-  "phase": "Phase 7 Sprint 8 — Phase 7a/7c完了 / Phase 7b PR#163 CI確認中",
-  "loop": "Day25-Phase7-Merge",
-  "loop_count": 141,
+  "phase": "Phase 8 — リリース準備・本番移行 (2026-10-03 絶対厳守)",
+  "loop": "Day25-Phase7-Complete-Phase8-Start",
+  "loop_count": 142,
   "status": "active",
-  "last_updated": "2026-04-25T09:45:00+09:00",
+  "last_updated": "2026-04-25T10:00:00+09:00",
   "execution": {
     "start_time": "2026-04-25T07:00:00+09:00",
     "max_duration_minutes": 300,
@@ -57,12 +57,13 @@
   },
   "priorities": {
     "high": [
-      "Phase 7a (#159) 負荷テスト + パフォーマンス最適化 — k6/locust による API 負荷試験 (P2)",
-      "Phase 7b (#160) E2E フルスタック統合強化 — Docker Compose + Playwright シナリオ拡充 (P2)"
+      "Phase 8a CHANGELOG + バージョンタグ (v0.8.0 相当) (P1)",
+      "Phase 8b 本番環境 docker-compose.prod.yml 整備 (P1)",
+      "Phase 8c セキュリティ最終監査 + Trivy HIGH 0 達成 (P1)"
     ],
     "medium": [
-      "Phase 7c (#161) デプロイパイプライン整備 — staging deploy / smoke test / rollback 手順 (P2)",
-      "依存関係更新 + Trivy HIGH 0 検証 (PR #129 follow-up)"
+      "Phase 8d パフォーマンスチューニング — k6 benchmark results 解析 (P2)",
+      "Phase 8e ユーザードキュメント整備 (P2)"
     ],
     "low": [
       "Playwright SIGTRAP 環境調査 (Phase 5e-1 E2E spec ローカル実行不可)",
@@ -295,19 +296,20 @@
     }
   },
   "current_sprint": {
-    "phase": "Sprint 8 Phase 7 — 統合テスト・バグ修正・デプロイ準備",
-    "merged_prs_phase7": [
-      "PR#162 (7a 負荷テスト: Issue #159, 2026-04-25 e6cfca0)"
+    "phase": "Sprint 9 Phase 8 — リリース準備・本番移行",
+    "merged_prs_phase7_all": [
+      "PR#162 (7a 負荷テスト: Issue #159, 2026-04-25 e6cfca0)",
+      "PR#163 (7b E2E Fullstack: Issue #160, 2026-04-25 84e5e62)",
+      "PR#164 (7c デプロイパイプライン: Issue #161, 2026-04-25 c456f80)"
     ],
-    "in_review_phase7": [
-      "#163 (7b E2E Fullstack: Issue #160, feat/phase7b-e2e-fullstack)"
+    "phase7_completion": "2026-04-25 Phase 7 全3タスク完了 — テスト886件 / E2E Fullstack 15件 / k6 + pytest-benchmark / GHCR deploy pipeline",
+    "phase8_planned": [
+      "Phase 8a: CHANGELOG + v0.8.0 タグ (P1)",
+      "Phase 8b: docker-compose.prod.yml 本番環境整備 (P1)",
+      "Phase 8c: Trivy HIGH 0 + セキュリティ最終監査 (P1)",
+      "Phase 8d: k6 結果解析 + パフォーマンスチューニング (P2)",
+      "Phase 8e: ユーザードキュメント整備 (P2)"
     ],
-    "phase7_issues_status": {
-      "#159": "done (PR#162 merged)",
-      "#160": "in_progress (PR#163 review)",
-      "#161": "todo (Phase 7c デプロイパイプライン)"
-    },
-    "next": "Phase 7b (#160, P2) PR CI確認後マージ → Phase 7c デプロイパイプライン (#161) 着手"
+    "next": "Phase 8 kick-off — CHANGELOG 作成 + v0.8.0 タグ付け → 本番環境整備"
   }
-}
 }
