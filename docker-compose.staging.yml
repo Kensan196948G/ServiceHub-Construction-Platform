@@ -1,0 +1,79 @@
+version: "3.9"
+
+# Staging environment compose — used by ci-deploy-staging.yml.
+# Pulls pre-built images from GHCR and runs a smoke test against them.
+# For local staging simulation, set IMAGE_TAG and POSTGRES_PASSWORD env vars.
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: servicehub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: servicehub_staging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U servicehub -d servicehub_staging"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - staging-net
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - staging-net
+
+  api:
+    image: ghcr.io/kensan196948g/servicehub-construction-platform/backend:${IMAGE_TAG:-latest}
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://servicehub:${POSTGRES_PASSWORD:-changeme}@db:5432/servicehub_staging"
+      REDIS_URL: "redis://redis:6379/0"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-changeme-replace-in-production}
+      JWT_ALGORITHM: HS256
+      ENVIRONMENT: staging
+      LOG_LEVEL: INFO
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.seeds.seed_test_data &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - staging-net
+
+  frontend:
+    image: ghcr.io/kensan196948g/servicehub-construction-platform/frontend:${IMAGE_TAG:-latest}
+    volumes:
+      - ./frontend/docker/nginx.test.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - staging-net
+
+networks:
+  staging-net:
+    driver: bridge
