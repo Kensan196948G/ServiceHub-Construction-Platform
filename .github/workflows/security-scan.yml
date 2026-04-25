@@ -26,6 +26,34 @@ jobs:
       - run: pip install bandit[toml]
       - run: bandit -r app/ -ll -x tests/ || true
 
+  trivy:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image for scan
+        run: docker build -t servicehub-backend:scan ./backend --target development
+      - name: Trivy scan — backend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: servicehub-backend:scan
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+      - name: Build frontend image for scan
+        run: docker build -t servicehub-frontend:scan ./frontend --target production
+      - name: Trivy scan — frontend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: servicehub-frontend:scan
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
