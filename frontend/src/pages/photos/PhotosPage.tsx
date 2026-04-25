@@ -49,11 +49,18 @@ export default function PhotosPage() {
 
   useEffect(() => {
     if (!selectedProject) return;
-    setLoading(true);
-    fetchPhotos(selectedProject)
-      .then((r) => setPhotos(r.data))
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+    const load = async () => {
+      setLoading(true);
+      try {
+        const r = await fetchPhotos(selectedProject);
+        setPhotos(r.data);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "エラーが発生しました");
+      } finally {
+        setLoading(false);
+      }
+    };
+    void load();
   }, [selectedProject]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
