@@ -178,7 +178,7 @@ graph TB
 | ✅ CI チェック数 | **19 チェック**（ruff / mypy / pytest / integration / bandit / **Trivy コンテナスキャン** / vitest / build / E2E / dependency / type-check x2 / test-coverage x2 / lint-build x2 + Lighthouse CI + **Fullstack E2E** + **weekly 負荷テスト**） |
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
-| 🔒 STABLE 判定 | **達成**（Phase 8 STABLE完了 **v0.8.1** タグ付与 / 全CVE修正 / Phase 9a監視スタック✅ / Phase 9b k6 SLO✅ / Phase 9c Kubernetes Helm PR中） |
+| 🔒 STABLE 判定 | **達成**（Phase 8 STABLE完了 **v0.8.1** タグ付与 / 全CVE修正 / Phase 9a監視スタック✅ / Phase 9b k6 SLO✅ / Phase 9c Kubernetes Helm✅） |
 | 🛡️ Trivy セキュリティスキャン | **CRITICAL/HIGH=0 達成済** (Phase 8c v0.8.1 — python-jose 3.5.0 / python-multipart 0.0.26 / starlette 0.49.1 / fastapi 0.124.4 / nginx:1.27-alpine) |
 
 ### 🏗️ Backend アーキテクチャ
@@ -376,7 +376,7 @@ gantt
 | 🟣 Phase 6 品質強化 + リリース準備 | 2026-05〜08 | 6a Backend coverage (#146 ✅) / 6c E2E Photos/Safety/Cost (#147 #151 ✅) / 6b Integration&Contract tests (#152) / 6d Observability (#153) / 6e Security hardening (#154) | ✅ 完了 |
 | 🟢 Phase 7 リリース | 2026-09〜10 | 統合テスト・本番移行・**社内公開** 🎉 E2E 221件 / CI 18チェック / Docker Compose 本番化 | ✅ 完了 |
 | 🚀 Phase 8 本番リリース準備 | 2026-04 | v0.8.0タグ / 本番Compose整備 / Trivyセキュリティスキャン / ベンチマーク修正 / CI 19チェック — **v0.8.1 STABLE ✅ CVE CRITICAL/HIGH=0** | ✅ 完了 |
-| 🔵 Phase 9 本番運用準備 | 2026-04〜05 | **9a** Prometheus/Grafana監視スタック ✅ / **9b** k6 SLO拡充(P95<1s@100VU) ✅ / **9c** Kubernetes Helm chart (PR #170 CI中) 🔄 | 🔄 進行中 |
+| 🔵 Phase 9 本番運用準備 | 2026-04〜05 | **9a** Prometheus/Grafana監視スタック ✅ / **9b** k6 SLO拡充(P95<1s@100VU) ✅ / **9c** Kubernetes Helm chart (Bitnami依存・HPA・RBAC) ✅ | ✅ 完了 |
 
 ---
 
