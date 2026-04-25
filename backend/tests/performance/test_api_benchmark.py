@@ -26,24 +26,28 @@ from sqlalchemy.pool import StaticPool
 from app.db.base import Base, get_db
 from app.main import app
 
-# Isolated SQLite DB for benchmark tests
 _BENCH_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-_bench_engine = create_async_engine(
-    _BENCH_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-_BenchSession = async_sessionmaker(_bench_engine, expire_on_commit=False)
 
 
-@pytest_asyncio.fixture(scope="module")
+@pytest_asyncio.fixture
 async def bench_client():
-    """Module-scoped ASGI test client with isolated in-memory DB."""
-    async with _bench_engine.begin() as conn:
+    """Function-scoped ASGI test client with isolated in-memory DB.
+
+    scope=module caused ScopeMismatch with pytest-asyncio 0.24 default
+    function-scoped event_loop. Using function scope avoids this.
+    """
+    engine = create_async_engine(
+        _BENCH_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
     async def _override_get_db():
-        async with _BenchSession() as session:
+        async with session_factory() as session:
             yield session
 
     app.dependency_overrides[get_db] = _override_get_db
@@ -54,13 +58,13 @@ async def bench_client():
         yield client
 
     app.dependency_overrides.clear()
-    async with _bench_engine.begin() as conn:
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-    await _bench_engine.dispose()
+    await engine.dispose()
 
 
 def _sync_get(client: AsyncClient, url: str) -> int:
-    """Run an async GET in the current event loop and return status code."""
+    """Run an async GET in a new event loop and return the status code."""
     return asyncio.get_event_loop().run_until_complete(client.get(url)).status_code
 
 
