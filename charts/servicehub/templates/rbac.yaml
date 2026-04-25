@@ -1,0 +1,32 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "servicehub.fullname" . }}
+  namespace: {{ include "servicehub.namespace" . }}
+  labels:
+    {{- include "servicehub.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "servicehub.fullname" . }}
+  namespace: {{ include "servicehub.namespace" . }}
+  labels:
+    {{- include "servicehub.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "servicehub.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "servicehub.serviceAccountName" . }}
+    namespace: {{ include "servicehub.namespace" . }}
+{{- end }}
