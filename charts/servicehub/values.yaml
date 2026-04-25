@@ -1,0 +1,185 @@
+# Default values for servicehub Helm chart.
+# Override with -f values-production.yaml or --set key=value
+
+# ── Global ────────────────────────────────────────────────────────────
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# ── Backend (FastAPI) ─────────────────────────────────────────────────
+backend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/kensan196948g/servicehub-construction-platform/backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 8000
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 8000
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    failureThreshold: 3
+
+  env:
+    ENVIRONMENT: "production"
+    JWT_ALGORITHM: "HS256"
+    LOG_LEVEL: "INFO"
+
+  # Secret keys — override with sealed-secrets or external-secrets in production
+  secret:
+    jwtSecretKey: ""       # required: set via --set or external secret
+    databaseUrl: ""        # required: set via --set or external secret
+    redisUrl: ""           # required: set via --set or external secret
+
+# ── Frontend (Next.js) ────────────────────────────────────────────────
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/kensan196948g/servicehub-construction-platform/frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 20
+    periodSeconds: 15
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    failureThreshold: 3
+
+  env:
+    NEXT_PUBLIC_API_URL: "http://servicehub-backend:8000"
+    NODE_ENV: "production"
+
+# ── Ingress ───────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+  hosts:
+    - host: servicehub.example.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /docs
+          pathType: Prefix
+          service: backend
+        - path: /
+          pathType: Prefix
+          service: frontend
+  tls:
+    - secretName: servicehub-tls
+      hosts:
+        - servicehub.example.com
+
+# ── PostgreSQL (Bitnami subchart) ─────────────────────────────────────
+postgresql:
+  enabled: true
+  auth:
+    database: servicehub_db
+    username: servicehub
+    # password: set via --set postgresql.auth.password=<val>
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "256Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+
+# ── Redis (Bitnami subchart) ──────────────────────────────────────────
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 2Gi
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+
+# ── RBAC ──────────────────────────────────────────────────────────────
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# ── Namespace ─────────────────────────────────────────────────────────
+namespace:
+  create: true
+  name: "servicehub"

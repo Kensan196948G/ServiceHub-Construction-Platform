@@ -1,0 +1,38 @@
+{{- if .Values.backend.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "servicehub.backend.fullname" . }}-config
+  namespace: {{ include "servicehub.namespace" . }}
+  labels:
+    {{- include "servicehub.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+data:
+  ENVIRONMENT: {{ .Values.backend.env.ENVIRONMENT | quote }}
+  JWT_ALGORITHM: {{ .Values.backend.env.JWT_ALGORITHM | quote }}
+  LOG_LEVEL: {{ .Values.backend.env.LOG_LEVEL | quote }}
+  {{- if .Values.postgresql.enabled }}
+  POSTGRES_HOST: {{ printf "%s-postgresql" .Release.Name | quote }}
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: {{ .Values.postgresql.auth.database | quote }}
+  POSTGRES_USER: {{ .Values.postgresql.auth.username | quote }}
+  {{- end }}
+  {{- if .Values.redis.enabled }}
+  REDIS_HOST: {{ printf "%s-redis-master" .Release.Name | quote }}
+  REDIS_PORT: "6379"
+  {{- end }}
+{{- end }}
+---
+{{- if .Values.frontend.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "servicehub.frontend.fullname" . }}-config
+  namespace: {{ include "servicehub.namespace" . }}
+  labels:
+    {{- include "servicehub.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+data:
+  NEXT_PUBLIC_API_URL: {{ .Values.frontend.env.NEXT_PUBLIC_API_URL | quote }}
+  NODE_ENV: {{ .Values.frontend.env.NODE_ENV | quote }}
+{{- end }}

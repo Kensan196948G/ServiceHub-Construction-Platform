@@ -1,0 +1,24 @@
+apiVersion: v2
+name: servicehub
+description: ServiceHub Construction Platform — full-stack Helm chart
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - servicehub
+  - construction
+  - fastapi
+  - nextjs
+home: https://github.com/Kensan196948G/ServiceHub-Construction-Platform
+maintainers:
+  - name: kensan
+    email: kensan1969@gmail.com
+dependencies:
+  - name: postgresql
+    version: "15.5.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "19.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
