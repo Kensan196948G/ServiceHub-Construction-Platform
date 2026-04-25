@@ -10,10 +10,10 @@
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
   "phase": "Phase 8 — リリース準備・本番移行 (2026-10-03 絶対厳守)",
-  "loop": "Day25-Phase7-Complete-Phase8-Start",
-  "loop_count": 142,
+  "loop": "Day25-Phase8-InProgress",
+  "loop_count": 148,
   "status": "active",
-  "last_updated": "2026-04-25T10:00:00+09:00",
+  "last_updated": "2026-04-25T15:30:00+09:00",
   "execution": {
     "start_time": "2026-04-25T07:00:00+09:00",
     "max_duration_minutes": 300,
@@ -27,7 +27,7 @@
     "previous_session_id": "20260423-212928-ServiceHub-Construction-Platform"
   },
   "goal": {
-    "title": "Phase 7 — 統合テスト・バグ修正・デプロイパイプライン整備 (2026-10-03 絶対厳守)"
+    "title": "Phase 8 — 本番リリース準備 (v0.8.0 / セキュリティ・パフォーマンス・ドキュメント整備)"
   },
   "kpi": {
     "success_rate_target": 0.9,
@@ -241,10 +241,10 @@
     }
   },
   "resume_point": {
-    "action": "Phase 7a PR#162 merged (e6cfca0) → Phase 7b E2E Fullstack PR#163 作成 → CI確認",
-    "branch": "feat/phase7b-e2e-fullstack → PR作成後 main にマージ予定",
-    "next_phase": "Phase 7c デプロイパイプライン整備 (#161, P2) — staging deploy + smoke test",
-    "phase7a_completion_note": "2026-04-25 PR #162 admin-squash merged (main e6cfca0). k6 load test + pytest-benchmark CI workflow 追加"
+    "action": "Phase 8 全タスク (8a〜8e) 完了 → CI Trivy結果待ち (0cc2dca)",
+    "branch": "main",
+    "next_phase": "Trivy CRITICAL/HIGH=0確認後 → Phase 8 STABLE判定 → 本番リリースゲート確認",
+    "phase8_progress_note": "2026-04-25 8a/8b/8c/8d/8e 全完了。trivy-action@v0.36.0 で CI 修正済み。CI実行中"
   },
   "phase6_plan": {
     "kickoff_at": "2026-04-24",
@@ -303,13 +303,33 @@
       "PR#164 (7c デプロイパイプライン: Issue #161, 2026-04-25 c456f80)"
     ],
     "phase7_completion": "2026-04-25 Phase 7 全3タスク完了 — テスト886件 / E2E Fullstack 15件 / k6 + pytest-benchmark / GHCR deploy pipeline",
-    "phase8_planned": [
-      "Phase 8a: CHANGELOG + v0.8.0 タグ (P1)",
-      "Phase 8b: docker-compose.prod.yml 本番環境整備 (P1)",
-      "Phase 8c: Trivy HIGH 0 + セキュリティ最終監査 (P1)",
-      "Phase 8d: k6 結果解析 + パフォーマンスチューニング (P2)",
-      "Phase 8e: ユーザードキュメント整備 (P2)"
-    ],
-    "next": "Phase 8 kick-off — CHANGELOG 作成 + v0.8.0 タグ付け → 本番環境整備"
+    "phase8_status": {
+      "8a_changelog_tag": {
+        "status": "done",
+        "commit": "5453c9f",
+        "note": "CHANGELOG v0.8.0 エントリ追加 / Phase 6+7 完了内容記録"
+      },
+      "8b_prod_compose": {
+        "status": "done",
+        "commit": "785e4f9",
+        "note": "docker-compose.prod.yml — alembic migration / healthcheck / 欠落環境変数 / frontend depends_on 追加"
+      },
+      "8c_trivy_security": {
+        "status": "done",
+        "commit": "0cc2dca",
+        "note": "Trivy CI追加 + v0.36.0 バージョン修正。CI実行中 (CRITICAL/HIGH=0目標)"
+      },
+      "8d_benchmark_fix": {
+        "status": "done",
+        "commit": "b3da5d7",
+        "note": "ScopeMismatch修正 — bench_client を function スコープに変更"
+      },
+      "8e_docs_update": {
+        "status": "done",
+        "commit": "0cc2dca",
+        "note": "README ロードマップ更新 / CI チェック数 19 / Phase 6+7 完了 / Phase 8 進行中"
+      }
+    },
+    "next": "CI Trivy結果確認 → CRITICAL/HIGH=0 検証 → Phase 8 完了判定 → 本番リリースゲート確認"
   }
 }
