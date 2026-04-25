@@ -5,6 +5,28 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Phase 10: ドキュメント整備・最終リリース準備
+
+### Added
+
+#### Phase 10a: CHANGELOG 整備 + バージョン履歴文書化（Issue #171）
+- **[Unreleased] セクション** — Keep a Changelog 形式に準拠した未リリース変更の集約
+- **バージョン履歴の時系列整理** — v0.x.x 開発フェーズ (v0.8.0 / v0.8.1 / v0.9.0) と v1.0.0 系列の並存構造を明文化
+
+#### Phase 10b: API・ユーザードキュメント整備（PR #174 / Issue #172）
+- **`docs/user-guide/getting-started.md`** — 5 ステップ初回セットアップガイド（Docker Compose ベース）
+- **`docs/user-guide/construction-projects.md`** — 工事案件 CRUD・ステータス遷移・日報・原価・安全確認の操作ガイド
+- **`docs/user-guide/admin-guide.md`** — 管理者向け: ロール設計・ユーザー管理・秘密情報ローテーション・ITSM 運用手順
+- **FastAPI OpenAPI description 拡充** — `app.description` に認証フロー・ロール表・エラー形式・レート制限を Markdown で追加
+- **エンドポイント docstring 詳細化** — auth / projects / costs / safety の主要エンドポイントに権限・パラメータ・制限事項を記載
+- **README ユーザードキュメントセクション追加** — `📚 ユーザードキュメント` テーブルを README に挿入
+
+### Pending
+
+- **Phase 10c** (Issue #173): 最終セキュリティ監査 (Trivy CRITICAL/HIGH=0 確認) + v1.0.0 リリース準備
+
+---
+
 ## [0.9.0] - 2026-04-25
 
 ### Added
