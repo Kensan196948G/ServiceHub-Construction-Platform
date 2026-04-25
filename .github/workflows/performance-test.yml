@@ -1,4 +1,4 @@
-name: Performance Tests (Phase 7a)
+name: Performance Tests (Phase 9b)
 
 on:
   workflow_dispatch:
@@ -61,7 +61,7 @@ jobs:
           retention-days: 90
 
   k6-load:
-    name: k6 Load Test
+    name: k6 Load Test (baseline)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -121,17 +121,127 @@ jobs:
           tar -xzf k6.tar.gz
           sudo mv k6-v0.55.0-linux-amd64/k6 /usr/local/bin/k6
           k6 version
-      - name: Run k6 load test
+      - name: Run k6 baseline load test
         run: |
           k6 run \
             --env BASE_URL=http://localhost:8000 \
-            --out json=k6-results.json \
+            --out json=k6-baseline-results.json \
             backend/tests/performance/k6_load.js
         continue-on-error: true
-      - name: Upload k6 results
+      - name: Upload k6 baseline results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: k6-results
-          path: k6-results.json
+          name: k6-baseline-results
+          path: k6-baseline-results.json
+          retention-days: 90
+
+  k6-slo:
+    name: k6 SLO Validation (P95 < 1s @ 100 VU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: servicehub
+          POSTGRES_PASSWORD: servicehub
+          POSTGRES_DB: servicehub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U servicehub"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: "postgresql+asyncpg://servicehub:servicehub@localhost:5432/servicehub_test"
+      REDIS_URL: "redis://localhost:6379/0"
+      JWT_SECRET_KEY: perf-test-secret-key-ci-only
+      JWT_ALGORITHM: HS256
+      ENVIRONMENT: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install asyncpg uvicorn
+      - name: Seed test admin user
+        run: |
+          cd backend
+          alembic upgrade head
+          python - <<'PYEOF'
+          import asyncio, os
+          from app.db.session import AsyncSessionLocal
+          from app.models.user import User
+          from app.core.security import get_password_hash
+          from sqlalchemy import select
+
+          async def seed():
+              async with AsyncSessionLocal() as db:
+                  existing = await db.execute(select(User).where(User.email == "admin@servicehub.example"))
+                  if existing.scalars().first():
+                      return
+                  user = User(
+                      email="admin@servicehub.example",
+                      hashed_password=get_password_hash("Admin1234!"),
+                      full_name="Admin",
+                      role="admin",
+                      is_active=True,
+                  )
+                  db.add(user)
+                  await db.commit()
+                  print("Admin user seeded")
+
+          asyncio.run(seed())
+          PYEOF
+      - name: Start API server
+        run: |
+          cd backend
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 &
+          sleep 8
+          curl --retry 15 --retry-delay 2 http://localhost:8000/health/live
+      - name: Install k6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.55.0/k6-v0.55.0-linux-amd64.tar.gz \
+            -L -o k6.tar.gz
+          tar -xzf k6.tar.gz
+          sudo mv k6-v0.55.0-linux-amd64/k6 /usr/local/bin/k6
+          k6 version
+      - name: Run k6 SLO validation
+        run: |
+          k6 run \
+            --env BASE_URL=http://localhost:8000 \
+            --out json=k6-slo-results.json \
+            backend/tests/performance/k6_slo_test.js
+        continue-on-error: true
+      - name: Run k6 endpoint coverage
+        run: |
+          k6 run \
+            --env BASE_URL=http://localhost:8000 \
+            --out json=k6-endpoints-results.json \
+            backend/tests/performance/k6_endpoints_test.js
+        continue-on-error: true
+      - name: Upload SLO results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-slo-results
+          path: |
+            k6-slo-results.json
+            k6-endpoints-results.json
           retention-days: 90

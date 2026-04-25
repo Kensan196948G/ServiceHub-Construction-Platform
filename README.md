@@ -695,6 +695,36 @@ docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 
 ---
 
+## ⚡ 負荷テスト・SLO（Phase 9b）
+
+### SLO 目標値
+
+| 指標 | SLO 目標 | アラート |
+|---|---|---|
+| 可用性 | **99.9%** / 月 | < 99.5% → critical |
+| **P95 レイテンシ** | **< 1000ms** @ 100 RPS | > 1s → warning / > 3s → critical |
+| エラー率 (5xx) | **< 2%** | > 2% → critical |
+| スループット | 最低 **50 RPS** | < 10 RPS → warning |
+
+詳細: [docs/design/slo.md](docs/design/slo.md)
+
+### k6 負荷テストスクリプト
+
+| スクリプト | 目的 | VU 数 | 時間 |
+|---|---|---|---|
+| `k6_load.js` | ベースライン負荷 (Phase 7a) | 最大 20 VU | 2 分 |
+| `k6_slo_test.js` | **SLO 検証** (P95 < 1s @ 100VU) | 最大 100 VU | 3.5 分 |
+| `k6_endpoints_test.js` | **全エンドポイントカバレッジ** (7グループ) | 最大 20 VU | 1.5 分 |
+| `k6_spike_test.js` | **スパイク耐性** (0→200VU 急増) | 最大 200 VU | 2.5 分 |
+
+```bash
+# SLO 検証テスト実行例
+k6 run --env BASE_URL=http://localhost:8000 \
+  backend/tests/performance/k6_slo_test.js
+```
+
+---
+
 ## 🤝 コントリビューション
 
 1. `main` ブランチへの直接 push は禁止
