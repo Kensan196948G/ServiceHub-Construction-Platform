@@ -45,7 +45,10 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
 # Stage 4: production — nginx:alpine serving static SPA assets on :3000
 # (port 3000 keeps outer reverse-proxy upstream `frontend:3000` untouched)
 # =========================================================================
-FROM nginx:1.25-alpine AS production
+FROM nginx:1.27-alpine AS production
+
+# Upgrade all OS packages to pick up security patches (CVE mitigation)
+RUN apk upgrade --no-cache
 
 # Remove default server block; ship our own SPA-aware config
 RUN rm -f /etc/nginx/conf.d/default.conf

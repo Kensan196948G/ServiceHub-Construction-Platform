@@ -21,6 +21,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **CVE-2026-24486** (HIGH) — `python-multipart` 0.0.12 → 0.0.26 (Arbitrary file write via multipart)
 - **CVE-2024-47874** (HIGH) — `starlette` 0.38.6 → 0.46.2 (`fastapi` 0.115.0 → 0.115.14 更新で間接修正, DoS)
 - **CVE-2025-62727** (HIGH) — `starlette` 0.46.2 → 0.49.1 + `fastapi` 0.115.14 → 0.124.4 (DoS via Range header merging)
+- **Frontend OS CVE 22件** (CRITICAL: 3 / HIGH: 19) — nginx ベースイメージ `1.25-alpine` → `1.27-alpine` + `apk upgrade` で Alpine OS パッケージ全更新 (curl/libexpat/libxml2/musl 等)
 
 ### Metrics
 | 指標 | v0.8.0 | v0.8.1 |
