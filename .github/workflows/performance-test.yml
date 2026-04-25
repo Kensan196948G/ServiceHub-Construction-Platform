@@ -1,0 +1,137 @@
+name: Performance Tests (Phase 7a)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 毎週月曜 09:00 JST (00:00 UTC) に実行
+    - cron: "0 0 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "backend/tests/performance/**"
+      - ".github/workflows/performance-test.yml"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  benchmark:
+    name: API Benchmark (pytest-benchmark)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+      REDIS_URL: "redis://localhost:6379/0"
+      JWT_SECRET_KEY: perf-test-secret-key-ci-only
+      JWT_ALGORITHM: HS256
+      ENVIRONMENT: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install aiosqlite pytest-asyncio httpx pytest-benchmark
+      - name: Run API benchmarks
+        run: |
+          cd backend
+          pytest tests/performance/test_api_benchmark.py -v \
+            --benchmark-json=benchmark-results.json \
+            --timeout=120
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results
+          path: backend/benchmark-results.json
+          retention-days: 90
+
+  k6-load:
+    name: k6 Load Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: servicehub
+          POSTGRES_PASSWORD: servicehub
+          POSTGRES_DB: servicehub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U servicehub"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: "postgresql+asyncpg://servicehub:servicehub@localhost:5432/servicehub_test"
+      REDIS_URL: "redis://localhost:6379/0"
+      JWT_SECRET_KEY: perf-test-secret-key-ci-only
+      JWT_ALGORITHM: HS256
+      ENVIRONMENT: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install asyncpg uvicorn
+      - name: Run DB migrations
+        run: |
+          cd backend
+          alembic upgrade head
+      - name: Start API server
+        run: |
+          cd backend
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 5
+          curl --retry 10 --retry-delay 2 http://localhost:8000/health/live
+      - name: Install k6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.55.0/k6-v0.55.0-linux-amd64.tar.gz \
+            -L -o k6.tar.gz
+          tar -xzf k6.tar.gz
+          sudo mv k6-v0.55.0-linux-amd64/k6 /usr/local/bin/k6
+          k6 version
+      - name: Run k6 load test
+        run: |
+          k6 run \
+            --env BASE_URL=http://localhost:8000 \
+            --out json=k6-results.json \
+            backend/tests/performance/k6_load.js
+        continue-on-error: true
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-results
+          path: k6-results.json
+          retention-days: 90

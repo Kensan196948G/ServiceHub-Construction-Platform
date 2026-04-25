@@ -16,13 +16,13 @@ class ServiceHubUser(HttpUser):
         """ログイン→トークン取得"""
         resp = self.client.post(
             "/api/v1/auth/login",
-            data={
-                "username": "admin",
+            json={
+                "email": "admin@servicehub.example",
                 "password": "Admin1234!",
             },
         )
         if resp.status_code == 200:
-            self.token = resp.json().get("access_token", "")
+            self.token = resp.json().get("data", {}).get("access_token", "")
 
     def auth_headers(self) -> dict:
         return {"Authorization": f"Bearer {self.token}"}
@@ -54,9 +54,13 @@ class ServiceHubUser(HttpUser):
     def get_incidents(self):
         self.client.get("/api/v1/itsm/incidents", headers=self.auth_headers())
 
+    @task(2)
+    def health_live(self):
+        self.client.get("/health/live")
+
     @task(1)
-    def health_check(self):
-        self.client.get("/health")
+    def health_ready(self):
+        self.client.get("/health/ready")
 
 
 class AdminUser(HttpUser):
@@ -68,13 +72,13 @@ class AdminUser(HttpUser):
     def on_start(self):
         resp = self.client.post(
             "/api/v1/auth/login",
-            data={
-                "username": "admin",
+            json={
+                "email": "admin@servicehub.example",
                 "password": "Admin1234!",
             },
         )
         if resp.status_code == 200:
-            self.token = resp.json().get("access_token", "")
+            self.token = resp.json().get("data", {}).get("access_token", "")
 
     def auth_headers(self) -> dict:
         return {"Authorization": f"Bearer {self.token}"}
