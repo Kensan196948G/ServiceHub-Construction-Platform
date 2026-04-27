@@ -60,7 +60,7 @@ def bench_client():
         return client, engine
 
     client, engine = loop.run_until_complete(_create())
-    # Attach the loop so _sync_get can use the exact same loop the client was created in.
+    # Attach the loop so _sync_get can reuse the exact same loop.
     client._bench_loop = loop  # type: ignore[attr-defined]
     yield client
 
