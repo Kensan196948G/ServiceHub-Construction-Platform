@@ -10,21 +10,21 @@
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
   "phase": "Maintenance — v1.1.0 保守フェーズ (CI強化・技術負債解消)",
-  "loop": "Day27-Maintenance-PerfTestsCIFix-Complete",
-  "loop_count": 167,
-  "status": "STABLE — v1.1.0 保守中 / PR#183 merged (9f2a24d): Performance Tests CI fix (#182) / Open Issue 0",
-  "last_updated": "2026-04-27T19:55:00+09:00",
+  "loop": "Day27-Maintenance-ViteEsbuildCVEFix-Complete",
+  "loop_count": 168,
+  "status": "STABLE — v1.1.0 保守中 / PR#185 merged (e9ddee7): vite 5→6 + esbuild CVE修正 (#184) / Open Issue 0",
+  "last_updated": "2026-04-27T21:10:00+09:00",
   "execution": {
-    "start_time": "2026-04-25T07:00:00+09:00",
+    "start_time": "2026-04-27T21:02:30+09:00",
     "max_duration_minutes": 300,
-    "session_deadline": "2026-04-25T12:00:00+09:00",
-    "phase": "Build + Verify (Phase 7b E2E Fullstack + Phase 7c Deploy Pipeline)",
+    "session_deadline": "2026-04-28T02:02:30+09:00",
+    "phase": "Maintenance — esbuild CVE修正 + Open Issue 0維持",
     "auto_stop_threshold": 5,
     "graceful_shutdown": true,
-    "current_session_start_at": "2026-04-25T14:37:45+09:00",
+    "current_session_start_at": "2026-04-27T21:02:30+09:00",
     "last_trigger": "cron",
-    "last_cron_session_id": "20260425-143745-ServiceHub-Construction-Platform",
-    "previous_session_id": "20260423-212928-ServiceHub-Construction-Platform"
+    "last_cron_session_id": "20260427-210230-ServiceHub-Construction-Platform",
+    "previous_session_id": "20260427-210230-ServiceHub-Construction-Platform"
   },
   "goal": {
     "title": "Phase 10 — ドキュメント整備・最終リリース (v1.1.0)"
@@ -245,10 +245,16 @@
   "resume_point": {
     "action": "保守フェーズ継続 — Open Issue 0目標維持 / 次サイクルで依存更新・Performance Tests 安定監視",
     "branch": "main",
-    "main_head": "9f2a24d",
+    "main_head": "e9ddee7",
     "next_phase": "保守フェーズ継続 — Open Issue 0目標維持 / 2026-10-03本番リリースまで残約158日",
-    "pr183_merged": "PR#183 (9f2a24d): Performance Tests CI fix — event loop 競合 + k6-slo seed バグ + ruff E501 / 全12チェックPASS",
-    "pending_major_upgrades": ["React 19 (要互換性調査)", "vitest 3.x", "tailwind v4 (破壊的変更大)", "zod 4 (別PR必要 — breaking changes)"],
+    "pr185_merged": "PR#185 (e9ddee7): vite 5→6 + esbuild GHSA-67mh-4wv8-2f99 CVE修正 / 全20チェックPASS",
+    "npm_audit_status": "12件→5件 (esbuild CVE解消済 / 残5件は@lhci/cli依存で非緊急)",
+    "pending_major_upgrades": [
+      "React 19 (要互換性調査)",
+      "vitest 3.x",
+      "tailwind v4 (破壊的変更大)",
+      "zod 4 (別PR必要 — breaking changes)"
+    ],
     "pending_issues": []
   },
   "phase6_plan": {
@@ -321,7 +327,12 @@
       },
       "8c_trivy_security": {
         "status": "STABLE",
-        "commits": ["0cc2dca","8b16deb","bbe0b00","5d6ac2b"],
+        "commits": [
+          "0cc2dca",
+          "8b16deb",
+          "bbe0b00",
+          "5d6ac2b"
+        ],
         "tag": "v0.8.1",
         "note": "全CVE修正完了 (CRITICAL/HIGH=0達成): python-jose 3.5.0 / python-multipart 0.0.26 / starlette 0.49.1 / fastapi 0.124.4 / nginx:1.27-alpine + apk upgrade。全CI ✅ 7/7 green"
       },
