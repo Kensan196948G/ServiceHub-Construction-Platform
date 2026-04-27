@@ -18,7 +18,6 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
@@ -29,43 +28,57 @@ from app.main import app
 _BENCH_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 
-@pytest_asyncio.fixture
-async def bench_client():
-    """Function-scoped ASGI test client with isolated in-memory DB.
+@pytest.fixture
+def bench_client():
+    """Sync fixture with explicit event loop management.
 
-    scope=module caused ScopeMismatch with pytest-asyncio 0.24 default
-    function-scoped event_loop. Using function scope avoids this.
+    Uses @pytest.fixture (not @pytest_asyncio.fixture) to avoid event loop
+    conflicts with pytest-asyncio 0.24 function-scoped loop management when
+    asyncio_mode='auto' is set. The event loop is created here and stored
+    on the client so _sync_get can reuse the exact same loop.
     """
-    engine = create_async_engine(
-        _BENCH_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    loop = asyncio.new_event_loop()
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    async def _create() -> tuple[AsyncClient, object]:
+        engine = create_async_engine(
+            _BENCH_DATABASE_URL,
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
+        session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
-    async def _override_get_db():
-        async with session_factory() as session:
-            yield session
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-    app.dependency_overrides[get_db] = _override_get_db
+        async def _override_get_db():
+            async with session_factory() as session:
+                yield session
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as client:
-        yield client
+        app.dependency_overrides[get_db] = _override_get_db
+        client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+        await client.__aenter__()
+        return client, engine
 
-    app.dependency_overrides.clear()
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-    await engine.dispose()
+    client, engine = loop.run_until_complete(_create())
+    # Attach the loop so _sync_get can use the exact same loop the client was created in.
+    client._bench_loop = loop  # type: ignore[attr-defined]
+    yield client
+
+    async def _destroy() -> None:
+        await client.__aexit__(None, None, None)
+        app.dependency_overrides.clear()
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await engine.dispose()
+
+    loop.run_until_complete(_destroy())
+    loop.close()
 
 
 def _sync_get(client: AsyncClient, url: str) -> int:
-    """Run an async GET in a new event loop and return the status code."""
-    return asyncio.get_event_loop().run_until_complete(client.get(url)).status_code
+    """Run an async GET using the fixture's dedicated event loop."""
+    loop: asyncio.AbstractEventLoop = client._bench_loop  # type: ignore[attr-defined]
+    return loop.run_until_complete(client.get(url, follow_redirects=True)).status_code
 
 
 @pytest.mark.benchmark(group="health", min_rounds=10)

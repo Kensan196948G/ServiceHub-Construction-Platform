@@ -185,8 +185,8 @@ jobs:
           cd backend
           alembic upgrade head
           python - <<'PYEOF'
-          import asyncio, os
-          from app.db.session import AsyncSessionLocal
+          import asyncio
+          from app.db.base import AsyncSessionLocal
           from app.models.user import User
           from app.core.security import get_password_hash
           from sqlalchemy import select
@@ -200,7 +200,7 @@ jobs:
                       email="admin@servicehub.example",
                       hashed_password=get_password_hash("Admin1234!"),
                       full_name="Admin",
-                      role="admin",
+                      role="ADMIN",
                       is_active=True,
                   )
                   db.add(user)
