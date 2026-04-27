@@ -9,9 +9,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Preserve class/function names so E2E tests can find React fiber nodes by name
+  // Preserve class/function names so E2E tests can find React fiber nodes by name.
+  // Explicitly mark destructuring as supported to avoid esbuild 0.25+ regression
+  // where @vitejs/plugin-react 5.x triggers "Transforming destructuring not supported" error.
   esbuild: {
     keepNames: true,
+    supported: {
+      destructuring: true,
+    },
   },
   build: {
     rollupOptions: {
