@@ -5,6 +5,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **Performance Tests CI 修正 (PR #183 / Issue #182)** — 週次ベンチマーク CI の 3 バグを修正
+  - `test_api_benchmark.py`: `@pytest_asyncio.fixture` → sync `@pytest.fixture` に変更し、`asyncio_mode='auto'` との event loop 競合を解消。`follow_redirects=True` 追加で FastAPI `redirect_slashes` による 307 → 401 を正確に検出
+  - `performance-test.yml`: k6-slo seed スクリプトの `app.db.session` → `app.db.base` import 修正 + `role="admin"` → `"ADMIN"` 大文字化修正
+
+---
+
 ## [1.1.0] - 2026-04-25
 
 ### Added

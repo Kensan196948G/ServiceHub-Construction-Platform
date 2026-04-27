@@ -10,10 +10,10 @@
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
   "phase": "Maintenance — v1.1.0 保守フェーズ (CI強化・技術負債解消)",
-  "loop": "Day25-Maintenance-DepUpdate-Complete",
-  "loop_count": 166,
-  "status": "STABLE — v1.1.0 保守中 / PR#181 merged (90cfb3c): aiosqlite 0.22.1 CI hang fix + deps update / Open Issue 0",
-  "last_updated": "2026-04-25T19:08:00+09:00",
+  "loop": "Day27-Maintenance-PerfTestsCIFix-Complete",
+  "loop_count": 167,
+  "status": "STABLE — v1.1.0 保守中 / PR#183 merged (9f2a24d): Performance Tests CI fix (#182) / Open Issue 0",
+  "last_updated": "2026-04-27T19:55:00+09:00",
   "execution": {
     "start_time": "2026-04-25T07:00:00+09:00",
     "max_duration_minutes": 300,
@@ -57,17 +57,19 @@
   },
   "priorities": {
     "high": [
-      "Phase 8a CHANGELOG + バージョンタグ (v0.8.0 相当) (P1)",
-      "Phase 8b 本番環境 docker-compose.prod.yml 整備 (P1)",
-      "Phase 8c セキュリティ最終監査 + Trivy HIGH 0 達成 (P1)"
+      "週次 Performance Tests CI を安定維持 (PR#183 fix 適用済み) (P1)",
+      "セキュリティ依存パッケージの定期的な更新監視 (P1)",
+      "backend カバレッジ 95% 維持 — 新機能追加時は必ずテスト追加 (P1)"
     ],
     "medium": [
-      "Phase 8d パフォーマンスチューニング — k6 benchmark results 解析 (P2)",
-      "Phase 8e ユーザードキュメント整備 (P2)"
+      "フロントエンド依存更新: React 19 / vitest 3 / tailwind v4 段階的検討 (P2)",
+      "k6 SLO 週次結果の自動サマリーレポート化検討 (P2)",
+      "bcrypt 4.x 対応 — passlib 互換性調査後に対応 (P2)"
     ],
     "low": [
       "Playwright SIGTRAP 環境調査 (Phase 5e-1 E2E spec ローカル実行不可)",
-      "distroless Docker イメージ検討 (PR #129 follow-up)"
+      "distroless Docker イメージ検討 (PR #129 follow-up)",
+      "k6 スパイクテスト結果の可視化ダッシュボード"
     ]
   },
   "decision_context": {
@@ -241,12 +243,12 @@
     }
   },
   "resume_point": {
-    "action": "保守フェーズ継続 — Open Issue 0目標維持 / 次サイクルで React 19 / vitest 4 / vite 8 / zod 4 メジャーアップ検討",
+    "action": "保守フェーズ継続 — Open Issue 0目標維持 / 次サイクルで依存更新・Performance Tests 安定監視",
     "branch": "main",
-    "main_head": "90cfb3c",
-    "next_phase": "保守フェーズ継続 — Open Issue 0目標維持 / 2026-10-03本番リリースまで残約161日",
-    "pr181_merged": "PR#181 (90cfb3c): aiosqlite 0.22.1 + npm deps + pytest_sessionfinish os._exit CI hang fix — 15チェック全PASS",
-    "pending_major_upgrades": ["React 19", "vitest 4", "vite 8", "zod 4 (別PR必要 — breaking changes)"],
+    "main_head": "9f2a24d",
+    "next_phase": "保守フェーズ継続 — Open Issue 0目標維持 / 2026-10-03本番リリースまで残約158日",
+    "pr183_merged": "PR#183 (9f2a24d): Performance Tests CI fix — event loop 競合 + k6-slo seed バグ + ruff E501 / 全12チェックPASS",
+    "pending_major_upgrades": ["React 19 (要互換性調査)", "vitest 3.x", "tailwind v4 (破壊的変更大)", "zod 4 (別PR必要 — breaking changes)"],
     "pending_issues": []
   },
   "phase6_plan": {
