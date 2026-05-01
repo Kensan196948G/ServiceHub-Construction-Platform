@@ -3,7 +3,7 @@
 import uuid
 
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 from app.core.rbac import UserRole
 from app.main import app
@@ -26,7 +26,9 @@ class FakeAdminUser:
 @pytest.mark.asyncio
 async def test_create_incident_unauthorized():
     """未認証でインシデント作成は401"""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         resp = await client.post(
             "/api/v1/itsm/incidents",
             json={
@@ -40,7 +42,9 @@ async def test_create_incident_unauthorized():
 @pytest.mark.asyncio
 async def test_list_incidents_requires_auth():
     """未認証でインシデント一覧は401"""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         resp = await client.get("/api/v1/itsm/incidents")
     assert resp.status_code == 401
 
@@ -48,7 +52,9 @@ async def test_list_incidents_requires_auth():
 @pytest.mark.asyncio
 async def test_list_changes_requires_auth():
     """未認証で変更要求一覧は401"""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         resp = await client.get("/api/v1/itsm/changes")
     assert resp.status_code == 401
 
