@@ -1,5 +1,9 @@
 version: "3.9"
 
+# Project name is explicitly fixed to prevent collision with other docker-compose projects.
+# This name is used as the prefix for all containers, networks, and volumes.
+name: servicehub-construction-platform
+
 services:
   # ── Backend API ──────────────────────────────────────
   api:

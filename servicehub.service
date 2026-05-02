@@ -1,0 +1,49 @@
+[Unit]
+Description=ServiceHub Construction Platform (Docker Compose)
+Documentation=https://github.com/Kensan196948G/ServiceHub-Construction-Platform
+After=docker.service network-online.target
+Requires=docker.service
+# Prevent start-order conflict with other docker-compose services on this host
+After=itsm-system.service servicematrix-docker.service
+# Prevent runaway restarts (must be in [Unit] section)
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# Run as kensan (uid=1000, docker group member) — not root
+User=kensan
+Group=kensan
+
+# Absolute paths: both compose file and project name are pinned
+# -p  : fixes the compose project name regardless of working directory
+# -f  : pins the compose file path so no accidental override file is picked up
+WorkingDirectory=/home/kensan/Projects/ServiceHub-Construction-Platform
+
+ExecStart=/usr/bin/docker compose \
+    -p servicehub-construction-platform \
+    -f /home/kensan/Projects/ServiceHub-Construction-Platform/docker-compose.yml \
+    -f /home/kensan/Projects/ServiceHub-Construction-Platform/docker-compose.override.yml \
+    up -d --remove-orphans
+
+ExecStop=/usr/bin/docker compose \
+    -p servicehub-construction-platform \
+    -f /home/kensan/Projects/ServiceHub-Construction-Platform/docker-compose.yml \
+    -f /home/kensan/Projects/ServiceHub-Construction-Platform/docker-compose.override.yml \
+    down
+
+ExecReload=/usr/bin/docker compose \
+    -p servicehub-construction-platform \
+    -f /home/kensan/Projects/ServiceHub-Construction-Platform/docker-compose.yml \
+    -f /home/kensan/Projects/ServiceHub-Construction-Platform/docker-compose.override.yml \
+    restart
+
+TimeoutStartSec=180
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target
