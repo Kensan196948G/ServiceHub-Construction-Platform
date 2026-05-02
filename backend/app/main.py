@@ -93,7 +93,7 @@ async def lifespan(app: FastAPI):  # type: ignore[override]
         logger.info("notification_retry_loop stopped")
 
 
-_is_development = settings.ENVIRONMENT == "development"
+_is_development = settings.ENVIRONMENT != "production"
 
 app = FastAPI(
     title=settings.APP_NAME + " API",
