@@ -77,7 +77,7 @@ async function goToDeliveriesPage(
     });
   }
 
-  await page.getByRole("link", { name: "通知管理" }).click();
+  await page.getByRole("link", { name: "通知設定" }).click();
   await page.waitForURL("**/admin/notifications");
   await expect(
     page.getByRole("heading", { name: "通知配信履歴" }),
@@ -157,7 +157,7 @@ test.describe("Notification Deliveries Admin Page", () => {
     );
   });
 
-  test("non-ADMIN user does not see 通知管理 nav link", async ({ page }) => {
+  test("non-ADMIN user sees 通知設定 but not ユーザー管理 nav link", async ({ page }) => {
     // Setup API mocks without setting ADMIN role in localStorage
     await setupAllApiMocks(page);
 
@@ -179,9 +179,13 @@ test.describe("Notification Deliveries Admin Page", () => {
     await page.goto("/dashboard");
     await page.waitForURL("**/dashboard");
 
-    // Navigation link should not be present for non-ADMIN
+    // 通知設定 is now visible to all users (not ADMIN-only)
     await expect(
-      page.getByRole("link", { name: "通知管理" }),
+      page.getByRole("link", { name: "通知設定" }),
+    ).toBeVisible();
+    // ユーザー管理 remains ADMIN-only
+    await expect(
+      page.getByRole("link", { name: "ユーザー管理" }),
     ).not.toBeVisible();
   });
 });

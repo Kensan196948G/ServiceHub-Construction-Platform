@@ -18,14 +18,14 @@ import {
   Users,
   Settings,
   Bell,
-  Home,
-  Newspaper,
-  UserCog,
-  BookText,
   Search,
   Wifi,
   WifiOff,
   ChevronRight,
+  Calendar,
+  Package,
+  Users2,
+  Receipt,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
@@ -81,10 +81,10 @@ const ROUTE_LABELS: Record<string, string> = {
   "/cost":                "原価管理",
   "/itsm":                "ITSM",
   "/knowledge":           "ナレッジ",
-  "/portal":              "社内ポータル",
-  "/notices":             "お知らせ",
-  "/hr":                  "人事・勤怠",
-  "/rules":               "社内規程",
+  "/schedule":            "工程・スケジュール",
+  "/materials":           "資材・在庫",
+  "/subcontractors":      "協力会社・職人",
+  "/estimates":           "見積・請求",
   "/users":               "ユーザー管理",
   "/admin/notifications": "通知管理",
   "/settings":            "設定",
@@ -146,24 +146,22 @@ export default function Layout() {
       ],
     },
     {
-      label: "社内",
+      label: "現場・取引",
       items: [
-        { to: "/portal",  icon: Home,      label: "社内ポータル" },
-        { to: "/notices", icon: Newspaper, label: "お知らせ" },
-        { to: "/hr",      icon: UserCog,   label: "人事・勤怠" },
-        { to: "/rules",   icon: BookText,  label: "社内規程" },
+        { to: "/schedule",       icon: Calendar, label: "工程・スケジュール" },
+        { to: "/materials",      icon: Package,  label: "資材・在庫" },
+        { to: "/subcontractors", icon: Users2,   label: "協力会社・職人" },
+        { to: "/estimates",      icon: Receipt,  label: "見積・請求" },
       ],
     },
     {
       label: "管理",
       items: [
         ...(user?.role === "ADMIN"
-          ? [
-              { to: "/users",               icon: Users, label: "ユーザー管理" },
-              { to: "/admin/notifications", icon: Bell,  label: "通知管理" },
-            ]
+          ? [{ to: "/users", icon: Users, label: "ユーザー管理" }]
           : []),
-        { to: "/settings", icon: Settings, label: "設定" },
+        { to: "/admin/notifications", icon: Bell,     label: "通知設定" },
+        { to: "/settings",            icon: Settings, label: "設定" },
       ],
     },
   ];
