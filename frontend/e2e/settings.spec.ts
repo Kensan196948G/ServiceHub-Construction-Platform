@@ -19,7 +19,7 @@ async function goToSettings(page: import("@playwright/test").Page) {
     }
   });
 
-  await page.getByRole("link", { name: "設定" }).click();
+  await page.getByRole("link", { name: "設定", exact: true }).click();
   await page.waitForURL("**/settings");
   await expect(page.getByRole("heading", { name: "設定", level: 1 })).toBeVisible({
     timeout: 10_000,
@@ -29,7 +29,7 @@ async function goToSettings(page: import("@playwright/test").Page) {
 test.describe("Settings Page", () => {
   test("navigates to settings via sidebar link", async ({ page }) => {
     await loginAndNavigate(page);
-    await page.getByRole("link", { name: "設定" }).click();
+    await page.getByRole("link", { name: "設定", exact: true }).click();
     await page.waitForURL("**/settings");
     await expect(page.getByRole("heading", { name: "設定", level: 1 })).toBeVisible({
       timeout: 10_000,
@@ -134,7 +134,7 @@ test.describe("Settings Page", () => {
       });
     });
 
-    await page.getByRole("link", { name: "設定" }).click();
+    await page.getByRole("link", { name: "設定", exact: true }).click();
     await page.waitForURL("**/settings");
 
     await page.getByLabel("現在のパスワード").fill("wrongpassword");
