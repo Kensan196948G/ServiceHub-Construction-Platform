@@ -12,6 +12,9 @@
 [![Backend CI](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/backend-ci.yml?branch=main&label=Backend%20CI&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/backend-ci.yml)
 [![Security Scan](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/security.yml?branch=main&label=Security%20Scan&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/security.yml)
 [![Frontend CI](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/frontend-ci.yml?branch=main&label=Frontend%20CI&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/frontend-ci.yml)
+[![E2E Tests](https://img.shields.io/badge/E2E-212%2F212%20pass-brightgreen?style=flat-square&logo=playwright)](https://playwright.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-294%2F294%20pass-brightgreen?style=flat-square&logo=vitest)](https://vitest.dev/)
+[![pytest](https://img.shields.io/badge/pytest-365%2B%20pass-brightgreen?style=flat-square&logo=pytest)](https://pytest.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 ---
@@ -158,13 +161,13 @@ graph TB
 
 | 指標 | 値 |
 | :--- | :--- |
-| 🧪 Backend テスト | **316 件**（pytest / coverage **95%** / Phase 5c AuthService+TemplateRenderer +23 件 / 2 モジュール 100%） |
-| 🔗 統合テスト | **51 件**（integration / Phase 6b #152 — auth / costs / safety / photos / contract / ITSM / knowledge / notifications 全ドメイン） |
+| 🧪 Backend テスト（ローカル） | **187/187 pass**（pytest unit / coverage **95%** / auth_service+renderer 2モジュール 100%） |
+| 🧪 Backend テスト（Docker CI） | **365+ pass**（統合テスト含む / Phase 6b #152 auth/cost/photos/safety/contract 全ドメイン） |
 | 📜 Contract テスト | **4 件**（schemathesis OpenAPI 整合性 / 全エンドポイントでサーバーエラー 0） |
-| 🧪 Frontend テスト | **294 件**（vitest / 44 テストファイル / coverage **88%** / Phase 3c ThemeContext +7 / Phase 5e-3/5e-4/5e-5 実測 +24） |
-| 🎭 E2E テスト | **221 件**（Playwright / 30 テストファイル / Phase 7b フルスタック E2E +15 件 — 認証・ページ表示・API疎通・CRUD） |
+| 🧪 Frontend Vitest | **294/294 pass**（vitest / 44 テストファイル / coverage **88%** / Phase 5e-3〜5e-5 +24 件） |
+| 🎭 E2E テスト（Playwright） | **212/212 pass**（30 テストファイル + fullstack 2 ファイル / 認証・CRUD・通知・AI検索） |
 | ⚡ 負荷テスト | **k6 スクリプト + pytest-benchmark**（Phase 7a — health 5VU 30s / API 0→20→0VU ramping / error_rate<1% / p95<500ms） |
-| 📊 総テスト数 | **886 件**（Backend + Integration + Contract + Frontend + E2E + Fullstack） |
+| 📊 総テスト数 | **865 件以上**（Backend + Integration + Contract + Frontend + E2E + Fullstack） |
 | 🖥️ フロントエンドページ | **17 ページ**（Phase 5e-1 社内グループ新設: Portal / Notices / HR / Rules +4） |
 | 🧩 共通 UI コンポーネント | **14 種**（Badge / Button / Card / ErrorBanner / ErrorBoundary / ErrorText / FormField / Modal / NotificationBadge / NotificationPanel / Pagination / Skeleton / StatCard / Table） |
 | 🎨 共通 UI 適用率 | **12/12 既存ページ**（全ページ統一完了 / Phase 5e-1 新設 4 ページは fixture ベースの reference 実装） |
@@ -315,8 +318,13 @@ graph LR
 | `error-boundary.spec.ts` | 5 | ErrorBoundary フォールバックUI・再試行・ナビゲーション |
 | `notification-settings.spec.ts` | 6 | 通知設定 UI (マスタースイッチ・イベント別・保存) |
 | `notification-panel.spec.ts` | 11 | 通知バッジ表示・パネル開閉・SSE 受信・未読カウント・すべてクリア・アクセシビリティ |
+| `notification-deliveries.spec.ts` | 3 | 通知配信履歴 ADMIN 管理画面 |
 | `phase5e1-internal-pages.spec.ts` | 4 | 社内ポータル / お知らせ / 人事・勤怠 / 社内規程 — 見出し・セクション・フィルタ smoke (Phase 5e-1) |
-| **合計** | **206** | **全17ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル(Phase 4c) + 社内グループ(Phase 5e-1)** |
+| `dark-mode.spec.ts` | 3 | ダークモード切替・localStorage 永続化 |
+| `mobile-responsive.spec.ts` | 3 | モバイルレスポンシブ表示 |
+| `fullstack/fullstack-auth.spec.ts` | 5 | フルスタック認証フロー (Phase 7b) |
+| `fullstack/fullstack-workflow.spec.ts` | 10 | フルスタック業務ワークフロー (Phase 7b) |
+| **合計** | **212** | **全17ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル + 社内グループ + フルスタック(Phase 7b)** |
 
 ---
 
@@ -384,28 +392,62 @@ gantt
 
 | レイヤ         | 技術                  | バージョン | 用途                         |
 | :------------- | :-------------------- | :--------: | :--------------------------- |
-| **Frontend**   | React                 | 18         | UI フレームワーク             |
-|                | TypeScript            | 5          | 型安全な開発                 |
-|                | Vite                  | 5          | 高速ビルドツール             |
+| **Frontend**   | React                 | **18.3.1** | UI フレームワーク             |
+|                | TypeScript            | **5.9**    | 型安全な開発                 |
+|                | Vite                  | **6.4.2**  | 高速ビルドツール（CVE修正済） |
 |                | Tailwind CSS          | 3          | ユーティリティ CSS           |
 |                | Zustand               | 4          | 軽量状態管理                 |
 |                | React Query           | 5          | サーバー状態管理             |
-|                | Axios                 | 1.x        | HTTP クライアント            |
-| **Backend**    | FastAPI               | 0.136      | ASGI Web フレームワーク      |
-|                | Python                | 3.12       | バックエンド言語             |
+| **Backend**    | FastAPI               | **0.136.1**| ASGI Web フレームワーク      |
+|                | Python                | **3.12**   | バックエンド言語             |
 |                | SQLAlchemy            | 2          | ORM                          |
-|                | Alembic               | 1.x        | DB マイグレーション          |
+|                | Alembic               | 1.x        | DB マイグレーション（0010 head 適用済） |
 |                | Pydantic              | 2          | データバリデーション         |
-| **Database**   | PostgreSQL            | 15         | メイン RDBMS                 |
+| **Database**   | PostgreSQL            | **15**     | メイン RDBMS                 |
 |                | Redis                 | 7          | キャッシュ / セッション       |
 |                | MinIO                 | latest     | オブジェクトストレージ (S3)  |
 | **Infra**      | Docker Compose        | v2         | コンテナオーケストレーション |
-|                | Nginx                 | latest     | リバースプロキシ             |
-| **CI/CD**      | GitHub Actions        | —          | 自動テスト / セキュリティスキャン |
+|                | Nginx                 | 1.27-alpine| リバースプロキシ（alpine 最小化） |
+|                | Systemd               | —          | OS 起動時自動起動（servicehub.service） |
+| **CI/CD**      | GitHub Actions        | —          | 自動テスト / セキュリティスキャン（全ワークフロー success） |
 | **品質**       | ruff / mypy / pytest  | —          | lint / 型チェック / テスト   |
-|                | bandit                | —          | セキュリティ静的解析         |
-|                | Playwright            | latest     | E2E テスト（Chromium）       |
+|                | bandit / Trivy        | —          | セキュリティ静的解析 / コンテナスキャン（CRITICAL/HIGH=0） |
+|                | Playwright            | latest     | E2E テスト（Chromium / 212 件 pass） |
 |                | cva (class-variance-authority) | ^0.7.1 | UI バリアント管理    |
+
+---
+
+## 🧪 テスト状況（v1.1.0 最新）
+
+```mermaid
+pie title テスト件数構成（865 件以上）
+    "Playwright E2E" : 212
+    "Vitest unit" : 294
+    "pytest unit (ローカル)" : 187
+    "統合・Contract (Docker CI)" : 172
+```
+
+| テストスイート | 合格数 | 状態 | 実行環境 |
+| :--- | :---: | :---: | :--- |
+| 🎭 Playwright E2E | **212 / 212** | ✅ pass | CI（Chromium） |
+| ⚡ Vitest unit | **294 / 294** | ✅ pass | CI / ローカル |
+| 🧪 pytest unit | **187 / 187** | ✅ pass | ローカル（Redis 不要） |
+| 🐳 pytest backend | **365 以上** | ✅ pass | Docker Compose CI |
+| 📜 schemathesis Contract | **4 / 4** | ✅ pass | CI |
+| ⚡ k6 負荷テスト | P95 < 1s @100VU | ✅ SLO 達成 | Weekly CI |
+
+### CI ワークフロー一覧（全 success）
+
+| ワークフロー | 説明 | 状態 |
+| :--- | :--- | :---: |
+| backend-ci.yml | ruff / mypy / pytest / integration / bandit | ✅ |
+| frontend-ci.yml | vitest / build / type-check / lint | ✅ |
+| e2e.yml | Playwright E2E（30 ファイル） | ✅ |
+| security.yml | Trivy コンテナスキャン | ✅ |
+| codeql.yml | CodeQL 静的解析（Python / JS） | ✅ |
+| performance-test.yml | k6 SLO + pytest-benchmark（週次） | ✅ |
+| helm-lint.yml | Helm chart lint（strict） | ✅ |
+| release-deadline-check.yml | リリース残日数チェック（日次） | ✅ |
 
 ---
 
@@ -634,18 +676,67 @@ graph TD
 
 ---
 
-## 🌐 主要 URL（開発環境）
+## 🌐 主要 URL
+
+### 本番環境（Systemd 自動起動 servicehub.service）
+
+| サービス | URL | 備考 |
+| :--- | :--- | :--- |
+| 🖥️ WebUI | **http://192.168.0.185:3001** | OS 起動時に自動起動 |
+| 🔐 ログイン | admin@example.com / Admin123! | 管理者アカウント |
+| ⚙️ バックエンド API | http://192.168.0.185/api/v1 | — |
+| 📡 ヘルスチェック | http://192.168.0.185/health | liveness |
+| 🏥 Readiness | http://192.168.0.185/health/ready | DB + Redis 確認 |
+
+> Systemd サービス: `servicehub.service`（`systemctl status servicehub`で確認可）
+
+### 開発環境（Docker Compose）
 
 | サービス             | URL                              |
 | :------------------- | :------------------------------- |
 | 🖥️ フロントエンド     | http://localhost                 |
 | ⚙️ バックエンド API   | http://localhost/api/v1          |
-| 📖 API ドキュメント   | http://localhost/api/v1/docs     |
+| 📖 API ドキュメント   | http://localhost/api/v1/docs（本番では無効化） |
 | 📡 ヘルスチェック     | http://localhost/health          |
 | 🪣 MinIO Console     | http://localhost:9001            |
 | 📊 Grafana           | http://localhost:3001 (monitoring stack) |
 | 🔥 Prometheus        | http://localhost:9090 (monitoring stack) |
 | 🔔 Alertmanager      | http://localhost:9093 (monitoring stack) |
+
+---
+
+## 🔒 セキュリティ改善（v1.1.0）
+
+v1.1.0 保守フェーズで実施したセキュリティ強化の一覧です。
+
+| カテゴリ | 内容 | 対応バージョン |
+| :--- | :--- | :---: |
+| 🔑 JWT 検証強化 | アクセストークン種別チェック追加（`token_type: access` 必須）。リフレッシュトークンの誤用を防止 | v1.1.0 |
+| 📖 API ドキュメント制御 | 本番環境（`ENVIRONMENT=production`）では Swagger UI / ReDoc を自動無効化 | v1.1.0 |
+| 🧭 NavLink 設計改善 | `NavLink` コンポーネントの `to` prop バリデーション強化・型安全な実装に統一 | v1.1.0 |
+| 🗄️ Alembic マイグレーション | 全マイグレーション（`0001`〜`0010`）を head まで完全適用済み | v1.1.0 |
+| 🛡️ Trivy スキャン | コンテナイメージ全体で **CRITICAL/HIGH=0** 達成（nginx:1.27-alpine + apk upgrade） | v0.8.1+ |
+| 🚦 Rate Limiting | slowapi によるエンドポイント別レート制限（ログイン 5回/分・リフレッシュ 10回/分） | Phase 6e |
+| 🔍 CodeQL 静的解析 | GitHub CodeQL ワークフロー追加（Python / JavaScript 自動スキャン） | Phase 6e |
+
+```mermaid
+graph LR
+    subgraph Auth["認証セキュリティ"]
+        JWT["JWT 種別チェック\naccess / refresh 分離"]
+        RL["Rate Limiting\n slowapi"]
+        AUDIT["Audit Log\nuser_id 記録"]
+    end
+    subgraph Infra["インフラセキュリティ"]
+        TRIVY["Trivy コンテナスキャン\nCRITICAL/HIGH=0"]
+        CODEQL["CodeQL\n静的解析"]
+        DOCS["API Docs\n本番無効化"]
+    end
+    subgraph DB["DB セキュリティ"]
+        ALB["Alembic\n0010 head 完全適用"]
+        RBAC["RBAC\nロールベースアクセス制御"]
+    end
+    Auth --> Infra --> DB
+```
 
 ---
 
