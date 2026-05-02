@@ -3,7 +3,7 @@
 > 建設業向け統合業務プラットフォーム — FastAPI × React 18 × Docker で構築されたフルスタック SaaS
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docs.docker.com/compose/)
@@ -179,7 +179,7 @@ graph TB
 | 📊 Prometheus メトリクス | **有効**（`/metrics` エンドポイント / 全ルート RED メトリクス自動計測） |
 | ⚡ Web Vitals | **有効**（LCP / INP / CLS / TTFB / FCP / web-vitals v5） |
 | 🔒 STABLE 判定 | **達成**（Phase 8 STABLE完了 **v0.8.1** タグ付与 / 全CVE修正 / Phase 9a監視スタック✅ / Phase 9b k6 SLO✅ / Phase 9c Kubernetes Helm✅） |
-| 🛡️ Trivy セキュリティスキャン | **CRITICAL/HIGH=0 達成済** (Phase 8c v0.8.1 — python-jose 3.5.0 / python-multipart 0.0.26 / starlette 0.49.1 / fastapi 0.124.4 / nginx:1.27-alpine) |
+| 🛡️ Trivy セキュリティスキャン | **CRITICAL/HIGH=0 達成済** (Phase 8c v0.8.1 → v1.1.0保守中 — starlette 0.52.1 / fastapi 0.136.1 / openai 2.33.0 / nginx:1.27-alpine) |
 
 ### 🏗️ Backend アーキテクチャ
 
@@ -391,7 +391,7 @@ gantt
 |                | Zustand               | 4          | 軽量状態管理                 |
 |                | React Query           | 5          | サーバー状態管理             |
 |                | Axios                 | 1.x        | HTTP クライアント            |
-| **Backend**    | FastAPI               | 0.115      | ASGI Web フレームワーク      |
+| **Backend**    | FastAPI               | 0.136      | ASGI Web フレームワーク      |
 |                | Python                | 3.12       | バックエンド言語             |
 |                | SQLAlchemy            | 2          | ORM                          |
 |                | Alembic               | 1.x        | DB マイグレーション          |
