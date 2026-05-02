@@ -55,6 +55,8 @@ RUN rm -f /etc/nginx/conf.d/default.conf
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# Replace main nginx.conf to support non-root execution (user: "1000:1000" override)
+COPY docker/nginx-main.conf /etc/nginx/nginx.conf
 
 # nginx:alpine already has a curl-less HEALTHCHECK-compatible wget
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
