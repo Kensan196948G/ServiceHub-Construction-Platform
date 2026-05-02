@@ -386,7 +386,7 @@ export default function DashboardPage() {
             <Link to="/itsm" className="block">
               <StatCard
                 icon={<AlertCircle className="w-6 h-6" />}
-                title="未対応インシデント"
+                title="進行中インシデント"
                 value={kpi.incidents.open + kpi.incidents.in_progress}
                 colorScheme="red"
               />
