@@ -144,7 +144,7 @@ class NotificationDispatcher:
         context = {
             "user_name": user.full_name,
             "sent_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
-            "app_url": "https://servicehub.local",
+            "app_url": self.settings.APP_URL,
         }
         channels = channels or ["email"]
         deliveries: list[NotificationDelivery] = []

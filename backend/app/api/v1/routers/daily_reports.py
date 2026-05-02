@@ -15,6 +15,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
@@ -101,7 +102,7 @@ async def create_daily_report(
             "project_name": project_name,
             "submitted_by": current_user.full_name,
             "submitted_at": now_str,
-            "app_url": "https://servicehub.local",
+            "app_url": settings.APP_URL,
         },
     )
     return ApiResponse(data=report)

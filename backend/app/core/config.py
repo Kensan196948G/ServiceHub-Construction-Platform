@@ -3,9 +3,11 @@
 環境変数から自動読み込み（pydantic-settings）
 """
 
+import logging
+import warnings
 from functools import lru_cache
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +18,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
+    APP_URL: str = "https://servicehub.local"
 
     # DB設定
     DATABASE_URL: str = "postgresql+asyncpg://servicehub:password@db:5432/servicehub"
@@ -71,7 +74,24 @@ class Settings(BaseSettings):
     LOGIN_RATE_LIMIT: str = "5/minute"
     REFRESH_RATE_LIMIT: str = "10/minute"
 
+    # OpenAI API設定
+    OPENAI_API_KEY: str | None = None
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @model_validator(mode="after")
+    def warn_weak_secrets_in_production(self) -> "Settings":
+        _weak_jwt_key = "change-me-in-production-use-strong-random-key"  # noqa: S105
+        if self.ENVIRONMENT == "production" and self.JWT_SECRET_KEY == _weak_jwt_key:
+            warnings.warn(
+                "JWT_SECRET_KEY uses the default insecure value in production. "
+                "Set a strong random key via JWT_SECRET_KEY env var.",
+                stacklevel=2,
+            )
+            logging.getLogger(__name__).critical(
+                "SECURITY: JWT_SECRET_KEY is the default insecure value in production!"
+            )
+        return self
 
 
 @lru_cache

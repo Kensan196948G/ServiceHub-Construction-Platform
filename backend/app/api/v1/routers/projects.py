@@ -15,6 +15,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.models.user import User
@@ -137,7 +138,7 @@ async def update_project(
                 "new_status": payload.status,
                 "changed_by": current_user.full_name,
                 "changed_at": changed_at,
-                "app_url": "https://servicehub.local",
+                "app_url": settings.APP_URL,
             },
         )
     return ApiResponse(data=project)
