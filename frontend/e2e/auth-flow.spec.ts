@@ -35,7 +35,8 @@ test.describe("Authentication Flow", () => {
     test("stores access_token in localStorage after login (refreshToken is memory-only)", async ({
       page,
     }) => {
-      await setupAuthMocks(page);
+      // Use all mocks so dashboard API calls don't return 401 and trigger token refresh
+      await setupAllApiMocks(page);
       await loginViaUI(page);
 
       const state = await getAuthState(page);

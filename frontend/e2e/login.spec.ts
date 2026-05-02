@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { setupAuthMocks } from './fixtures/api-mocks'
+import { setupAuthMocks, setupAllApiMocks } from './fixtures/api-mocks'
 
 test.describe("Login Page", () => {
   test.beforeEach(async ({ page }) => {
+    // Clear persisted auth state so unauthenticated flow is guaranteed
+    await page.addInitScript(() => {
+      localStorage.removeItem("servicehub-auth");
+    });
     await page.goto("/login");
   });
 
@@ -53,7 +57,8 @@ test.describe("Login Page", () => {
   });
 
   test('login success navigates to dashboard', async ({ page }) => {
-    await setupAuthMocks(page)
+    // Use all mocks so dashboard API calls don't return unexpected status and trigger redirect
+    await setupAllApiMocks(page)
     await page.locator('#email').fill('test@example.com')
     await page.locator('#password').fill('password123')
     await page.getByRole('button', { name: 'ログイン' }).click()
