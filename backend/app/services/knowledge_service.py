@@ -10,6 +10,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.exceptions import NotFoundError
 from app.repositories.knowledge import AiSearchLogRepository, KnowledgeArticleRepository
 from app.schemas.knowledge import (
@@ -99,8 +100,6 @@ class KnowledgeService:
         max_results: int,
         user_id: uuid.UUID | None,
     ) -> AiSearchResponse:
-        import os
-
         start_time = time.time()
 
         # Keyword search
@@ -128,7 +127,7 @@ class KnowledgeService:
         model_used: str | None = None
         tokens_used: int | None = None
 
-        openai_key = os.getenv("OPENAI_API_KEY")
+        openai_key = settings.OPENAI_API_KEY
         if openai_key and articles:
             try:
                 import openai

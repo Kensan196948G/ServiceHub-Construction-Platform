@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.rbac import UserRole, require_roles
 from app.db.base import get_db
 from app.schemas.common import ApiResponse, PaginatedResponse, PaginationMeta
@@ -62,7 +63,7 @@ async def create_incident(
             "reported_by": current_user.full_name,
             "reported_at": now_str,
             "project_name": project_name,
-            "app_url": "https://servicehub.local",
+            "app_url": settings.APP_URL,
         },
     )
     return ApiResponse(
@@ -140,7 +141,7 @@ async def update_incident(
                 "assignee_name": str(payload.assigned_to),
                 "assigned_at": assigned_at,
                 "project_name": inc_project,
-                "app_url": "https://servicehub.local",
+                "app_url": settings.APP_URL,
             },
             explicit_user_ids=[payload.assigned_to],
         )
@@ -178,7 +179,7 @@ async def create_change(
             "requested_by": current_user.full_name,
             "requested_at": requested_at,
             "project_name": "ServiceHub",
-            "app_url": "https://servicehub.local",
+            "app_url": settings.APP_URL,
         },
     )
     return ApiResponse(

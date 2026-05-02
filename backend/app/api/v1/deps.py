@@ -32,12 +32,16 @@ async def get_current_user(
     )
 
     # Support token via query param for SSE (EventSource cannot set headers)
+    is_sse = credentials is None and token_query is not None
     raw_token = credentials.credentials if credentials else token_query
     if raw_token is None:
         raise credentials_exception
 
     token_data = verify_token(raw_token)
-    if token_data is None:
+    # SSE query-param path accepts any valid token type.
+    # Bearer path requires an access token specifically.
+    token_type = getattr(token_data, "type", None)
+    if token_data is None or (not is_sse and token_type != "access"):
         raise credentials_exception
 
     try:

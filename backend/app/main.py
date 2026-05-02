@@ -93,6 +93,8 @@ async def lifespan(app: FastAPI):  # type: ignore[override]
         logger.info("notification_retry_loop stopped")
 
 
+_is_development = settings.ENVIRONMENT != "production"
+
 app = FastAPI(
     title=settings.APP_NAME + " API",
     description="""
@@ -137,9 +139,9 @@ Authorization: Bearer {access_token}
 制限超過時は HTTP 429 が返されます。
 """,
     version=settings.APP_VERSION,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/api/v1/openapi.json",
+    docs_url="/docs" if _is_development else None,
+    redoc_url="/redoc" if _is_development else None,
+    openapi_url="/api/v1/openapi.json" if _is_development else None,
     lifespan=lifespan,
 )
 

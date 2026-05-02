@@ -46,6 +46,32 @@ type NavGroup = {
   items: NavItem[];
 };
 
+type NavLinkProps = NavItem & {
+  currentPathname: string;
+  onClose: () => void;
+};
+
+function NavLink({ to, icon: Icon, label, currentPathname, onClose }: NavLinkProps) {
+  const active = currentPathname.startsWith(to);
+  return (
+    <Link
+      to={to}
+      onClick={onClose}
+      className={clsx(
+        "flex items-center gap-3 px-3 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-60)]",
+        "min-h-[44px]",
+        active
+          ? "bg-[var(--brand-10)] text-[var(--brand-70)] font-semibold shadow-[inset_3px_0_0_var(--brand-60)]"
+          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+      )}
+      aria-current={active ? "page" : undefined}
+    >
+      <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+      <span>{label}</span>
+    </Link>
+  );
+}
+
 const ROUTE_LABELS: Record<string, string> = {
   "/dashboard":           "ダッシュボード",
   "/projects":            "工事案件",
@@ -147,27 +173,6 @@ export default function Layout() {
     navigate("/login");
   };
 
-  const NavLink = ({ to, icon: Icon, label }: NavItem) => {
-    const active = location.pathname.startsWith(to);
-    return (
-      <Link
-        to={to}
-        onClick={() => setSidebarOpen(false)}
-        className={clsx(
-          "flex items-center gap-3 px-3 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-60)]",
-          "min-h-[44px]",
-          active
-            ? "bg-[var(--brand-10)] text-[var(--brand-70)] font-semibold shadow-[inset_3px_0_0_var(--brand-60)]"
-            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
-        )}
-        aria-current={active ? "page" : undefined}
-      >
-        <Icon className="w-[18px] h-[18px] flex-shrink-0" />
-        <span>{label}</span>
-      </Link>
-    );
-  };
-
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Notification panel */}
@@ -220,7 +225,12 @@ export default function Layout() {
               </div>
               <div className="space-y-0.5">
                 {group.items.map((item) => (
-                  <NavLink key={item.to} {...item} />
+                  <NavLink
+                    key={item.to}
+                    {...item}
+                    currentPathname={location.pathname}
+                    onClose={() => setSidebarOpen(false)}
+                  />
                 ))}
               </div>
             </div>
