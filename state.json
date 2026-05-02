@@ -10,15 +10,15 @@
     "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
   },
   "phase": "Maintenance — v1.1.0 保守フェーズ (CI強化・技術負債解消)",
-  "loop": "Day30-Maintenance-PythonDepsUpdate-Complete",
-  "loop_count": 170,
-  "status": "STABLE — v1.1.0 保守中 / PR#188 merged (69a74c5): Python依存更新 / PR#191 merged (2329a19): frontend依存更新 / Open Issue 2 (#186,#189,#192)",
-  "last_updated": "2026-05-02T09:30:00+09:00",
+  "loop": "Day30-Maintenance-AllDepsUpdate-Complete",
+  "loop_count": 171,
+  "status": "STABLE — v1.1.0 保守中 / PR#193 merged (0e96778): openai 2.x+tiktoken+numpy+boto3 / Open Issue 2 (#186,#189,#194)",
+  "last_updated": "2026-05-02T09:15:00+09:00",
   "execution": {
     "start_time": "2026-05-02T08:30:01+09:00",
     "max_duration_minutes": 300,
     "session_deadline": "2026-05-02T13:30:01+09:00",
-    "phase": "Maintenance — Python/frontend依存更新完了 / Verify フェーズ",
+    "phase": "Maintenance — 全依存更新完了 / Verify フェーズ",
     "auto_stop_threshold": 5,
     "graceful_shutdown": true,
     "current_session_start_at": "2026-05-02T08:30:01+09:00",
@@ -243,22 +243,23 @@
     }
   },
   "resume_point": {
-    "action": "openai 2.x 移行 (Issue #192) / メジャー更新調査 (Issue #189) / @lhci/cli 監視継続 (Issue #186)",
+    "action": "minio/hiredis/asyncpg 更新 (Issue #194) / メジャー更新調査 (Issue #189) / @lhci/cli 監視継続 (Issue #186)",
     "branch": "main",
-    "main_head": "69a74c5",
-    "next_phase": "保守フェーズ継続 / openai 2.x 移行 PR作成 / 2026-10-03本番リリースまで残約154日",
-    "pr191_merged": "PR#191 (2329a19): frontend パッチ依存更新 — @tanstack/react-query/postcss/react-hook-form 等 (全CI通過)",
-    "pr188_merged": "PR#188 (69a74c5): Python依存更新 — fastapi 0.136.1/starlette 0.52.1/uvicorn 0.46.0/sqlalchemy 2.0.49等 + httpx 0.28.x ASGITransport移行 (全CI通過)",
+    "main_head": "0e96778",
+    "next_phase": "保守フェーズ継続 / minio/hiredis/asyncpg 更新 (Issue #194) / 2026-10-03本番リリースまで残約154日",
+    "pr193_merged": "PR#193 (0e96778): openai 2.33.0 / tiktoken 0.12.0 / numpy 2.2.6 / boto3 1.43.2 (全CI通過)",
+    "pr191_merged": "PR#191 (2329a19): frontend パッチ依存更新 — @tanstack/react-query 5.100.7 等",
+    "pr188_merged": "PR#188 (69a74c5): Python依存更新 — fastapi 0.136.1 / starlette 0.52.1 / uvicorn 0.46.0 等 + httpx ASGITransport移行",
     "npm_audit_status": "critical 0, high 0, moderate 2, low 3 (全て @lhci/cli 間接依存 / 非緊急)",
     "python_audit_status": "直接依存は安全 (pip-audit はグローバル環境を検出) / CI Trivy CRITICAL/HIGH=0",
     "pending_major_upgrades": [
-      "openai 1.x → 2.x (Issue #192 / 調査済み 互換性あり)",
       "starlette 0.52.1 → 1.0.0 (Issue #189)",
       "redis 5.x → 7.x (Issue #189)",
       "pytest-asyncio 0.x → 1.x (Issue #189)",
-      "React 19 / vitest 4.x / tailwind v4 / zod 4 / vite 8.x (Issue #189)"
+      "React 19 / vitest 4.x / tailwind v4 / zod 4 / vite 8.x (Issue #189)",
+      "aiosmtplib 3.x → 5.x 調査 (Issue #194)"
     ],
-    "pending_issues": ["#186 (P3 @lhci/cli 脆弱性追跡)", "#189 (P3 メジャー更新調査)", "#192 (P3 openai 2.x 移行)"]
+    "pending_issues": ["#186 (P3 @lhci/cli 脆弱性追跡)", "#189 (P3 メジャー更新調査)", "#194 (P3 残存依存更新)"]
   },
   "phase6_plan": {
     "kickoff_at": "2026-04-24",
