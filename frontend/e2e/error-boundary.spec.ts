@@ -90,7 +90,7 @@ test.describe("ErrorBoundary", () => {
     await expect(page.getByTestId("error-boundary-fallback")).not.toBeVisible({ timeout: 5_000 });
 
     // Can still navigate to other pages
-    await page.getByRole("link", { name: "設定" }).click();
+    await page.getByRole("link", { name: "設定", exact: true }).click();
     await page.waitForURL("**/settings");
     await expect(page.getByRole("heading", { name: "設定", level: 1 })).toBeVisible({
       timeout: 10_000,

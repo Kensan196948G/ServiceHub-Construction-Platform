@@ -18,10 +18,10 @@ const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
 const NotificationDeliveriesPage = lazy(
   () => import("@/pages/notifications/NotificationDeliveriesPage"),
 );
-const PortalPage = lazy(() => import("@/pages/internal/PortalPage"));
-const NoticesPage = lazy(() => import("@/pages/internal/NoticesPage"));
-const HRPage = lazy(() => import("@/pages/internal/HRPage"));
-const RulesPage = lazy(() => import("@/pages/internal/RulesPage"));
+const SchedulePage = lazy(() => import("@/pages/schedule/SchedulePage"));
+const MaterialsPage = lazy(() => import("@/pages/materials/MaterialsPage"));
+const SubcontractorsPage = lazy(() => import("@/pages/subcontractors/SubcontractorsPage"));
+const EstimatesPage = lazy(() => import("@/pages/estimates/EstimatesPage"));
 
 function PageFallback() {
   return (
@@ -64,10 +64,10 @@ export default function App() {
             path="admin/notifications"
             element={<NotificationDeliveriesPage />}
           />
-          <Route path="portal" element={<PortalPage />} />
-          <Route path="notices" element={<NoticesPage />} />
-          <Route path="hr" element={<HRPage />} />
-          <Route path="rules" element={<RulesPage />} />
+          <Route path="schedule" element={<SchedulePage />} />
+          <Route path="materials" element={<MaterialsPage />} />
+          <Route path="subcontractors" element={<SubcontractorsPage />} />
+          <Route path="estimates" element={<EstimatesPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>

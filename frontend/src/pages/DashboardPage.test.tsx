@@ -61,8 +61,8 @@ describe("DashboardPage", () => {
 
     renderPage();
 
-    // ユーザー名の挨拶が表示される
-    expect(screen.getByText(/こんにちは/)).toBeInTheDocument();
+    // ユーザー名の挨拶が表示される（時刻により変わる）
+    expect(screen.getByText(/おはようございます|こんにちは|お疲れ様です/)).toBeInTheDocument();
   });
 
   it("KPIデータが取得できた場合に統計カードが表示される", () => {
@@ -90,8 +90,8 @@ describe("DashboardPage", () => {
 
     renderPage();
 
-    expect(screen.getByText(/こんにちは/)).toBeInTheDocument();
-    expect(screen.getByText("ServiceHub 工事管理プラットフォーム")).toBeInTheDocument();
+    expect(screen.getByText(/おはようございます|こんにちは|お疲れ様です/)).toBeInTheDocument();
+    expect(screen.getByText(/テストユーザーさん/)).toBeInTheDocument();
   });
 
   it("KPIエラー時はエラーメッセージが表示される", () => {

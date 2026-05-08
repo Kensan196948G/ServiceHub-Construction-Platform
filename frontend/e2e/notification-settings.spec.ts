@@ -59,7 +59,7 @@ async function goToSettingsWithPrefs(
 ) {
   await loginAndNavigate(page);
   await mockNotificationPreferencesApi(page, opts);
-  await page.getByRole("link", { name: "設定" }).click();
+  await page.getByRole("link", { name: "設定", exact: true }).click();
   await page.waitForURL("**/settings");
   await expect(
     page.getByRole("heading", { name: "設定", level: 1 }),
