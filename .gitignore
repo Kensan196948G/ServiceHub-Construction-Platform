@@ -52,6 +52,11 @@ Thumbs.db
 # ── Claude Code (local dev config) ───────────────────
 .claude/
 
+# ── Codex CLI / Agents (local dev config) ────────────
+.agents/
+.codex/
+AGENTS.md
+
 # ── ログ ─────────────────────────────────────────────
 *.log
 logs/
