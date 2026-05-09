@@ -31,6 +31,20 @@ test.describe('Dashboard', () => {
   })
 
   test('shows quick actions', async ({ page }) => {
-    await expect(page.getByText('クイックアクション')).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 3, name: '現場クイックアクション' })
+    ).toBeVisible()
+  })
+
+  test('shows time-of-day greeting with user name', async ({ page }) => {
+    await expect(
+      page.getByRole('heading', { level: 2, name: /(おはようございます|こんにちは|お疲れ様です)、.+さん$/ })
+    ).toBeVisible({ timeout: 10_000 })
+  })
+
+  test('renders 原価予実対比 SVG chart with accessible name', async ({ page }) => {
+    await expect(
+      page.getByRole('img', { name: '原価予実対比チャート' })
+    ).toBeVisible({ timeout: 10_000 })
   })
 })
