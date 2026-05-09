@@ -2,8 +2,9 @@ import { test, expect } from '@playwright/test'
 import { loginAndNavigate, MOCK_KPI } from './fixtures/api-mocks'
 
 // E2E for the Dashboard route introduced in PR #199 (Dashboard v2).
-// Covers stat cards, KPI error banner, and the three Dashboard v2 surfaces added in PR #203:
-// time-of-day greeting (h2), 原価予実対比 SVG chart (role=img), and 現場クイックアクション (h3).
+// Covers stat cards, KPI error banner, the three Dashboard v2 surfaces added in PR #203
+// (greeting h2 / 原価予実対比 SVG / 現場クイックアクション h3), and the three remaining
+// Dashboard v2 h3 sections added in this PR: 進捗率 — 主要案件, 最近の工事案件, 注意インシデント.
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await loginAndNavigate(page)
@@ -48,6 +49,25 @@ test.describe('Dashboard', () => {
   test('renders 原価予実対比 SVG chart with accessible name', async ({ page }) => {
     await expect(
       page.getByRole('img', { name: '原価予実対比チャート' })
+    ).toBeVisible({ timeout: 10_000 })
+  })
+
+  test('shows 進捗率 — 主要案件 progress chart heading', async ({ page }) => {
+    // The em dash (U+2014) in the heading must be matched literally; a hyphen-minus will not match.
+    await expect(
+      page.getByRole('heading', { level: 3, name: '進捗率 — 主要案件' })
+    ).toBeVisible({ timeout: 10_000 })
+  })
+
+  test('shows 最近の工事案件 recent projects table heading', async ({ page }) => {
+    await expect(
+      page.getByRole('heading', { level: 3, name: '最近の工事案件' })
+    ).toBeVisible({ timeout: 10_000 })
+  })
+
+  test('shows 注意インシデント recent incidents heading', async ({ page }) => {
+    await expect(
+      page.getByRole('heading', { level: 3, name: '注意インシデント' })
     ).toBeVisible({ timeout: 10_000 })
   })
 })
