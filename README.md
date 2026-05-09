@@ -744,6 +744,39 @@ graph LR
 
 ---
 
+## 🔄 依存メンテナンス履歴（v1.1.0 後・継続中）
+
+v1.1.0 リリース後の保守フェーズで実施した依存更新の記録です。**CRITICAL / HIGH = 0** を維持しつつ、CVE patch・semver patch/minor・メジャー更新を分離して進めています。
+
+### 2026-05-09 セッション成果（dep hygiene 4 軸消化）
+
+| PR | スコープ | 内容 | merge SHA |
+| :---: | :--- | :--- | :--- |
+| [#210](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/pull/210) | 🐍 backend patch | Jinja2 **3.1.6** (CVE-2025-27516 sandbox escape) / pydantic 2.13.4 / pydantic-settings 2.14.1 / boto3 1.43.6 / psycopg2-binary 2.9.12 / pytest-timeout 2.4.0 | `708be45` |
+| [#212](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/pull/212) | 🐍 backend major | **pytest-asyncio 0.24.0 → 1.3.0** (Issue#189 残課題消化 / `asyncio_default_fixture_loop_scope=function` 既設で 1.x Breaking Change 影響ゼロ) | `a5d57cb` |
+| [#214](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/pull/214) | ⚛️ frontend patch/minor | zustand 5.0.13 + @vitejs/plugin-react 5.2.0 (`npm update --save` semver-caret 自動 bump) | `a534270` |
+| [#216](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/pull/216) | ⚛️ frontend exact-pin | react-hook-form 7.75.0 / @typescript-eslint/* 8.59.2 / postcss 8.5.14 / @tanstack/react-query 5.100.9（exact-pin 5 件を手動 bump） | `4c44018` |
+
+### v1.1.0 以後の保守 PR 抜粋
+
+| PR | 内容 |
+| :---: | :--- |
+| [#199](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/pull/199) | python-multipart **0.0.27** (CVE-2026-42561 DoS patch) + Dashboard v2 + 4 新ページ |
+| [#202](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/pull/202) | Estimates / Materials / Schedule / Subcontractors の最小 E2E spec |
+| [#207](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/pull/207) | Dashboard 未カバー h3 セクション 3 件 (進捗率 — 主要案件 / 最近の工事案件 / 注意インシデント) |
+| [#208](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/pull/208) | README E2E カバレッジ数値整合 (212 → 221 件) |
+
+### 既知の保留事項（全 P3）
+
+| Issue | 状況 |
+| :---: | :--- |
+| [#186](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/issues/186) | `@lhci/cli` 依存チェーンの low/moderate 脆弱性 — **upstream 修正待ち**（自身の本体には影響なし） |
+| [#189](https://github.com/Kensan196998G/ServiceHub-Construction-Platform/issues/189) | メジャー更新調査 (starlette 1.x / redis 7.x / React 19 / vitest 4 / tailwind v4 / zod 4 / vite 8) — **互換性差分の調査中・分離スプリントで対応** |
+
+> 💡 **方針**: patch/minor は本セッションのように適宜まとめて適用、メジャーは Issue 単位で blast radius を限定。CRITICAL/HIGH の CVE は即座に patch する（PR#199 / PR#210 が該当）。
+
+---
+
 ## 📊 監視スタック（Phase 9a）
 
 Prometheus + Grafana + Alertmanager による本番監視基盤を提供します。
