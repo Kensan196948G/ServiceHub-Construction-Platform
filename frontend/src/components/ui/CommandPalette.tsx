@@ -8,20 +8,27 @@ type ProjectItem = { type: "project"; label: string; sub: string; target: string
 type IncidentItem = { type: "incident"; label: string; sub: string; target: string; kw: string };
 type Item = NavItem | ProjectItem | IncidentItem;
 
+// Synced with Layout.tsx navigation groups (業務 / 運用 / 現場・取引 / 管理).
+// /users is admin-only and intentionally omitted (matches historical CommandPalette behavior).
 const BASE_ITEMS: Item[] = [
-  { type: "nav", label: "ダッシュボード",   target: "/dashboard",  kw: "dashboard ホーム 概要" },
-  { type: "nav", label: "工事案件一覧",     target: "/projects",   kw: "案件 プロジェクト 工事" },
-  { type: "nav", label: "日報",             target: "/reports",    kw: "日報 daily" },
-  { type: "nav", label: "写真管理",         target: "/photos",     kw: "写真 フォト" },
-  { type: "nav", label: "安全品質",         target: "/safety",     kw: "安全 KY 危険予知 品質" },
-  { type: "nav", label: "原価管理",         target: "/cost",       kw: "原価 コスト 予実" },
-  { type: "nav", label: "ITSM",            target: "/itsm",       kw: "インシデント 変更 ITSM" },
-  { type: "nav", label: "ナレッジ",         target: "/knowledge",  kw: "ナレッジ wiki" },
-  { type: "nav", label: "社内ポータル",     target: "/portal",     kw: "ポータル 社内" },
-  { type: "nav", label: "お知らせ",         target: "/notices",    kw: "お知らせ 掲示板" },
-  { type: "nav", label: "人事・勤怠",       target: "/hr",         kw: "人事 勤怠 HR" },
-  { type: "nav", label: "社内規程",         target: "/rules",      kw: "規程 手続き" },
-  { type: "nav", label: "設定",             target: "/settings",   kw: "設定 プロフィール" },
+  // 業務
+  { type: "nav", label: "ダッシュボード",     target: "/dashboard",           kw: "dashboard ホーム 概要" },
+  { type: "nav", label: "工事案件一覧",       target: "/projects",            kw: "案件 プロジェクト 工事" },
+  { type: "nav", label: "日報",               target: "/reports",             kw: "日報 daily" },
+  { type: "nav", label: "写真管理",           target: "/photos",              kw: "写真 フォト" },
+  // 運用
+  { type: "nav", label: "安全品質",           target: "/safety",              kw: "安全 KY 危険予知 品質" },
+  { type: "nav", label: "原価管理",           target: "/cost",                kw: "原価 コスト 予実" },
+  { type: "nav", label: "ITSM",               target: "/itsm",                kw: "インシデント 変更 ITSM" },
+  { type: "nav", label: "ナレッジ",           target: "/knowledge",           kw: "ナレッジ wiki" },
+  // 現場・取引
+  { type: "nav", label: "工程・スケジュール", target: "/schedule",            kw: "工程 スケジュール 進捗 schedule" },
+  { type: "nav", label: "資材・在庫",         target: "/materials",           kw: "資材 在庫 マテリアル material" },
+  { type: "nav", label: "協力会社・職人",     target: "/subcontractors",      kw: "協力会社 職人 業者 subcontractor" },
+  { type: "nav", label: "見積・請求",         target: "/estimates",           kw: "見積 請求 estimate invoice" },
+  // 管理
+  { type: "nav", label: "通知設定",           target: "/admin/notifications", kw: "通知 設定 配信 notification" },
+  { type: "nav", label: "設定",               target: "/settings",            kw: "設定 プロフィール" },
 ];
 
 const TYPE_LABEL: Record<Item["type"], string> = {
