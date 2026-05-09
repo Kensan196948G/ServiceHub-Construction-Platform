@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test'
 import { loginAndNavigate, MOCK_KPI } from './fixtures/api-mocks'
 
+// E2E for the Dashboard route introduced in PR #199 (Dashboard v2).
+// Covers stat cards, KPI error banner, and the three Dashboard v2 surfaces added in PR #203:
+// time-of-day greeting (h2), 原価予実対比 SVG chart (role=img), and 現場クイックアクション (h3).
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await loginAndNavigate(page)
