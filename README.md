@@ -12,7 +12,7 @@
 [![Backend CI](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/backend-ci.yml?branch=main&label=Backend%20CI&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/backend-ci.yml)
 [![Security Scan](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/security.yml?branch=main&label=Security%20Scan&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/security.yml)
 [![Frontend CI](https://img.shields.io/github/actions/workflow/status/Kensan196948G/ServiceHub-Construction-Platform/frontend-ci.yml?branch=main&label=Frontend%20CI&style=flat-square&logo=github)](https://github.com/Kensan196948G/ServiceHub-Construction-Platform/actions/workflows/frontend-ci.yml)
-[![E2E Tests](https://img.shields.io/badge/E2E-212%2F212%20pass-brightgreen?style=flat-square&logo=playwright)](https://playwright.dev/)
+[![E2E Tests](https://img.shields.io/badge/E2E-221%2F221%20pass-brightgreen?style=flat-square&logo=playwright)](https://playwright.dev/)
 [![Vitest](https://img.shields.io/badge/Vitest-294%2F294%20pass-brightgreen?style=flat-square&logo=vitest)](https://vitest.dev/)
 [![pytest](https://img.shields.io/badge/pytest-365%2B%20pass-brightgreen?style=flat-square&logo=pytest)](https://pytest.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
@@ -165,7 +165,7 @@ graph TB
 | 🧪 Backend テスト（Docker CI） | **365+ pass**（統合テスト含む / Phase 6b #152 auth/cost/photos/safety/contract 全ドメイン） |
 | 📜 Contract テスト | **4 件**（schemathesis OpenAPI 整合性 / 全エンドポイントでサーバーエラー 0） |
 | 🧪 Frontend Vitest | **294/294 pass**（vitest / 44 テストファイル / coverage **88%** / Phase 5e-3〜5e-5 +24 件） |
-| 🎭 E2E テスト（Playwright） | **212/212 pass**（30 テストファイル + fullstack 2 ファイル / 認証・CRUD・通知・AI検索） |
+| 🎭 E2E テスト（Playwright） | **221/221 pass**（33 テストファイル + fullstack 2 ファイル / 認証・CRUD・通知・AI検索・Dashboard v2 + 4 新ページ） |
 | ⚡ 負荷テスト | **k6 スクリプト + pytest-benchmark**（Phase 7a — health 5VU 30s / API 0→20→0VU ramping / error_rate<1% / p95<500ms） |
 | 📊 総テスト数 | **865 件以上**（Backend + Integration + Contract + Frontend + E2E + Fullstack） |
 | 🖥️ フロントエンドページ | **17 ページ**（Phase 5e-1 社内グループ新設: Portal / Notices / HR / Rules +4） |
@@ -295,7 +295,11 @@ graph LR
 | :--- | :---: | :--- |
 | `login.spec.ts` | 6 | 認証成功・失敗・ダッシュボード遷移・フォーム表示 |
 | `navigation.spec.ts` | 4 | 認証済みページナビゲーション |
-| `dashboard.spec.ts` | 4 | KPI StatCard 表示・エラーバナー・クイックアクション |
+| `dashboard.spec.ts` | 9 | KPI StatCard・プロジェクト合計・エラーバナー・クイックアクション・時刻挨拶 (h2)・原価予実対比 SVG・進捗率 — 主要案件 (h3)・最近の工事案件 (h3)・注意インシデント (h3) |
+| `estimates.spec.ts` | 1 | 見積・請求ページ smoke (h1) (PR#199 追加 / PR#202 で E2E) |
+| `materials.spec.ts` | 1 | 資材・在庫ページ smoke (h1) (PR#199 追加 / PR#202 で E2E) |
+| `schedule.spec.ts` | 1 | 工程・スケジュールページ smoke (h1) (PR#199 追加 / PR#202 で E2E) |
+| `subcontractors.spec.ts` | 1 | 協力会社・職人ページ smoke (h1) (PR#199 追加 / PR#202 で E2E) |
 | `projects.spec.ts` | 3 | 案件一覧・新規ボタン・ステータスバッジ |
 | `reports.spec.ts` | 10 | 日報一覧・フィルタ・ページネーション・空状態 |
 | `safety.spec.ts` | 11 | 安全チェック・品質検査タブ・一覧・統計 |
@@ -324,7 +328,7 @@ graph LR
 | `mobile-responsive.spec.ts` | 3 | モバイルレスポンシブ表示 |
 | `fullstack/fullstack-auth.spec.ts` | 5 | フルスタック認証フロー (Phase 7b) |
 | `fullstack/fullstack-workflow.spec.ts` | 10 | フルスタック業務ワークフロー (Phase 7b) |
-| **合計** | **212** | **全17ページ E2E + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル + 社内グループ + フルスタック(Phase 7b)** |
+| **合計** | **221** | **全17ページ E2E + Dashboard v2 + 4 新ページ (見積/資材/工程/協力会社) + CRUD + 認証フロー + AI検索 + エラー境界 + 通知設定 + 通知パネル + 社内グループ + フルスタック(Phase 7b)** |
 
 ---
 
@@ -412,7 +416,7 @@ gantt
 | **CI/CD**      | GitHub Actions        | —          | 自動テスト / セキュリティスキャン（全ワークフロー success） |
 | **品質**       | ruff / mypy / pytest  | —          | lint / 型チェック / テスト   |
 |                | bandit / Trivy        | —          | セキュリティ静的解析 / コンテナスキャン（CRITICAL/HIGH=0） |
-|                | Playwright            | latest     | E2E テスト（Chromium / 212 件 pass） |
+|                | Playwright            | latest     | E2E テスト（Chromium / 221 件 pass） |
 |                | cva (class-variance-authority) | ^0.7.1 | UI バリアント管理    |
 
 ---
@@ -421,7 +425,7 @@ gantt
 
 ```mermaid
 pie title テスト件数構成（865 件以上）
-    "Playwright E2E" : 212
+    "Playwright E2E" : 221
     "Vitest unit" : 294
     "pytest unit (ローカル)" : 187
     "統合・Contract (Docker CI)" : 172
@@ -429,7 +433,7 @@ pie title テスト件数構成（865 件以上）
 
 | テストスイート | 合格数 | 状態 | 実行環境 |
 | :--- | :---: | :---: | :--- |
-| 🎭 Playwright E2E | **212 / 212** | ✅ pass | CI（Chromium） |
+| 🎭 Playwright E2E | **221 / 221** | ✅ pass | CI（Chromium） |
 | ⚡ Vitest unit | **294 / 294** | ✅ pass | CI / ローカル |
 | 🧪 pytest unit | **187 / 187** | ✅ pass | ローカル（Redis 不要） |
 | 🐳 pytest backend | **365 以上** | ✅ pass | Docker Compose CI |
