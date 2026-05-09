@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { loginAndNavigate } from "./fixtures/api-mocks";
 
+// Smoke tests for the four "Site & Trade" group pages introduced in PR #199 (Dashboard v2):
+// /schedule, /materials, /subcontractors, /estimates. Verifies each route renders its h1 heading.
 test.describe("現場・取引グループ 4 ページ smoke", () => {
   test("工程・スケジュール: 見出しが表示される", async ({ page }) => {
     await loginAndNavigate(page);
