@@ -7,36 +7,43 @@
     "duration_months": 6,
     "execution_method": "Linux Cron (Mon-Sat, 5h/session)",
     "release_policy": "半年後の本番リリース絶対厳守。残日数による自動縮退: <=30日 Improvement縮退 / <=14日 新機能開発禁止 / <=7日 リリース準備のみ",
-    "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)"
+    "phase_flexibility": "Monitor/Development/Verify/Improvement の配分は進捗に応じて CTO 判断で自由変更可 (リリース期限制約の下で)",
+    "start_date": "2026-05-12",
+    "phase_mode": "development"
   },
-  "phase": "Maintenance — v1.1.0 保守フェーズ (CI強化・技術負債解消)",
-  "loop": "Day30-Maintenance-250Item-FullVerify-Complete",
-  "loop_count": 177,
-  "status": "PR#199 merged (a9cbecc) / python-multipart 0.0.27 (CVE-2026-42561 patch) / .gitignore Codex/Agents / 250項目フルスタック検証待機",
-  "last_updated": "2026-05-09T09:30:00+09:00",
+  "phase": "Maintenance — v1.1.0 保守フェーズ / Legal Tech 統合 Epic 計画中",
+  "loop": "Day34-Maintenance-LegalIntegration-Planning",
+  "loop_count": 178,
+  "status": "main 3586a3b / PR#199-208+#210-#224 merged / open PR=0 / Legal Tech (建設業法/下請法/労働安全衛生法) 14モジュール統合 Epic 計画開始",
+  "last_updated": "2026-05-13T15:52:00+09:00",
   "execution": {
-    "start_time": "2026-05-09T08:30:02+09:00",
+    "start_time": "2026-05-13T15:52:02+09:00",
     "max_duration_minutes": 300,
-    "session_deadline": "2026-05-09T13:30:02+09:00",
-    "phase": "Verify — PR#199 Trivy fail を python-multipart 0.0.27 で解消、CI 再実行、merge 待機",
+    "session_deadline": "2026-05-13T20:52:02+09:00",
+    "phase": "Build — CLAUDE.md v9.0 commit + Legal Tech 統合 Epic Issue 起票 + 設計メモ作成 + Phase1 P1 子Issue 3件起票",
     "auto_stop_threshold": 5,
     "graceful_shutdown": true,
-    "current_session_start_at": "2026-05-09T08:30:02+09:00",
-    "last_trigger": "cron",
+    "current_session_start_at": "2026-05-13T06:52:02.809Z",
+    "last_trigger": "manual",
     "last_cron_session_id": "20260509-083002-ServiceHub-Construction-Platform",
     "previous_session_id": "20260427-210230-ServiceHub-Construction-Platform",
-    "last_stop_at": "2026-05-08T23:52:52.717Z"
+    "last_stop_at": "2026-05-08T23:52:52.717Z",
+    "repair_count": 0,
+    "max_repair": 3,
+    "same_error_limit": 2
   },
-  "goal": {
-    "title": "Phase 10 — ドキュメント整備・最終リリース (v1.1.0)"
-  },
+  "goal": "Phase 10 — ドキュメント整備・最終リリース (v1.1.0)",
   "kpi": {
     "success_rate_target": 0.9,
     "backend_coverage_target": 0.9,
     "backend_coverage_actual": 0.95,
     "frontend_coverage_target": 0.85,
     "frontend_coverage_actual": 0.88,
-    "status": "EXCEEDED (Phase 5 baseline) — Phase 6 KPI は integration / E2E 拡張で再定義予定"
+    "status": "EXCEEDED (Phase 5 baseline) — Phase 6 KPI は integration / E2E 拡張で再定義予定",
+    "ci_success_rate": 0,
+    "test_pass_rate": 0,
+    "security_critical": 0,
+    "blocker_count": 0
   },
   "automation": {
     "auto_issue_generation": true,
@@ -45,7 +52,7 @@
   "development_plan": {
     "start_date": "2026-04-03",
     "release_date": "2026-10-03",
-    "days_remaining": 162,
+    "days_remaining": 143,
     "current_phase": "Phase 6 — 品質強化 + 本番リリース準備",
     "current_sprint": "Sprint 7",
     "schedule": "Mon-Sat cron / 1 session 300min",
@@ -244,10 +251,10 @@
     }
   },
   "resume_point": {
-    "action": "prometheus-fastapi-instrumentator starlette 1.0.0 対応版リリース監視 / aiosmtplib 調査 / @lhci/cli 監視継続",
+    "action": "Legal Tech 統合 Epic 起票 / Phase1 P1 子Issue 3件起票 / docs/design/legal-integration.md 作成 / prometheus-fastapi-instrumentator starlette 1.0.0 対応版リリース監視 / aiosmtplib 調査 / @lhci/cli 監視継続",
     "branch": "main",
-    "main_head": "d39e7ef",
-    "next_phase": "保守フェーズ継続 / prometheus-fastapi-instrumentator 更新後に starlette 1.0.0 移行 / 2026-10-03本番リリースまで残約154日",
+    "main_head": "3586a3b",
+    "next_phase": "Legal Tech 統合 Phase 1 (W1-3) — legal/contracts.py 新設 / projects.py 法的ステータス強化 / itsm.py 法務承認WF / 2026-10-03本番リリースまで残143日",
     "starlette_1x_blocker": "prometheus-fastapi-instrumentator 7.1.0 が starlette<1.0.0 を要求するため移行不可。PFI の starlette 1.x 対応版リリースを監視。",
     "pr195_merged": "PR#195 (b84daba): asyncpg 0.31.0 / hiredis 3.3.1 / minio 7.2.20 (全CI通過)",
     "pr193_merged": "PR#193 (0e96778): openai 2.33.0 / tiktoken 0.12.0 / numpy 2.2.6 / boto3 1.43.2",
@@ -424,7 +431,7 @@
     }
   },
   "compact": {
-    "last_pre_compact_at": "2026-05-08T23:56:09.953Z"
+    "last_pre_compact_at": "2026-05-13T06:50:32.134Z"
   },
   "dreaming": {
     "patterns": [],
@@ -432,5 +439,21 @@
     "recurring_mistakes": [],
     "last_dreaming_run": null,
     "dreaming_enabled": false
+  },
+  "completed_issues": [],
+  "blocked_issues": [],
+  "learning": {
+    "failure_patterns": [],
+    "success_patterns": []
+  },
+  "quality_gates": {
+    "lint": {
+      "warning_threshold": 10,
+      "error_threshold": 0
+    },
+    "coverage": {
+      "line_min": 70,
+      "changed_files_min": 80
+    }
   }
 }

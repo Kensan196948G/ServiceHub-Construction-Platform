@@ -73,3 +73,7 @@ logs/
 # ── Helm ─────────────────────────────────────────────
 charts/servicehub/charts/*.tgz
 charts/servicehub/Chart.lock
+
+# ── State backup (一時) ──────────────────────────────
+state.json.bak.*
+
